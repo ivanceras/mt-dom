@@ -59,6 +59,34 @@ pub enum Patch<'a, NS, TAG, ATT, VAL> {
     ChangeText(NodeIdx, &'a str),
 }
 
+impl<'a, NS, TAG, ATT, VAL> Patch<'a, NS, TAG, ATT, VAL> {
+    /// Every Patch is meant to be applied to a specific node within the DOM. Get the
+    /// index of the DOM node that this patch should apply to. DOM nodes are indexed
+    /// depth first with the root node in the tree having index 0.
+    pub fn node_idx(&self) -> NodeIdx {
+        match self {
+            Patch::AppendChildren(_tag, node_idx, _) => *node_idx,
+            Patch::TruncateChildren(_tag, node_idx, _) => *node_idx,
+            Patch::Replace(_tag, node_idx, _) => *node_idx,
+            Patch::AddAttributes(_tag, node_idx, _) => *node_idx,
+            Patch::RemoveAttributes(_tag, node_idx, _) => *node_idx,
+            Patch::ChangeText(node_idx, _) => *node_idx,
+        }
+    }
+
+    /// return the tag of this patch
+    pub fn tag(&self) -> Option<&TAG> {
+        match self {
+            Patch::AppendChildren(tag, _node_idx, _) => Some(tag),
+            Patch::TruncateChildren(tag, _node_idx, _) => Some(tag),
+            Patch::Replace(tag, _node_idx, _) => Some(tag),
+            Patch::AddAttributes(tag, _node_idx, _) => Some(tag),
+            Patch::RemoveAttributes(tag, _node_idx, _) => Some(tag),
+            Patch::ChangeText(_node_idx, _) => None,
+        }
+    }
+}
+
 /// calculate the difference of 2 nodes
 /// the supplied key will be taken into account
 /// that if the 2 keys differ, the element will be replaced without having to traverse the children
@@ -77,6 +105,8 @@ where
     diff_recursive(old, new, &mut 0, key)
 }
 
+/// utility function to recursively increment the node_idx baed on the node tree which depends on the children
+/// count
 fn increment_node_idx_for_children<TAG, NS, ATT, VAL>(
     old: &Node<TAG, NS, ATT, VAL>,
     cur_node_idx: &mut usize,

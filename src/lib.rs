@@ -13,7 +13,7 @@ pub use node::attribute::{attr, attr_ns};
 pub use node::Attribute;
 pub use node::Element;
 pub use node::Node;
-pub use node::{element, element_ns};
+pub use node::{element, element_ns, text};
 
 mod diff;
 mod node;

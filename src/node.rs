@@ -136,6 +136,7 @@ where
 }
 
 /// create a virtual node with tag, attrs and children
+#[inline]
 pub fn element<NS, TAG, ATT, VAL>(
     tag: TAG,
     attrs: Vec<Attribute<NS, ATT, VAL>>,
@@ -145,6 +146,7 @@ pub fn element<NS, TAG, ATT, VAL>(
 }
 
 /// create a virtual node with namespace, tag, attrs and children
+#[inline]
 pub fn element_ns<NS, TAG, ATT, VAL>(
     namespace: Option<NS>,
     tag: TAG,
@@ -152,4 +154,14 @@ pub fn element_ns<NS, TAG, ATT, VAL>(
     children: Vec<Node<NS, TAG, ATT, VAL>>,
 ) -> Node<NS, TAG, ATT, VAL> {
     Node::Element(Element::new(namespace, tag, attrs, children))
+}
+
+/// Create a textnode element
+#[inline]
+pub fn text<S, NS, TAG, ATT, VAL>(s: S) -> Node<NS, TAG, ATT, VAL>
+where
+    S: ToString,
+    ATT: Clone,
+{
+    Node::Text(s.to_string())
 }
