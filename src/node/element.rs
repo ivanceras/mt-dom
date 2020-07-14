@@ -60,6 +60,14 @@ impl<NS, TAG, ATT, VAL> Element<NS, TAG, ATT, VAL> {
     pub fn get_attributes(&self) -> &[Attribute<NS, ATT, VAL>] {
         &self.attrs
     }
+
+    pub fn namespace(&self) -> Option<&NS> {
+        self.namespace.as_ref()
+    }
+
+    pub fn tag(&self) -> &TAG {
+        &self.tag
+    }
 }
 
 impl<NS, TAG, ATT, VAL> Element<NS, TAG, ATT, VAL>

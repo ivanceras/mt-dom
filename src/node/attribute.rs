@@ -21,6 +21,18 @@ impl<NS, ATT, VAL> Attribute<NS, ATT, VAL> {
             namespace,
         }
     }
+
+    pub fn name(&self) -> &ATT {
+        &self.name
+    }
+
+    pub fn value(&self) -> &VAL {
+        &self.value
+    }
+
+    pub fn namespace(&self) -> Option<&NS> {
+        self.namespace.as_ref()
+    }
 }
 
 /// Create an attribute
