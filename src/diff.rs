@@ -54,7 +54,7 @@ pub enum Patch<'a, NS, TAG, ATT, VAL> {
     /// name are merged to produce a new unify attribute
     AddAttributes(&'a TAG, NodeIdx, Vec<&'a Attribute<NS, ATT, VAL>>),
     /// Remove attributes that the old node had that the new node doesn't
-    RemoveAttributes(&'a TAG, NodeIdx, Vec<&'a ATT>),
+    RemoveAttributes(&'a TAG, NodeIdx, Vec<&'a Attribute<NS, ATT, VAL>>),
     /// Change the text of a Text node.
     ChangeText(NodeIdx, &'a str),
 }
@@ -240,7 +240,7 @@ where
 {
     let mut patches = vec![];
     let mut add_attributes: Vec<&Attribute<NS, ATT, VAL>> = vec![];
-    let mut remove_attributes: Vec<&ATT> = vec![];
+    let mut remove_attributes: Vec<&Attribute<NS, ATT, VAL>> = vec![];
 
     // for all new elements that doesn't exist in the old elements
     // or the values differ
@@ -261,7 +261,7 @@ where
     // to the new element, remove it
     for old_attr in old_element.get_attributes().iter() {
         if new_element.get_attribute_values(&old_attr.name).is_empty() {
-            remove_attributes.push(&old_attr.name);
+            remove_attributes.push(&old_attr);
         }
     }
 
