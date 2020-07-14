@@ -22,14 +22,17 @@ impl<NS, ATT, VAL> Attribute<NS, ATT, VAL> {
         }
     }
 
+    /// return the name of this attribute
     pub fn name(&self) -> &ATT {
         &self.name
     }
 
+    /// return the value of this attribute
     pub fn value(&self) -> &VAL {
         &self.value
     }
 
+    /// return the namespace of this attribute
     pub fn namespace(&self) -> Option<&NS> {
         self.namespace.as_ref()
     }

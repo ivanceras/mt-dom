@@ -38,8 +38,6 @@ use std::mem;
 /// ```
 ///
 ///
-type NodeIdx = usize;
-
 #[derive(Debug, PartialEq)]
 pub enum Patch<'a, NS, TAG, ATT, VAL> {
     /// Append a vector of child nodes to a parent node id.
@@ -58,6 +56,8 @@ pub enum Patch<'a, NS, TAG, ATT, VAL> {
     /// Change the text of a Text node.
     ChangeText(NodeIdx, &'a str),
 }
+
+type NodeIdx = usize;
 
 impl<'a, NS, TAG, ATT, VAL> Patch<'a, NS, TAG, ATT, VAL> {
     /// Every Patch is meant to be applied to a specific node within the DOM. Get the
