@@ -39,27 +39,39 @@ use std::mem;
 ///
 ///
 #[derive(Debug, PartialEq)]
-pub enum Patch<'a, NS, TAG, ATT, VAL> {
+pub enum Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG> {
     /// Append a vector of child nodes to a parent node id.
-    AppendChildren(&'a TAG, NodeIdx, Vec<&'a Node<NS, TAG, ATT, VAL>>),
+    AppendChildren(
+        &'a TAG,
+        NodeIdx,
+        Vec<&'a Node<NS, TAG, ATT, VAL, EVENT, MSG>>,
+    ),
     /// remove all children besides the first `len`
     TruncateChildren(&'a TAG, NodeIdx, usize),
     /// Replace a node with another node. This typically happens when a node's tag changes.
     /// ex: <div> becomes <span>
-    Replace(&'a TAG, NodeIdx, &'a Node<NS, TAG, ATT, VAL>),
+    Replace(&'a TAG, NodeIdx, &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>),
     /// Add attributes that the new node has that the old node does not
     /// Note: the attributes is not a reference since attributes of same
     /// name are merged to produce a new unify attribute
-    AddAttributes(&'a TAG, NodeIdx, Vec<&'a Attribute<NS, ATT, VAL>>),
+    AddAttributes(
+        &'a TAG,
+        NodeIdx,
+        Vec<&'a Attribute<NS, ATT, VAL, EVENT, MSG>>,
+    ),
     /// Remove attributes that the old node had that the new node doesn't
-    RemoveAttributes(&'a TAG, NodeIdx, Vec<&'a Attribute<NS, ATT, VAL>>),
+    RemoveAttributes(
+        &'a TAG,
+        NodeIdx,
+        Vec<&'a Attribute<NS, ATT, VAL, EVENT, MSG>>,
+    ),
     /// Change the text of a Text node.
     ChangeText(NodeIdx, &'a str),
 }
 
 type NodeIdx = usize;
 
-impl<'a, NS, TAG, ATT, VAL> Patch<'a, NS, TAG, ATT, VAL> {
+impl<'a, NS, TAG, ATT, VAL, EVENT, MSG> Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG> {
     /// Every Patch is meant to be applied to a specific node within the DOM. Get the
     /// index of the DOM node that this patch should apply to. DOM nodes are indexed
     /// depth first with the root node in the tree having index 0.
@@ -91,24 +103,26 @@ impl<'a, NS, TAG, ATT, VAL> Patch<'a, NS, TAG, ATT, VAL> {
 /// the supplied key will be taken into account
 /// that if the 2 keys differ, the element will be replaced without having to traverse the children
 /// nodes
-pub fn diff_with_key<'a, 'b, TAG, NS, ATT, VAL>(
-    old: &'a Node<TAG, NS, ATT, VAL>,
-    new: &'a Node<TAG, NS, ATT, VAL>,
+pub fn diff_with_key<'a, 'b, TAG, NS, ATT, VAL, EVENT, MSG>(
+    old: &'a Node<TAG, NS, ATT, VAL, EVENT, MSG>,
+    new: &'a Node<TAG, NS, ATT, VAL, EVENT, MSG>,
     key: &ATT,
-) -> Vec<Patch<'a, TAG, NS, ATT, VAL>>
+) -> Vec<Patch<'a, TAG, NS, ATT, VAL, EVENT, MSG>>
 where
     TAG: PartialEq,
     ATT: PartialEq,
     NS: PartialEq,
     VAL: PartialEq,
+    EVENT: PartialEq,
+    MSG: PartialEq,
 {
     diff_recursive(old, new, &mut 0, key)
 }
 
 /// utility function to recursively increment the node_idx baed on the node tree which depends on the children
 /// count
-fn increment_node_idx_for_children<TAG, NS, ATT, VAL>(
-    old: &Node<TAG, NS, ATT, VAL>,
+fn increment_node_idx_for_children<TAG, NS, ATT, VAL, EVENT, MSG>(
+    old: &Node<TAG, NS, ATT, VAL, EVENT, MSG>,
     cur_node_idx: &mut usize,
 ) {
     *cur_node_idx += 1;
@@ -119,17 +133,43 @@ fn increment_node_idx_for_children<TAG, NS, ATT, VAL>(
     }
 }
 
-fn diff_recursive<'a, 'b, TAG, NS, ATT, VAL>(
-    old: &'a Node<TAG, NS, ATT, VAL>,
-    new: &'a Node<TAG, NS, ATT, VAL>,
+/// a utility function which checks if the elements in a is the same
+/// elements in b, regardless of their order
+fn is_same_set<T>(a: &[&T], b: &[&T]) -> bool
+where
+    T: PartialEq,
+{
+    if a.len() != b.len() {
+        return false;
+    }
+    let mut match_a = 0;
+    for item_a in a.iter() {
+        if b.contains(&item_a) {
+            match_a += 1;
+        }
+    }
+    let mut match_b = 0;
+    for item_b in b.iter() {
+        if a.contains(&item_b) {
+            match_b += 1;
+        }
+    }
+    match_a == a.len() && match_b == b.len() && match_a == match_b
+}
+
+fn diff_recursive<'a, 'b, TAG, NS, ATT, VAL, EVENT, MSG>(
+    old: &'a Node<TAG, NS, ATT, VAL, EVENT, MSG>,
+    new: &'a Node<TAG, NS, ATT, VAL, EVENT, MSG>,
     cur_node_idx: &'b mut usize,
     key: &ATT,
-) -> Vec<Patch<'a, TAG, NS, ATT, VAL>>
+) -> Vec<Patch<'a, TAG, NS, ATT, VAL, EVENT, MSG>>
 where
     TAG: PartialEq,
     ATT: PartialEq,
     NS: PartialEq,
     VAL: PartialEq,
+    EVENT: PartialEq,
+    MSG: PartialEq,
 {
     let mut patches = vec![];
 
@@ -145,7 +185,8 @@ where
         // Replace if two elements have different keys
         let old_key_value = old_element.get_attribute_values(key);
         let new_key_value = new_element.get_attribute_values(key);
-        if old_key_value != new_key_value {
+        //if old_key_value != new_key_value {
+        if is_same_set(&old_key_value, &new_key_value) {
             replace = true;
         }
     }
@@ -185,7 +226,7 @@ where
             let new_child_count = new_element.children.len();
 
             if new_child_count > old_child_count {
-                let append_patch: Vec<&'a Node<TAG, NS, ATT, VAL>> =
+                let append_patch: Vec<&'a Node<TAG, NS, ATT, VAL, EVENT, MSG>> =
                     new_element.children[old_child_count..].iter().collect();
                 patches.push(Patch::AppendChildren(
                     &old_element.tag,
@@ -229,18 +270,20 @@ where
 }
 
 /// diff the attributes of old element to the new element at this cur_node_idx
-fn diff_attributes<'a, 'b, NS, TAG, ATT, VAL>(
-    old_element: &'a Element<NS, TAG, ATT, VAL>,
-    new_element: &'a Element<NS, TAG, ATT, VAL>,
+fn diff_attributes<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG>(
+    old_element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
+    new_element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
     cur_node_idx: &'b mut usize,
-) -> Vec<Patch<'a, NS, TAG, ATT, VAL>>
+) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
 where
     ATT: PartialEq,
     VAL: PartialEq,
+    EVENT: PartialEq,
+    MSG: PartialEq,
 {
     let mut patches = vec![];
-    let mut add_attributes: Vec<&Attribute<NS, ATT, VAL>> = vec![];
-    let mut remove_attributes: Vec<&Attribute<NS, ATT, VAL>> = vec![];
+    let mut add_attributes: Vec<&Attribute<NS, ATT, VAL, EVENT, MSG>> = vec![];
+    let mut remove_attributes: Vec<&Attribute<NS, ATT, VAL, EVENT, MSG>> = vec![];
 
     // for all new elements that doesn't exist in the old elements
     // or the values differ

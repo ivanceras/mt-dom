@@ -1,23 +1,39 @@
+pub use callback::Callback;
+
+mod callback;
+
 /// These are the plain attributes of an element
 #[derive(Debug, Clone, PartialEq)]
-pub struct Attribute<NS, ATT, VAL> {
+pub struct Attribute<NS, ATT, VAL, EVENT, MSG> {
     /// the attribute name,
     /// optional since style attribute doesn't need to have an attribute name
     pub(crate) name: ATT,
     /// the attribute value, which could be a simple value, and event or a function call
-    pub(crate) value: VAL,
+    pub(crate) value: AttValue<VAL, EVENT, MSG>,
     /// namespace of an attribute.
     /// This is specifically used by svg attributes
     /// such as xlink-href
     pub(crate) namespace: Option<NS>,
 }
 
-impl<NS, ATT, VAL> Attribute<NS, ATT, VAL> {
+#[derive(Debug, Clone, PartialEq)]
+pub enum AttValue<VAL, EVENT, MSG> {
+    Plain(VAL),
+    Callback(Callback<EVENT, MSG>),
+}
+
+impl<VAL, EVENT, MSG> From<VAL> for AttValue<VAL, EVENT, MSG> {
+    fn from(value: VAL) -> Self {
+        AttValue::Plain(value)
+    }
+}
+
+impl<NS, ATT, VAL, EVENT, MSG> Attribute<NS, ATT, VAL, EVENT, MSG> {
     /// create a plain attribute with namespace
     pub fn new(namespace: Option<NS>, name: ATT, value: VAL) -> Self {
         Attribute {
             name,
-            value,
+            value: AttValue::from(value),
             namespace,
         }
     }
@@ -28,7 +44,7 @@ impl<NS, ATT, VAL> Attribute<NS, ATT, VAL> {
     }
 
     /// return the value of this attribute
-    pub fn value(&self) -> &VAL {
+    pub fn value(&self) -> &AttValue<VAL, EVENT, MSG> {
         &self.value
     }
 
@@ -36,33 +52,23 @@ impl<NS, ATT, VAL> Attribute<NS, ATT, VAL> {
     pub fn namespace(&self) -> Option<&NS> {
         self.namespace.as_ref()
     }
-
-    /// consume and transform this attribute into a new Attribute such that the type of
-    /// value is changed from VAL to VAL2
-    pub fn map<F, VAL2>(self, f: &F) -> Attribute<NS, ATT, VAL2>
-    where
-        F: Fn(VAL) -> VAL2,
-    {
-        Attribute {
-            namespace: self.namespace,
-            name: self.name,
-            value: f(self.value),
-        }
-    }
 }
 
 /// Create an attribute
 #[inline]
-pub fn attr<NS, ATT, VAL>(name: ATT, value: VAL) -> Attribute<NS, ATT, VAL> {
+pub fn attr<NS, ATT, VAL, EVENT, MSG>(
+    name: ATT,
+    value: VAL,
+) -> Attribute<NS, ATT, VAL, EVENT, MSG> {
     attr_ns(None, name, value)
 }
 
 /// Create an attribute with namespace
 #[inline]
-pub fn attr_ns<NS, ATT, VAL>(
+pub fn attr_ns<NS, ATT, VAL, EVENT, MSG>(
     namespace: Option<NS>,
     name: ATT,
     value: VAL,
-) -> Attribute<NS, ATT, VAL> {
+) -> Attribute<NS, ATT, VAL, EVENT, MSG> {
     Attribute::new(namespace, name, value)
 }

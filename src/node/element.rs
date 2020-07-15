@@ -1,3 +1,4 @@
+use crate::node::attribute::AttValue;
 use crate::node::Attribute;
 use crate::node::Node;
 
@@ -15,25 +16,25 @@ use crate::node::Node;
 /// The namespace is also needed in attributes where namespace are necessary such as `xlink:href`
 /// where the namespace `xlink` is needed in order for the linked element in an svg image to work.
 #[derive(Debug, Clone, PartialEq, Default)]
-pub struct Element<NS, TAG, ATT, VAL> {
+pub struct Element<NS, TAG, ATT, VAL, EVENT, MSG> {
     /// namespace of this element,
     /// svg elements requires namespace to render correcly in the browser
     pub(crate) namespace: Option<NS>,
     /// the element tag, such as div, a, button
     pub(crate) tag: TAG,
     /// attributes for this element
-    pub(crate) attrs: Vec<Attribute<NS, ATT, VAL>>,
+    pub(crate) attrs: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>,
     /// children elements of this element
-    pub(crate) children: Vec<Node<NS, TAG, ATT, VAL>>,
+    pub(crate) children: Vec<Node<NS, TAG, ATT, VAL, EVENT, MSG>>,
 }
 
-impl<NS, TAG, ATT, VAL> Element<NS, TAG, ATT, VAL> {
+impl<NS, TAG, ATT, VAL, EVENT, MSG> Element<NS, TAG, ATT, VAL, EVENT, MSG> {
     /// create a new instance of an element
     pub fn new(
         namespace: Option<NS>,
         tag: TAG,
-        attrs: Vec<Attribute<NS, ATT, VAL>>,
-        children: Vec<Node<NS, TAG, ATT, VAL>>,
+        attrs: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>,
+        children: Vec<Node<NS, TAG, ATT, VAL, EVENT, MSG>>,
     ) -> Self {
         Element {
             namespace,
@@ -43,32 +44,32 @@ impl<NS, TAG, ATT, VAL> Element<NS, TAG, ATT, VAL> {
         }
     }
     /// add attributes to this element
-    pub fn add_attributes(&mut self, attrs: Vec<Attribute<NS, ATT, VAL>>) {
+    pub fn add_attributes(&mut self, attrs: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>) {
         self.attrs.extend(attrs)
     }
 
     /// add children virtual node to this element
-    pub fn add_children(&mut self, children: Vec<Node<NS, TAG, ATT, VAL>>) {
+    pub fn add_children(&mut self, children: Vec<Node<NS, TAG, ATT, VAL, EVENT, MSG>>) {
         self.children.extend(children);
     }
 
     /// returns a refernce to the children of this node
-    pub fn get_children(&self) -> &[Node<NS, TAG, ATT, VAL>] {
+    pub fn get_children(&self) -> &[Node<NS, TAG, ATT, VAL, EVENT, MSG>] {
         &self.children
     }
 
     /// returns a mutable refernce to the children of this node
-    pub fn children_mut(&mut self) -> &mut [Node<NS, TAG, ATT, VAL>] {
+    pub fn children_mut(&mut self) -> &mut [Node<NS, TAG, ATT, VAL, EVENT, MSG>] {
         &mut self.children
     }
 
     /// consume self and return the children
-    pub fn take_children(self) -> Vec<Node<NS, TAG, ATT, VAL>> {
+    pub fn take_children(self) -> Vec<Node<NS, TAG, ATT, VAL, EVENT, MSG>> {
         self.children
     }
 
     /// return a reference to the attribute of this element
-    pub fn get_attributes(&self) -> &[Attribute<NS, ATT, VAL>] {
+    pub fn get_attributes(&self) -> &[Attribute<NS, ATT, VAL, EVENT, MSG>] {
         &self.attrs
     }
 
@@ -86,27 +87,9 @@ impl<NS, TAG, ATT, VAL> Element<NS, TAG, ATT, VAL> {
     pub fn set_tag(&mut self, tag: TAG) {
         self.tag = tag;
     }
-
-    /// consume and transform this element such that the type of
-    /// Attribute will be change from VAL to VAL2
-    pub fn map<F, VAL2>(self, f: &F) -> Element<NS, TAG, ATT, VAL2>
-    where
-        F: Fn(VAL) -> VAL2,
-    {
-        Element {
-            namespace: self.namespace,
-            tag: self.tag,
-            attrs: self.attrs.into_iter().map(|attr| attr.map(f)).collect(),
-            children: self
-                .children
-                .into_iter()
-                .map(|child| child.map(f))
-                .collect(),
-        }
-    }
 }
 
-impl<NS, TAG, ATT, VAL> Element<NS, TAG, ATT, VAL>
+impl<NS, TAG, ATT, VAL, EVENT, MSG> Element<NS, TAG, ATT, VAL, EVENT, MSG>
 where
     ATT: PartialEq,
 {
@@ -117,7 +100,7 @@ where
 
     /// remove the existing values of this attribute
     /// and add the new values
-    pub fn set_attributes(&mut self, attrs: Vec<Attribute<NS, ATT, VAL>>) {
+    pub fn set_attributes(&mut self, attrs: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>) {
         attrs
             .iter()
             .for_each(|att| self.remove_attribute(&att.name));
@@ -125,7 +108,7 @@ where
     }
 
     /// return the values of the attributes that matches the given attribute name
-    pub fn get_attribute_values(&self, key: &ATT) -> Vec<&VAL> {
+    pub fn get_attribute_values(&self, key: &ATT) -> Vec<&AttValue<VAL, EVENT, MSG>> {
         self.attrs
             .iter()
             .filter(|att| att.name == *key)
@@ -147,7 +130,7 @@ where
 
     /// return the aggregated values of attributes that has the same
     /// name in this element
-    pub fn get_attribute_key_values(&self) -> Vec<(&ATT, Vec<&VAL>)> {
+    pub fn get_attribute_key_values(&self) -> Vec<(&ATT, Vec<&AttValue<VAL, EVENT, MSG>>)> {
         let mut key_values = vec![];
         let names = self.get_attribute_names();
         for name in names {
