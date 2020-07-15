@@ -1,4 +1,5 @@
 use crate::node::attribute::AttValue;
+use crate::node::attribute::Callback;
 use crate::node::Attribute;
 use crate::node::Node;
 
@@ -137,5 +138,35 @@ where
             key_values.push((name, self.get_attribute_values(name)));
         }
         key_values
+    }
+}
+
+impl<NS, TAG, ATT, VAL, EVENT, MSG> Element<NS, TAG, ATT, VAL, EVENT, MSG>
+where
+    EVENT: 'static,
+    MSG: 'static,
+{
+    /// map_callback the return of the callback from MSG to MSG2
+    pub fn map_callback<MSG2>(
+        self,
+        cb: Callback<MSG, MSG2>,
+    ) -> Element<NS, TAG, ATT, VAL, EVENT, MSG2>
+    where
+        MSG2: 'static,
+    {
+        Element {
+            namespace: self.namespace,
+            tag: self.tag,
+            attrs: self
+                .attrs
+                .into_iter()
+                .map(|attr| attr.map_callback(cb.clone()))
+                .collect(),
+            children: self
+                .children
+                .into_iter()
+                .map(|child| child.map_callback(cb.clone()))
+                .collect(),
+        }
     }
 }

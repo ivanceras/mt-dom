@@ -1,4 +1,5 @@
 pub use attribute::Attribute;
+use attribute::Callback;
 pub use element::Element;
 
 pub(crate) mod attribute;
@@ -131,6 +132,33 @@ where
     pub fn set_attributes_ref_mut(&mut self, attributes: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>) {
         if let Some(elm) = self.as_element_mut() {
             elm.set_attributes(attributes);
+        }
+    }
+}
+
+impl<NS, TAG, ATT, VAL, EVENT, MSG> Node<NS, TAG, ATT, VAL, EVENT, MSG>
+where
+    EVENT: 'static,
+    MSG: 'static,
+{
+    /// map the msg of callback of this element node
+    pub fn map_msg<F, MSG2>(self, func: F) -> Node<NS, TAG, ATT, VAL, EVENT, MSG2>
+    where
+        F: Fn(MSG) -> MSG2 + 'static,
+        MSG2: 'static,
+    {
+        let cb = Callback::from(func);
+        self.map_callback(cb)
+    }
+
+    /// map the msg of callback of this element node
+    pub fn map_callback<MSG2>(self, cb: Callback<MSG, MSG2>) -> Node<NS, TAG, ATT, VAL, EVENT, MSG2>
+    where
+        MSG2: 'static,
+    {
+        match self {
+            Node::Element(element) => Node::Element(element.map_callback(cb)),
+            Node::Text(text) => Node::Text(text),
         }
     }
 }

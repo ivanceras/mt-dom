@@ -6,8 +6,7 @@ pub struct Callback<EVENT, MSG>(Rc<dyn Fn(EVENT) -> MSG>);
 
 impl<EVENT, F, MSG> From<F> for Callback<EVENT, MSG>
 where
-    F: Fn(EVENT) -> MSG,
-    F: 'static,
+    F: Fn(EVENT) -> MSG + 'static,
 {
     fn from(func: F) -> Self {
         Callback(Rc::new(func))
@@ -31,7 +30,7 @@ where
 
     /// map this callback using another callback such that
     /// MSG becomes MSG2
-    pub fn map_msg<MSG2>(self, cb: Callback<MSG, MSG2>) -> Callback<EVENT, MSG2>
+    pub fn map_callback<MSG2>(self, cb: Callback<MSG, MSG2>) -> Callback<EVENT, MSG2>
     where
         MSG2: 'static,
     {

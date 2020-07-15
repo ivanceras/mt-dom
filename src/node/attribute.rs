@@ -54,6 +54,40 @@ impl<NS, ATT, VAL, EVENT, MSG> Attribute<NS, ATT, VAL, EVENT, MSG> {
     }
 }
 
+impl<NS, ATT, VAL, EVENT, MSG> Attribute<NS, ATT, VAL, EVENT, MSG>
+where
+    EVENT: 'static,
+    MSG: 'static,
+{
+    /// transform the callback of this attribute
+    pub fn map_callback<MSG2>(self, cb: Callback<MSG, MSG2>) -> Attribute<NS, ATT, VAL, EVENT, MSG2>
+    where
+        MSG2: 'static,
+    {
+        Attribute {
+            name: self.name,
+            value: self.value.map_callback(cb),
+            namespace: self.namespace,
+        }
+    }
+}
+
+impl<VAL, EVENT, MSG> AttValue<VAL, EVENT, MSG>
+where
+    EVENT: 'static,
+    MSG: 'static,
+{
+    pub fn map_callback<MSG2>(self, cb: Callback<MSG, MSG2>) -> AttValue<VAL, EVENT, MSG2>
+    where
+        MSG2: 'static,
+    {
+        match self {
+            AttValue::Plain(plain) => AttValue::Plain(plain),
+            AttValue::Callback(att_cb) => AttValue::Callback(att_cb.map_callback(cb)),
+        }
+    }
+}
+
 /// Create an attribute
 #[inline]
 pub fn attr<NS, ATT, VAL, EVENT, MSG>(
