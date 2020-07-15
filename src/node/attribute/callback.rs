@@ -29,43 +29,9 @@ where
         (self.0)(value.into())
     }
 
-    /// TODO: rename to map_event
-    /// Changes input type of the callback to another.
-    /// Works like common `map` method but in an opposite direction.
-    ///
-    /// Apply a `func` to the callback input
-    pub fn reform<F, EVENT2>(self, func: F) -> Callback<EVENT2, MSG>
-    where
-        F: Fn(EVENT2) -> EVENT,
-        F: 'static,
-    {
-        let func_wrap = move |input| {
-            let output = func(input);
-            self.emit(output)
-        };
-        Callback::from(func_wrap)
-    }
-
-    /// TODO: rename to map_msg
-    /// Map the output of this callback to return a different type
-    ///
-    /// Apply `func` to the callback output
-    pub fn map<F, MSG2>(self, func: F) -> Callback<EVENT, MSG2>
-    where
-        F: Fn(MSG) -> MSG2,
-        F: 'static,
-    {
-        let func_wrap = move |input| {
-            let out = self.emit(input);
-            func(out)
-        };
-        Callback::from(func_wrap)
-    }
-
-    /// TODO: rename to map_msg_with_callback
     /// map this callback using another callback such that
     /// MSG becomes MSG2
-    pub fn map_callback<MSG2>(self, cb: Callback<MSG, MSG2>) -> Callback<EVENT, MSG2>
+    pub fn map_msg<MSG2>(self, cb: Callback<MSG, MSG2>) -> Callback<EVENT, MSG2>
     where
         MSG2: 'static,
     {
