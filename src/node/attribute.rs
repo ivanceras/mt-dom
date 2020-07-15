@@ -36,6 +36,19 @@ impl<NS, ATT, VAL> Attribute<NS, ATT, VAL> {
     pub fn namespace(&self) -> Option<&NS> {
         self.namespace.as_ref()
     }
+
+    /// consume and transform this attribute into a new Attribute such that the type of
+    /// value is changed from VAL to VAL2
+    pub fn map<F, VAL2>(self, f: &F) -> Attribute<NS, ATT, VAL2>
+    where
+        F: Fn(VAL) -> VAL2,
+    {
+        Attribute {
+            namespace: self.namespace,
+            name: self.name,
+            value: f(self.value),
+        }
+    }
 }
 
 /// Create an attribute

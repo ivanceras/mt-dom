@@ -86,6 +86,24 @@ impl<NS, TAG, ATT, VAL> Element<NS, TAG, ATT, VAL> {
     pub fn set_tag(&mut self, tag: TAG) {
         self.tag = tag;
     }
+
+    /// consume and transform this element such that the type of
+    /// Attribute will be change from VAL to VAL2
+    pub fn map<F, VAL2>(self, f: &F) -> Element<NS, TAG, ATT, VAL2>
+    where
+        F: Fn(VAL) -> VAL2,
+    {
+        Element {
+            namespace: self.namespace,
+            tag: self.tag,
+            attrs: self.attrs.into_iter().map(|attr| attr.map(f)).collect(),
+            children: self
+                .children
+                .into_iter()
+                .map(|child| child.map(f))
+                .collect(),
+        }
+    }
 }
 
 impl<NS, TAG, ATT, VAL> Element<NS, TAG, ATT, VAL>

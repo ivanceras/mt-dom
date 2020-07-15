@@ -121,6 +121,17 @@ impl<NS, TAG, ATT, VAL> Node<NS, TAG, ATT, VAL> {
             None
         }
     }
+
+    /// consume and transform the type of Attribute from VAL to VAL2
+    pub fn map<F, VAL2>(self, f: &F) -> Node<NS, TAG, ATT, VAL2>
+    where
+        F: Fn(VAL) -> VAL2,
+    {
+        match self {
+            Node::Text(t) => Node::Text(t),
+            Node::Element(elm) => Node::Element(elm.map(f)),
+        }
+    }
 }
 
 impl<NS, TAG, ATT, VAL> Node<NS, TAG, ATT, VAL>
