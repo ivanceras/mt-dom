@@ -133,30 +133,6 @@ fn increment_node_idx_for_children<TAG, NS, ATT, VAL, EVENT, MSG>(
     }
 }
 
-/// a utility function which checks if the elements in a is the same
-/// elements in b, regardless of their order
-fn is_same_set<T>(a: &[&T], b: &[&T]) -> bool
-where
-    T: PartialEq,
-{
-    if a.len() != b.len() {
-        return false;
-    }
-    let mut match_a = 0;
-    for item_a in a.iter() {
-        if b.contains(&item_a) {
-            match_a += 1;
-        }
-    }
-    let mut match_b = 0;
-    for item_b in b.iter() {
-        if a.contains(&item_b) {
-            match_b += 1;
-        }
-    }
-    match_a == a.len() && match_b == b.len() && match_a == match_b
-}
-
 fn diff_recursive<'a, 'b, TAG, NS, ATT, VAL, EVENT, MSG>(
     old: &'a Node<TAG, NS, ATT, VAL, EVENT, MSG>,
     new: &'a Node<TAG, NS, ATT, VAL, EVENT, MSG>,
@@ -185,8 +161,7 @@ where
         // Replace if two elements have different keys
         let old_key_value = old_element.get_attribute_values(key);
         let new_key_value = new_element.get_attribute_values(key);
-        //if old_key_value != new_key_value {
-        if is_same_set(&old_key_value, &new_key_value) {
+        if old_key_value != new_key_value {
             replace = true;
         }
     }

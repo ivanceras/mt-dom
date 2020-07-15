@@ -1,7 +1,7 @@
 #![deny(warnings)]
 use mt_dom::*;
 
-pub type MyNode = Node<&'static str, &'static str, &'static str, &'static str>;
+pub type MyNode = Node<&'static str, &'static str, &'static str, &'static str, (), ()>;
 
 #[test]
 fn test_replace_node() {
@@ -108,6 +108,10 @@ fn test_class_removed() {
     let diff = diff_with_key(&old, &new, &"key");
     assert_eq!(
         diff,
-        vec![Patch::RemoveAttributes(&"div", 0, vec![&"class"])]
+        vec![Patch::RemoveAttributes(
+            &"div",
+            0,
+            vec![&attr("class", "some-class")]
+        )]
     )
 }
