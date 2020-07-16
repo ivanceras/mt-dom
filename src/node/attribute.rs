@@ -90,6 +90,11 @@ where
     pub fn get_callback(&self) -> Option<&Callback<EVENT, MSG>> {
         self.value.get_callback()
     }
+
+    /// return the plain value if it is a plain value
+    pub fn get_plain(&self) -> Option<&VAL> {
+        self.value.get_plain()
+    }
 }
 
 impl<VAL, EVENT, MSG> AttValue<VAL, EVENT, MSG>
@@ -113,6 +118,14 @@ where
         match self {
             AttValue::Plain(_) => None,
             AttValue::Callback(cb) => Some(cb),
+        }
+    }
+
+    /// return a reference to the plain value if it is a plain value
+    pub fn get_plain(&self) -> Option<&VAL> {
+        match self {
+            AttValue::Plain(plain) => Some(plain),
+            AttValue::Callback(_) => None,
         }
     }
 }
