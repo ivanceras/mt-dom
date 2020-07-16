@@ -1,11 +1,11 @@
 [package]
 name = "mt-dom"
-version = "0.1.0"
+version = "0.1.1"
 authors = [ "Jovansonlee Cesar <ivanceras@gmail.com>" ]
 license = "MIT"
 description = "A library for diffing virtual dom tree and generate patches"
 repository = "https://github.com/ivanceras/sauron"
-documentation = "https://docs.rs/sauron_vdom"
+documentation = "https://docs.rs/mt-dom"
 keywords = ["virtual", "dom", "node", "element"]
 edition = "2018"
 
