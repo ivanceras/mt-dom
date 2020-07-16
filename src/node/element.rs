@@ -20,13 +20,13 @@ use crate::node::Node;
 pub struct Element<NS, TAG, ATT, VAL, EVENT, MSG> {
     /// namespace of this element,
     /// svg elements requires namespace to render correcly in the browser
-    pub(crate) namespace: Option<NS>,
+    pub namespace: Option<NS>,
     /// the element tag, such as div, a, button
-    pub(crate) tag: TAG,
+    pub tag: TAG,
     /// attributes for this element
-    pub(crate) attrs: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>,
+    pub attrs: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>,
     /// children elements of this element
-    pub(crate) children: Vec<Node<NS, TAG, ATT, VAL, EVENT, MSG>>,
+    pub children: Vec<Node<NS, TAG, ATT, VAL, EVENT, MSG>>,
 }
 
 impl<NS, TAG, ATT, VAL, EVENT, MSG> Element<NS, TAG, ATT, VAL, EVENT, MSG> {
@@ -74,6 +74,11 @@ impl<NS, TAG, ATT, VAL, EVENT, MSG> Element<NS, TAG, ATT, VAL, EVENT, MSG> {
         &self.attrs
     }
 
+    /// consume self and return the attributes
+    pub fn take_attributes(self) -> Vec<Attribute<NS, ATT, VAL, EVENT, MSG>> {
+        self.attrs
+    }
+
     /// return the namespace of this element
     pub fn namespace(&self) -> Option<&NS> {
         self.namespace.as_ref()
@@ -82,6 +87,11 @@ impl<NS, TAG, ATT, VAL, EVENT, MSG> Element<NS, TAG, ATT, VAL, EVENT, MSG> {
     /// return the tag of this element
     pub fn tag(&self) -> &TAG {
         &self.tag
+    }
+
+    /// consume self and return the tag of this element
+    pub fn take_tag(self) -> TAG {
+        self.tag
     }
 
     /// change the tag of this element

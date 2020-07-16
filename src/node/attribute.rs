@@ -91,6 +91,11 @@ where
         self.value.get_callback()
     }
 
+    /// consume self and return callback if it is a callback
+    pub fn take_callback(self) -> Option<Callback<EVENT, MSG>> {
+        self.value.take_callback()
+    }
+
     /// return the plain value if it is a plain value
     pub fn get_plain(&self) -> Option<&VAL> {
         self.value.get_plain()
@@ -115,6 +120,14 @@ where
 
     /// return if it is a callback
     pub fn get_callback(&self) -> Option<&Callback<EVENT, MSG>> {
+        match self {
+            AttValue::Plain(_) => None,
+            AttValue::Callback(cb) => Some(cb),
+        }
+    }
+
+    /// consume self and return callback if it is a callback
+    pub fn take_callback(self) -> Option<Callback<EVENT, MSG>> {
         match self {
             AttValue::Plain(_) => None,
             AttValue::Callback(cb) => Some(cb),
