@@ -19,7 +19,7 @@
 //!
 pub use diff::diff_with_key;
 pub use diff::Patch;
-pub use node::attribute::{attr, attr_ns};
+pub use node::attribute::{attr, attr_ns, on, AttValue, Callback};
 pub use node::Attribute;
 pub use node::Element;
 pub use node::Node;

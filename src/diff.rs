@@ -113,8 +113,6 @@ where
     ATT: PartialEq,
     NS: PartialEq,
     VAL: PartialEq,
-    EVENT: PartialEq,
-    MSG: PartialEq,
 {
     diff_recursive(old, new, &mut 0, key)
 }
@@ -144,8 +142,6 @@ where
     ATT: PartialEq,
     NS: PartialEq,
     VAL: PartialEq,
-    EVENT: PartialEq,
-    MSG: PartialEq,
 {
     let mut patches = vec![];
 
@@ -161,7 +157,8 @@ where
         // Replace if two elements have different keys
         let old_key_value = old_element.get_attribute_values(key);
         let new_key_value = new_element.get_attribute_values(key);
-        if old_key_value != new_key_value {
+        //if old_key_value != new_key_value {
+        if !is_same_set(&old_key_value, &new_key_value) {
             replace = true;
         }
     }
@@ -244,6 +241,11 @@ where
     patches
 }
 
+/// check if set1 has the contains the items in set2 and vice versa, regardless of their order
+fn is_same_set<T: PartialEq>(set1: &[&T], set2: &[&T]) -> bool {
+    set1.iter().all(|item1| set2.contains(item1)) && set2.iter().all(|item2| set1.contains(item2))
+}
+
 /// diff the attributes of old element to the new element at this cur_node_idx
 fn diff_attributes<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG>(
     old_element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
@@ -253,8 +255,6 @@ fn diff_attributes<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG>(
 where
     ATT: PartialEq,
     VAL: PartialEq,
-    EVENT: PartialEq,
-    MSG: PartialEq,
 {
     let mut patches = vec![];
     let mut add_attributes: Vec<&Attribute<NS, ATT, VAL, EVENT, MSG>> = vec![];
@@ -270,7 +270,8 @@ where
         //values of the other set, regardless of the order
         let old_attr_value = old_element.get_attribute_values(&new_attr.name);
         let new_attr_value = new_element.get_attribute_values(&new_attr.name);
-        if old_attr_value.is_empty() || old_attr_value != new_attr_value {
+        //if old_attr_value.is_empty() || old_attr_value != new_attr_value {
+        if old_attr_value.is_empty() || !is_same_set(&old_attr_value, &new_attr_value) {
             add_attributes.push(new_attr);
         }
     }
