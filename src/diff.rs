@@ -110,8 +110,6 @@ where
     ATT: PartialEq + Clone + Debug,
     NS: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
-    EVENT: PartialEq + Clone + Debug,
-    MSG: PartialEq + Clone + Debug,
 {
     diff_recursive(old, new, &mut 0, key)
 }
@@ -141,8 +139,6 @@ where
     TAG: PartialEq + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
-    EVENT: PartialEq + Clone + Debug,
-    MSG: PartialEq + Clone + Debug,
 {
     let mut patches = vec![];
 
@@ -278,8 +274,6 @@ where
     NS: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
-    EVENT: PartialEq + Clone + Debug,
-    MSG: PartialEq + Clone + Debug,
 {
     let mut patches = vec![];
     let mut add_attributes: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>> = vec![];

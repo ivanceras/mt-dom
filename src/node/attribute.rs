@@ -1,9 +1,9 @@
 pub use callback::Callback;
+use std::fmt;
 
 mod callback;
 
 /// These are the plain attributes of an element
-#[derive(Debug, Clone, PartialEq)]
 pub struct Attribute<NS, ATT, VAL, EVENT, MSG> {
     /// namespace of an attribute.
     /// This is specifically used by svg attributes
@@ -16,13 +16,77 @@ pub struct Attribute<NS, ATT, VAL, EVENT, MSG> {
     pub(crate) value: Vec<AttValue<VAL, EVENT, MSG>>,
 }
 
+impl<NS, ATT, VAL, EVENT, MSG> Clone for Attribute<NS, ATT, VAL, EVENT, MSG>
+where
+    NS: Clone,
+    ATT: Clone,
+    VAL: Clone,
+{
+    fn clone(&self) -> Self {
+        Attribute {
+            namespace: self.namespace.clone(),
+            name: self.name.clone(),
+            value: self.value.clone(),
+        }
+    }
+}
+
+impl<NS, ATT, VAL, EVENT, MSG> PartialEq for Attribute<NS, ATT, VAL, EVENT, MSG>
+where
+    NS: PartialEq,
+    ATT: PartialEq,
+    VAL: PartialEq,
+{
+    fn eq(&self, other: &Self) -> bool {
+        self.namespace == other.namespace && self.name == other.name && self.value == other.value
+    }
+}
+
+impl<NS, ATT, VAL, EVENT, MSG> fmt::Debug for Attribute<NS, ATT, VAL, EVENT, MSG>
+where
+    NS: fmt::Debug,
+    ATT: fmt::Debug,
+    VAL: fmt::Debug,
+{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("Attribute")
+            .field("namespace", &self.namespace)
+            .field("name", &self.name)
+            .field("value", &self.value)
+            .finish()
+    }
+}
+
 /// Attribute Value which can be a plain attribute or a callback
-#[derive(Debug, Clone)]
 pub enum AttValue<VAL, EVENT, MSG> {
     /// Plain value
     Plain(VAL),
     /// An event listener attribute
     Callback(Callback<EVENT, MSG>),
+}
+
+impl<VAL, EVENT, MSG> Clone for AttValue<VAL, EVENT, MSG>
+where
+    VAL: Clone,
+{
+    fn clone(&self) -> Self {
+        match self {
+            AttValue::Plain(value) => AttValue::Plain(value.clone()),
+            AttValue::Callback(cb) => AttValue::Callback(cb.clone()),
+        }
+    }
+}
+
+impl<VAL, EVENT, MSG> fmt::Debug for AttValue<VAL, EVENT, MSG>
+where
+    VAL: fmt::Debug,
+{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            AttValue::Plain(value) => f.debug_tuple("Plain").field(value).finish(),
+            AttValue::Callback(cb) => f.debug_tuple("Callback").field(cb).finish(),
+        }
+    }
 }
 
 impl<VAL, EVENT, MSG> PartialEq for AttValue<VAL, EVENT, MSG>
@@ -103,6 +167,11 @@ where
     pub fn get_plain(&self) -> Vec<&VAL> {
         self.value.iter().filter_map(|v| v.get_plain()).collect()
     }
+
+    /// return the callback values of this attribute
+    pub fn get_callback(&self) -> Vec<&Callback<EVENT, MSG>> {
+        self.value.iter().filter_map(|v| v.get_callback()).collect()
+    }
 }
 
 impl<VAL, EVENT, MSG> AttValue<VAL, EVENT, MSG>
@@ -126,6 +195,14 @@ where
         match self {
             AttValue::Plain(plain) => Some(plain),
             AttValue::Callback(_) => None,
+        }
+    }
+
+    /// return a reference to the callback if it is a callback
+    pub fn get_callback(&self) -> Option<&Callback<EVENT, MSG>> {
+        match self {
+            AttValue::Plain(_) => None,
+            AttValue::Callback(cb) => Some(cb),
         }
     }
 }

@@ -152,8 +152,6 @@ impl<NS, TAG, ATT, VAL, EVENT, MSG> Element<NS, TAG, ATT, VAL, EVENT, MSG>
 where
     ATT: PartialEq + Clone,
     VAL: Clone,
-    EVENT: Clone,
-    MSG: Clone,
 {
     /// return the aggregated values of attributes that has the same
     /// name in this element
