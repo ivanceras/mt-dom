@@ -90,7 +90,32 @@ fn test_class_changed() {
         vec![Patch::AddAttributes(
             &"div",
             0,
-            vec![&attr("class", "some-class2")]
+            vec![attr("class", "some-class2")]
+        )]
+    )
+}
+
+#[test]
+fn test_class_will_be_merged() {
+    let old: MyNode = element("div", vec![], vec![]);
+
+    let new = element(
+        "div",
+        vec![attr("class", "class1"), attr("class", "class2")],
+        vec![],
+    );
+
+    let diff = diff_with_key(&old, &new, &"key");
+    assert_eq!(
+        diff,
+        vec![Patch::AddAttributes(
+            &"div",
+            0,
+            vec![Attribute::with_multiple_values(
+                None,
+                "class",
+                vec!["class1", "class2"]
+            )]
         )]
     )
 }

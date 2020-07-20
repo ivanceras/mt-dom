@@ -1,4 +1,3 @@
-use crate::node::attribute::AttValue;
 use crate::node::attribute::Callback;
 use crate::node::Attribute;
 use crate::node::Node;
@@ -117,38 +116,6 @@ where
             .for_each(|att| self.remove_attribute(&att.name));
         self.add_attributes(attrs);
     }
-
-    /// return the values of the attributes that matches the given attribute name
-    pub fn get_attribute_values(&self, key: &ATT) -> Vec<&AttValue<VAL, EVENT, MSG>> {
-        self.attrs
-            .iter()
-            .filter(|att| att.name == *key)
-            .map(|att| &att.value)
-            .collect()
-    }
-
-    /// return the list of unique attribute names
-    /// return according to the order they are seen
-    fn get_attribute_names(&self) -> Vec<&ATT> {
-        let mut names: Vec<&ATT> = vec![];
-        for att in self.attrs.iter() {
-            if !names.contains(&&att.name) {
-                names.push(&att.name);
-            }
-        }
-        names
-    }
-
-    /// return the aggregated values of attributes that has the same
-    /// name in this element
-    pub fn get_attribute_key_values(&self) -> Vec<(&ATT, Vec<&AttValue<VAL, EVENT, MSG>>)> {
-        let mut key_values = vec![];
-        let names = self.get_attribute_names();
-        for name in names {
-            key_values.push((name, self.get_attribute_values(name)));
-        }
-        key_values
-    }
 }
 
 impl<NS, TAG, ATT, VAL, EVENT, MSG> Element<NS, TAG, ATT, VAL, EVENT, MSG>
@@ -178,5 +145,31 @@ where
                 .map(|child| child.map_callback(cb.clone()))
                 .collect(),
         }
+    }
+}
+
+impl<NS, TAG, ATT, VAL, EVENT, MSG> Element<NS, TAG, ATT, VAL, EVENT, MSG>
+where
+    ATT: PartialEq + Clone,
+    VAL: Clone,
+    EVENT: Clone,
+    MSG: Clone,
+{
+    /// return the aggregated values of attributes that has the same
+    /// name in this element
+    pub fn merge_attributes(&self) -> Vec<Attribute<NS, ATT, VAL, EVENT, MSG>> {
+        let mut merged: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>> = vec![];
+        for att in self.attrs.iter() {
+            if let Some(existing) = merged.iter_mut().find(|m_att| m_att.name == att.name) {
+                existing.value.extend(att.value.clone());
+            } else {
+                merged.push(Attribute {
+                    namespace: None,
+                    name: att.name.clone(),
+                    value: att.value.clone(),
+                });
+            }
+        }
+        merged
     }
 }

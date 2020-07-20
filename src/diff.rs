@@ -2,6 +2,7 @@ use crate::Attribute;
 use crate::Element;
 use crate::Node;
 use std::cmp;
+use std::fmt::Debug;
 use std::mem;
 
 /// A Patch encodes an operation that modifies a real DOM element or native UI element
@@ -54,11 +55,7 @@ pub enum Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG> {
     /// Add attributes that the new node has that the old node does not
     /// Note: the attributes is not a reference since attributes of same
     /// name are merged to produce a new unify attribute
-    AddAttributes(
-        &'a TAG,
-        NodeIdx,
-        Vec<&'a Attribute<NS, ATT, VAL, EVENT, MSG>>,
-    ),
+    AddAttributes(&'a TAG, NodeIdx, Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>),
     /// Remove attributes that the old node had that the new node doesn't
     RemoveAttributes(
         &'a TAG,
@@ -103,24 +100,26 @@ impl<'a, NS, TAG, ATT, VAL, EVENT, MSG> Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>
 /// the supplied key will be taken into account
 /// that if the 2 keys differ, the element will be replaced without having to traverse the children
 /// nodes
-pub fn diff_with_key<'a, 'b, TAG, NS, ATT, VAL, EVENT, MSG>(
-    old: &'a Node<TAG, NS, ATT, VAL, EVENT, MSG>,
-    new: &'a Node<TAG, NS, ATT, VAL, EVENT, MSG>,
+pub fn diff_with_key<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG>(
+    old: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+    new: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
     key: &ATT,
-) -> Vec<Patch<'a, TAG, NS, ATT, VAL, EVENT, MSG>>
+) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
 where
-    TAG: PartialEq,
-    ATT: PartialEq,
-    NS: PartialEq,
-    VAL: PartialEq,
+    TAG: PartialEq + Debug,
+    ATT: PartialEq + Clone + Debug,
+    NS: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
+    MSG: PartialEq + Clone + Debug,
 {
     diff_recursive(old, new, &mut 0, key)
 }
 
 /// utility function to recursively increment the node_idx baed on the node tree which depends on the children
 /// count
-fn increment_node_idx_for_children<TAG, NS, ATT, VAL, EVENT, MSG>(
-    old: &Node<TAG, NS, ATT, VAL, EVENT, MSG>,
+fn increment_node_idx_for_children<NS, TAG, ATT, VAL, EVENT, MSG>(
+    old: &Node<NS, TAG, ATT, VAL, EVENT, MSG>,
     cur_node_idx: &mut usize,
 ) {
     *cur_node_idx += 1;
@@ -131,17 +130,19 @@ fn increment_node_idx_for_children<TAG, NS, ATT, VAL, EVENT, MSG>(
     }
 }
 
-fn diff_recursive<'a, 'b, TAG, NS, ATT, VAL, EVENT, MSG>(
-    old: &'a Node<TAG, NS, ATT, VAL, EVENT, MSG>,
-    new: &'a Node<TAG, NS, ATT, VAL, EVENT, MSG>,
+fn diff_recursive<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG>(
+    old: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+    new: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
     cur_node_idx: &'b mut usize,
     key: &ATT,
-) -> Vec<Patch<'a, TAG, NS, ATT, VAL, EVENT, MSG>>
+) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
 where
-    TAG: PartialEq,
-    ATT: PartialEq,
-    NS: PartialEq,
-    VAL: PartialEq,
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
+    MSG: PartialEq + Clone + Debug,
 {
     let mut patches = vec![];
 
@@ -154,17 +155,35 @@ where
             replace = true;
         }
 
+        let new_attributes: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>> =
+            new_element.merge_attributes();
+        let old_attributes: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>> =
+            old_element.merge_attributes();
+
         // Replace if two elements have different keys
-        let old_key_value = old_element.get_attribute_values(key);
-        let new_key_value = new_element.get_attribute_values(key);
-        //if old_key_value != new_key_value {
-        if !is_same_set(&old_key_value, &new_key_value) {
-            replace = true;
+        let old_key_value = old_attributes.iter().find(|att| att.name == *key);
+        let new_key_value = new_attributes.iter().find(|att| att.name == *key);
+
+        dbg!(old_key_value);
+        dbg!(new_key_value);
+
+        match (old_key_value, new_key_value) {
+            (Some(old_kv), Some(new_kv)) => {
+                if old_kv != new_kv {
+                    dbg!("will replace");
+                    replace = true;
+                    dbg!(replace);
+                } else {
+                    dbg!("will not replace..");
+                }
+            }
+            _ => (),
         }
     }
 
     // Handle replacing of a node
     if replace {
+        dbg!("yes it is a replace");
         patches.push(Patch::Replace(
             old.tag().expect("must have a tag"),
             *cur_node_idx,
@@ -175,8 +194,11 @@ where
                 increment_node_idx_for_children(child, cur_node_idx);
             }
         }
+        dbg!("returning the patches..");
         return patches;
     }
+
+    dbg!("no, it wasnt a replace... continuing...");
 
     // The following comparison can only contain identical variants, other
     // cases have already been handled above by comparing variant
@@ -198,7 +220,7 @@ where
             let new_child_count = new_element.children.len();
 
             if new_child_count > old_child_count {
-                let append_patch: Vec<&'a Node<TAG, NS, ATT, VAL, EVENT, MSG>> =
+                let append_patch: Vec<&'a Node<NS, TAG, ATT, VAL, EVENT, MSG>> =
                     new_element.children[old_child_count..].iter().collect();
                 patches.push(Patch::AppendChildren(
                     &old_element.tag,
@@ -242,7 +264,7 @@ where
 }
 
 /// check if set1 has the contains the items in set2 and vice versa, regardless of their order
-fn is_same_set<T: PartialEq>(set1: &[&T], set2: &[&T]) -> bool {
+fn is_same_set<T: PartialEq>(set1: &[T], set2: &[T]) -> bool {
     set1.iter().all(|item1| set2.contains(item1)) && set2.iter().all(|item2| set1.contains(item2))
 }
 
@@ -253,33 +275,43 @@ fn diff_attributes<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG>(
     cur_node_idx: &'b mut usize,
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
 where
-    ATT: PartialEq,
-    VAL: PartialEq,
+    NS: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
+    MSG: PartialEq + Clone + Debug,
 {
     let mut patches = vec![];
-    let mut add_attributes: Vec<&Attribute<NS, ATT, VAL, EVENT, MSG>> = vec![];
+    let mut add_attributes: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>> = vec![];
     let mut remove_attributes: Vec<&Attribute<NS, ATT, VAL, EVENT, MSG>> = vec![];
 
+    let new_attributes: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>> = new_element.merge_attributes();
+    let old_attributes: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>> = old_element.merge_attributes();
     // for all new elements that doesn't exist in the old elements
     // or the values differ
     // add it to the AddAttribute patches
-    for new_attr in new_element.get_attributes().iter() {
-        //TODO: sorting might be needed here, if the ordering of adding the attributes may have
-        //differ
-        //TODO: can use utility function which checks if the other set has the same
-        //values of the other set, regardless of the order
-        let old_attr_value = old_element.get_attribute_values(&new_attr.name);
-        let new_attr_value = new_element.get_attribute_values(&new_attr.name);
-        //if old_attr_value.is_empty() || old_attr_value != new_attr_value {
-        if old_attr_value.is_empty() || !is_same_set(&old_attr_value, &new_attr_value) {
-            add_attributes.push(new_attr);
+    for new_attr in new_attributes.iter() {
+        let old_attr_value = old_attributes
+            .iter()
+            .find(|att| att.name == new_attr.name)
+            .map(|att| &att.value);
+
+        if let Some(old_attr_value) = old_attr_value {
+            //if old_attr_value != new_attr.value {
+            if !is_same_set(old_attr_value, &new_attr.value) {
+                add_attributes.push(new_attr.clone());
+            }
+        } else {
+            add_attributes.push(new_attr.clone());
         }
     }
 
     // if this attribute name does not exist anymore
     // to the new element, remove it
     for old_attr in old_element.get_attributes().iter() {
-        if new_element.get_attribute_values(&old_attr.name).is_empty() {
+        if let Some(_pre_attr) = new_attributes.iter().find(|att| att.name == old_attr.name) {
+            //
+        } else {
             remove_attributes.push(&old_attr);
         }
     }

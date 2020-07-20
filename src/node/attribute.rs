@@ -13,7 +13,7 @@ pub struct Attribute<NS, ATT, VAL, EVENT, MSG> {
     /// optional since style attribute doesn't need to have an attribute name
     pub(crate) name: ATT,
     /// the attribute value, which could be a simple value, and event or a function call
-    pub(crate) value: AttValue<VAL, EVENT, MSG>,
+    pub(crate) value: Vec<AttValue<VAL, EVENT, MSG>>,
 }
 
 /// Attribute Value which can be a plain attribute or a callback
@@ -48,7 +48,16 @@ impl<NS, ATT, VAL, EVENT, MSG> Attribute<NS, ATT, VAL, EVENT, MSG> {
     pub fn new(namespace: Option<NS>, name: ATT, value: VAL) -> Self {
         Attribute {
             name,
-            value: AttValue::from(value),
+            value: vec![AttValue::from(value)],
+            namespace,
+        }
+    }
+
+    /// create from multiple values
+    pub fn with_multiple_values(namespace: Option<NS>, name: ATT, value: Vec<VAL>) -> Self {
+        Attribute {
+            name,
+            value: value.into_iter().map(|v| AttValue::from(v)).collect(),
             namespace,
         }
     }
@@ -59,7 +68,7 @@ impl<NS, ATT, VAL, EVENT, MSG> Attribute<NS, ATT, VAL, EVENT, MSG> {
     }
 
     /// return the value of this attribute
-    pub fn value(&self) -> &AttValue<VAL, EVENT, MSG> {
+    pub fn value(&self) -> &[AttValue<VAL, EVENT, MSG>] {
         &self.value
     }
 
@@ -81,24 +90,18 @@ where
     {
         Attribute {
             name: self.name,
-            value: self.value.map_callback(cb),
+            value: self
+                .value
+                .into_iter()
+                .map(|v| v.map_callback(cb.clone()))
+                .collect(),
             namespace: self.namespace,
         }
     }
 
-    /// return if it is a callback
-    pub fn get_callback(&self) -> Option<&Callback<EVENT, MSG>> {
-        self.value.get_callback()
-    }
-
-    /// consume self and return callback if it is a callback
-    pub fn take_callback(self) -> Option<Callback<EVENT, MSG>> {
-        self.value.take_callback()
-    }
-
     /// return the plain value if it is a plain value
-    pub fn get_plain(&self) -> Option<&VAL> {
-        self.value.get_plain()
+    pub fn get_plain(&self) -> Vec<&VAL> {
+        self.value.iter().filter_map(|v| v.get_plain()).collect()
     }
 }
 
@@ -115,22 +118,6 @@ where
         match self {
             AttValue::Plain(plain) => AttValue::Plain(plain),
             AttValue::Callback(att_cb) => AttValue::Callback(att_cb.map_callback(cb)),
-        }
-    }
-
-    /// return if it is a callback
-    pub fn get_callback(&self) -> Option<&Callback<EVENT, MSG>> {
-        match self {
-            AttValue::Plain(_) => None,
-            AttValue::Callback(cb) => Some(cb),
-        }
-    }
-
-    /// consume self and return callback if it is a callback
-    pub fn take_callback(self) -> Option<Callback<EVENT, MSG>> {
-        match self {
-            AttValue::Plain(_) => None,
-            AttValue::Callback(cb) => Some(cb),
         }
     }
 
@@ -151,7 +138,7 @@ pub fn on<NS, ATT, VAL, EVENT, MSG>(
     Attribute {
         namespace: None,
         name,
-        value: AttValue::Callback(cb),
+        value: vec![AttValue::Callback(cb)],
     }
 }
 
