@@ -259,11 +259,6 @@ where
     patches
 }
 
-/// check if set1 has the contains the items in set2 and vice versa, regardless of their order
-fn is_same_set<T: PartialEq>(set1: &[T], set2: &[T]) -> bool {
-    set1.iter().all(|item1| set2.contains(item1)) && set2.iter().all(|item2| set1.contains(item2))
-}
-
 /// diff the attributes of old element to the new element at this cur_node_idx
 fn diff_attributes<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG>(
     old_element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
@@ -291,8 +286,7 @@ where
             .map(|att| &att.value);
 
         if let Some(old_attr_value) = old_attr_value {
-            //if old_attr_value != new_attr.value {
-            if !is_same_set(old_attr_value, &new_attr.value) {
+            if *old_attr_value != new_attr.value {
                 add_attributes.push(new_attr.clone());
             }
         } else {

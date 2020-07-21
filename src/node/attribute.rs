@@ -96,7 +96,8 @@ where
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (AttValue::Plain(val), AttValue::Plain(other)) => *val == *other,
-            _ => true,
+            (AttValue::Callback(cb), AttValue::Callback(other)) => *cb == *other,
+            _ => false,
         }
     }
 }

@@ -49,13 +49,14 @@ impl<EVENT, MSG> Clone for Callback<EVENT, MSG> {
 }
 
 impl<EVENT, MSG> PartialEq for Callback<EVENT, MSG> {
-    fn eq(&self, rhs: &Self) -> bool {
+    fn eq(&self, _rhs: &Self) -> bool {
+        true
         // Comparing the callback is only applicable
         // when they are a clone to each other.
         // This defeats the purpose in logically comparing for the
         // diffing algorthmn since all callbacks are effectively called with the closure.into()
         // which are essentially not the same Callback even when they are derived from the same
         // function.
-        Rc::ptr_eq(&self.0, &rhs.0)
+        //Rc::ptr_eq(&self.0, &rhs.0)
     }
 }
