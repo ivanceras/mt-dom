@@ -160,17 +160,10 @@ where
         let old_key_value = old_attributes.iter().find(|att| att.name == *key);
         let new_key_value = new_attributes.iter().find(|att| att.name == *key);
 
-        dbg!(old_key_value);
-        dbg!(new_key_value);
-
         match (old_key_value, new_key_value) {
             (Some(old_kv), Some(new_kv)) => {
                 if old_kv != new_kv {
-                    dbg!("will replace");
                     replace = true;
-                    dbg!(replace);
-                } else {
-                    dbg!("will not replace..");
                 }
             }
             _ => (),
@@ -179,7 +172,6 @@ where
 
     // Handle replacing of a node
     if replace {
-        dbg!("yes it is a replace");
         patches.push(Patch::Replace(
             old.tag().expect("must have a tag"),
             *cur_node_idx,
@@ -190,11 +182,8 @@ where
                 increment_node_idx_for_children(child, cur_node_idx);
             }
         }
-        dbg!("returning the patches..");
         return patches;
     }
-
-    dbg!("no, it wasnt a replace... continuing...");
 
     // The following comparison can only contain identical variants, other
     // cases have already been handled above by comparing variant
