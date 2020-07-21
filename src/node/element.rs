@@ -147,27 +147,3 @@ where
         }
     }
 }
-
-impl<NS, TAG, ATT, VAL, EVENT, MSG> Element<NS, TAG, ATT, VAL, EVENT, MSG>
-where
-    ATT: PartialEq + Clone,
-    VAL: Clone,
-{
-    /// return the aggregated values of attributes that has the same
-    /// name in this element
-    pub fn merge_attributes(&self) -> Vec<Attribute<NS, ATT, VAL, EVENT, MSG>> {
-        let mut merged: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>> = vec![];
-        for att in self.attrs.iter() {
-            if let Some(existing) = merged.iter_mut().find(|m_att| m_att.name == att.name) {
-                existing.value.extend(att.value.clone());
-            } else {
-                merged.push(Attribute {
-                    namespace: None,
-                    name: att.name.clone(),
-                    value: att.value.clone(),
-                });
-            }
-        }
-        merged
-    }
-}

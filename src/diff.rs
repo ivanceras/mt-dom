@@ -55,7 +55,11 @@ pub enum Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG> {
     /// Add attributes that the new node has that the old node does not
     /// Note: the attributes is not a reference since attributes of same
     /// name are merged to produce a new unify attribute
-    AddAttributes(&'a TAG, NodeIdx, Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>),
+    AddAttributes(
+        &'a TAG,
+        NodeIdx,
+        Vec<&'a Attribute<NS, ATT, VAL, EVENT, MSG>>,
+    ),
     /// Remove attributes that the old node had that the new node doesn't
     RemoveAttributes(
         &'a TAG,
@@ -107,9 +111,9 @@ pub fn diff_with_key<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG>(
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
 where
     TAG: PartialEq + Debug,
-    ATT: PartialEq + Clone + Debug,
-    NS: PartialEq + Clone + Debug,
-    VAL: PartialEq + Clone + Debug,
+    ATT: PartialEq + Debug,
+    NS: PartialEq + Debug,
+    VAL: PartialEq + Debug,
 {
     diff_recursive(old, new, &mut 0, key)
 }
@@ -135,10 +139,10 @@ fn diff_recursive<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG>(
     key: &ATT,
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
 where
-    NS: PartialEq + Clone + Debug,
+    NS: PartialEq + Debug,
     TAG: PartialEq + Debug,
-    ATT: PartialEq + Clone + Debug,
-    VAL: PartialEq + Clone + Debug,
+    ATT: PartialEq + Debug,
+    VAL: PartialEq + Debug,
 {
     let mut patches = vec![];
 
@@ -151,10 +155,8 @@ where
             replace = true;
         }
 
-        let new_attributes: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>> =
-            new_element.merge_attributes();
-        let old_attributes: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>> =
-            old_element.merge_attributes();
+        let new_attributes = new_element.get_attributes();
+        let old_attributes = old_element.get_attributes();
 
         // Replace if two elements have different keys
         let old_key_value = old_attributes.iter().find(|att| att.name == *key);
@@ -249,22 +251,26 @@ where
 }
 
 /// diff the attributes of old element to the new element at this cur_node_idx
+///
+/// Note: The performance bottlenecks
+///     - allocating new vec
+///     - merging attributes of the same name
 fn diff_attributes<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG>(
     old_element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
     new_element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
     cur_node_idx: &'b mut usize,
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
 where
-    NS: PartialEq + Clone + Debug,
-    ATT: PartialEq + Clone + Debug,
-    VAL: PartialEq + Clone + Debug,
+    NS: PartialEq + Debug,
+    ATT: PartialEq + Debug,
+    VAL: PartialEq + Debug,
 {
     let mut patches = vec![];
-    let mut add_attributes: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>> = vec![];
+    let mut add_attributes: Vec<&Attribute<NS, ATT, VAL, EVENT, MSG>> = vec![];
     let mut remove_attributes: Vec<&Attribute<NS, ATT, VAL, EVENT, MSG>> = vec![];
 
-    let new_attributes: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>> = new_element.merge_attributes();
-    let old_attributes: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>> = old_element.merge_attributes();
+    let new_attributes = new_element.get_attributes();
+    let old_attributes = old_element.get_attributes();
     // for all new elements that doesn't exist in the old elements
     // or the values differ
     // add it to the AddAttribute patches
@@ -276,10 +282,10 @@ where
 
         if let Some(old_attr_value) = old_attr_value {
             if *old_attr_value != new_attr.value {
-                add_attributes.push(new_attr.clone());
+                add_attributes.push(new_attr);
             }
         } else {
-            add_attributes.push(new_attr.clone());
+            add_attributes.push(new_attr);
         }
     }
 
