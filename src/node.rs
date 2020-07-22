@@ -134,6 +134,17 @@ where
             elm.set_attributes(attributes);
         }
     }
+
+    /// merge to existing attributes if the attribute name already exist
+    pub fn merge_attributes(
+        mut self,
+        attributes: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>,
+    ) -> Self {
+        if let Some(elm) = self.as_element_mut() {
+            elm.merge_attributes(attributes);
+        }
+        self
+    }
 }
 
 impl<NS, TAG, ATT, VAL, EVENT, MSG> Node<NS, TAG, ATT, VAL, EVENT, MSG>

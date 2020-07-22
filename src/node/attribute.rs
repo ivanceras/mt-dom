@@ -206,6 +206,14 @@ where
             AttValue::Callback(cb) => Some(cb),
         }
     }
+
+    /// return true if this is a callback
+    pub fn is_callback(&self) -> bool {
+        match self {
+            AttValue::Plain(_) => false,
+            AttValue::Callback(_) => true,
+        }
+    }
 }
 
 /// create an attribute from callback

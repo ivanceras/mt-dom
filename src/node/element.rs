@@ -116,6 +116,18 @@ where
             .for_each(|att| self.remove_attribute(&att.name));
         self.add_attributes(attrs);
     }
+
+    /// merge to existing attributes if it exist
+    pub fn merge_attributes(&mut self, new_attrs: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>) {
+        for new_att in new_attrs {
+            if let Some(existing_attr) = self.attrs.iter_mut().find(|att| att.name == new_att.name)
+            {
+                existing_attr.value.extend(new_att.value);
+            } else {
+                self.attrs.push(new_att);
+            }
+        }
+    }
 }
 
 impl<NS, TAG, ATT, VAL, EVENT, MSG> Element<NS, TAG, ATT, VAL, EVENT, MSG>
