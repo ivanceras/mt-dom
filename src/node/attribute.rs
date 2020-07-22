@@ -246,3 +246,26 @@ pub fn attr_ns<NS, ATT, VAL, EVENT, MSG>(
 ) -> Attribute<NS, ATT, VAL, EVENT, MSG> {
     Attribute::new(namespace, name, value)
 }
+
+/// merge the values of attributes with the same name
+pub fn merge_attributes_of_same_name<NS, ATT, VAL, EVENT, MSG>(
+    attributes: &[&Attribute<NS, ATT, VAL, EVENT, MSG>],
+) -> Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>
+where
+    ATT: PartialEq + Clone,
+    VAL: Clone,
+{
+    let mut merged: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>> = vec![];
+    for att in attributes {
+        if let Some(existing) = merged.iter_mut().find(|m_att| m_att.name == att.name) {
+            existing.value.extend(att.value.clone());
+        } else {
+            merged.push(Attribute {
+                namespace: None,
+                name: att.name.clone(),
+                value: att.value.clone(),
+            });
+        }
+    }
+    merged
+}
