@@ -19,8 +19,8 @@ impl<'a> PartialEq for Value<'a> {
 impl<'a> fmt::Debug for Value<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Value::Callback(_) => write!(f, "||{{}}"),
-            Value::Simple(s) => write!(f, "Value::Simple({})", s),
+            Value::Callback(_) => f.debug_tuple("Callback").finish(),
+            Value::Simple(s) => f.debug_tuple("Simple").field(s).finish(),
         }
     }
 }
@@ -36,6 +36,7 @@ fn main() {
         ],
         vec![],
     );
+    println!("elm1: {:#?}", elm1);
 
     let elm2: Node<&'static str, &'static str, &'static str, Value, (), ()> = element(
         "div",

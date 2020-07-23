@@ -2,7 +2,7 @@ use crate::Attribute;
 use crate::Element;
 use crate::Node;
 use std::cmp;
-use std::fmt::Debug;
+use std::fmt;
 use std::mem;
 
 /// A Patch encodes an operation that modifies a real DOM element or native UI element
@@ -39,7 +39,7 @@ use std::mem;
 /// ```
 ///
 ///
-#[derive(Debug, PartialEq)]
+#[derive(PartialEq)]
 pub enum Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG> {
     /// Append a vector of child nodes to a parent node id.
     AppendChildren(
@@ -100,6 +100,55 @@ impl<'a, NS, TAG, ATT, VAL, EVENT, MSG> Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>
     }
 }
 
+impl<'a, NS, TAG, ATT, VAL, EVENT, MSG> fmt::Debug for Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>
+where
+    NS: fmt::Debug,
+    TAG: fmt::Debug,
+    ATT: fmt::Debug,
+    VAL: fmt::Debug,
+{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Patch::AppendChildren(tag, node_idx, nodes) => f
+                .debug_tuple("AppendChildren")
+                .field(tag)
+                .field(node_idx)
+                .field(nodes)
+                .finish(),
+            Patch::TruncateChildren(tag, node_idx, first) => f
+                .debug_tuple("TruncateChildren")
+                .field(tag)
+                .field(node_idx)
+                .field(first)
+                .finish(),
+            Patch::Replace(tag, node_idx, node) => f
+                .debug_tuple("Replace")
+                .field(tag)
+                .field(node_idx)
+                .field(node)
+                .finish(),
+            Patch::AddAttributes(tag, node_idx, attrs) => f
+                .debug_tuple("AddAttributes")
+                .field(tag)
+                .field(node_idx)
+                .field(attrs)
+                .finish(),
+            Patch::RemoveAttributes(tag, node_idx, attrs) => f
+                .debug_tuple("RemoveAttributes")
+                .field(tag)
+                .field(node_idx)
+                .field(attrs)
+                .finish(),
+
+            Patch::ChangeText(node_idx, text) => f
+                .debug_tuple("ChangeText")
+                .field(node_idx)
+                .field(text)
+                .finish(),
+        }
+    }
+}
+
 /// calculate the difference of 2 nodes
 /// the supplied key will be taken into account
 /// that if the 2 keys differ, the element will be replaced without having to traverse the children
@@ -110,10 +159,10 @@ pub fn diff_with_key<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG>(
     key: &ATT,
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
 where
-    TAG: PartialEq + Debug,
-    ATT: PartialEq + Debug,
-    NS: PartialEq + Debug,
-    VAL: PartialEq + Debug,
+    TAG: PartialEq,
+    ATT: PartialEq,
+    NS: PartialEq,
+    VAL: PartialEq,
 {
     diff_recursive(old, new, &mut 0, key)
 }
@@ -139,10 +188,10 @@ fn diff_recursive<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG>(
     key: &ATT,
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
 where
-    NS: PartialEq + Debug,
-    TAG: PartialEq + Debug,
-    ATT: PartialEq + Debug,
-    VAL: PartialEq + Debug,
+    NS: PartialEq,
+    TAG: PartialEq,
+    ATT: PartialEq,
+    VAL: PartialEq,
 {
     let mut patches = vec![];
 
@@ -261,9 +310,9 @@ fn diff_attributes<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG>(
     cur_node_idx: &'b mut usize,
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
 where
-    NS: PartialEq + Debug,
-    ATT: PartialEq + Debug,
-    VAL: PartialEq + Debug,
+    NS: PartialEq,
+    ATT: PartialEq,
+    VAL: PartialEq,
 {
     let mut patches = vec![];
     let mut add_attributes: Vec<&Attribute<NS, ATT, VAL, EVENT, MSG>> = vec![];

@@ -16,6 +16,11 @@ pub struct Attribute<NS, ATT, VAL, EVENT, MSG> {
     pub(crate) value: Vec<AttValue<VAL, EVENT, MSG>>,
 }
 
+/// Note:
+/// using the #[derive(Debug)] needs EVENT and MSG to also be Debug
+///
+/// The reason this is manually implemented is, so that EVENT and MSG
+/// doesn't need to be Debug as it is part of the Callback objects and are not shown.
 impl<NS, ATT, VAL, EVENT, MSG> Clone for Attribute<NS, ATT, VAL, EVENT, MSG>
 where
     NS: Clone,
@@ -31,6 +36,11 @@ where
     }
 }
 
+/// Note:
+/// using the #[derive(PartialEq)] needs EVENT and MSG to also be PartialEq.
+///
+/// The reason this is manually implemented is, so that EVENT and MSG
+/// doesn't need to be PartialEq as it is part of the Callback objects and are not compared
 impl<NS, ATT, VAL, EVENT, MSG> PartialEq for Attribute<NS, ATT, VAL, EVENT, MSG>
 where
     NS: PartialEq,
@@ -42,6 +52,11 @@ where
     }
 }
 
+/// Note:
+/// using the #[derive(Debug)] needs EVENT and MSG to also be Debug
+///
+/// The reason this is manually implemented is, so that EVENT and MSG
+/// doesn't need to be Debug as it is part of the Callback objects and are not shown.
 impl<NS, ATT, VAL, EVENT, MSG> fmt::Debug for Attribute<NS, ATT, VAL, EVENT, MSG>
 where
     NS: fmt::Debug,
@@ -65,6 +80,12 @@ pub enum AttValue<VAL, EVENT, MSG> {
     Callback(Callback<EVENT, MSG>),
 }
 
+/// Note:
+/// using the #[derive(Clone)] needs EVENT and MSG to also be Clone
+///
+/// The reason this is manually implemented is, so that EVENT and MSG
+/// doesn't need to be Clone as it is part of the Callback objects and cloning it
+/// is just cloning the pointer of the actual callback function
 impl<VAL, EVENT, MSG> Clone for AttValue<VAL, EVENT, MSG>
 where
     VAL: Clone,
@@ -77,6 +98,11 @@ where
     }
 }
 
+/// Note:
+/// using the #[derive(Debug)] needs EVENT and MSG to also be Debug
+///
+/// The reason this is manually implemented is, so that EVENT and MSG
+/// doesn't need to be Debug as it is part of the Callback objects and are not shown.
 impl<VAL, EVENT, MSG> fmt::Debug for AttValue<VAL, EVENT, MSG>
 where
     VAL: fmt::Debug,
@@ -89,6 +115,11 @@ where
     }
 }
 
+/// Note:
+/// using the #[derive(PartialEq)] needs EVENT and MSG to also be PartialEq.
+///
+/// The reason this is manually implemented is, so that EVENT and MSG
+/// doesn't need to be PartialEq as it is part of the Callback objects and are not compared
 impl<VAL, EVENT, MSG> PartialEq for AttValue<VAL, EVENT, MSG>
 where
     VAL: PartialEq,

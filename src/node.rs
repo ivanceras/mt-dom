@@ -1,6 +1,7 @@
 pub use attribute::Attribute;
 use attribute::Callback;
 pub use element::Element;
+use std::fmt;
 
 pub(crate) mod attribute;
 mod element;
@@ -18,7 +19,7 @@ mod element;
 /// virtual dom implementation
 /// VAL - is the type for the value of the attribute, this will be String, f64, or just another
 /// generics that suits the implementing library which used mt-dom for just dom-diffing purposes
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Clone, PartialEq)]
 pub enum Node<NS, TAG, ATT, VAL, EVENT, MSG> {
     /// Element variant of a virtual node
     Element(Element<NS, TAG, ATT, VAL, EVENT, MSG>),
@@ -124,6 +125,11 @@ impl<NS, TAG, ATT, VAL, EVENT, MSG> Node<NS, TAG, ATT, VAL, EVENT, MSG> {
     }
 }
 
+/// Note:
+/// using the #[derive(PartialEq)] needs EVENT and MSG to also be PartialEq.
+///
+/// The reason this is manually implemented is, so that EVENT and MSG
+/// doesn't need to be PartialEq as it is part of the Callback objects and are not compared
 impl<NS, TAG, ATT, VAL, EVENT, MSG> Node<NS, TAG, ATT, VAL, EVENT, MSG>
 where
     ATT: PartialEq,
@@ -170,6 +176,26 @@ where
         match self {
             Node::Element(element) => Node::Element(element.map_callback(cb)),
             Node::Text(text) => Node::Text(text),
+        }
+    }
+}
+
+/// Note:
+/// using the #[derive(Debug)] needs EVENT and MSG to also be Debug
+///
+/// The reason this is manually implemented is, so that EVENT and MSG
+/// doesn't need to be Debug as it is part of the Callback objects and are not shown.
+impl<NS, TAG, ATT, VAL, EVENT, MSG> fmt::Debug for Node<NS, TAG, ATT, VAL, EVENT, MSG>
+where
+    NS: fmt::Debug,
+    TAG: fmt::Debug,
+    ATT: fmt::Debug,
+    VAL: fmt::Debug,
+{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Node::Element(element) => f.debug_tuple("Element").field(element).finish(),
+            Node::Text(txt) => f.debug_tuple("Text").field(txt).finish(),
         }
     }
 }

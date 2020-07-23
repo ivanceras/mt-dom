@@ -1,6 +1,7 @@
 use crate::node::attribute::Callback;
 use crate::node::Attribute;
 use crate::node::Node;
+use std::fmt;
 
 /// Represents an element of the virtual node
 /// An element has a generic tag, this tag could be a static str tag, such as usage in html dom.
@@ -15,7 +16,7 @@ use crate::node::Node;
 ///
 /// The namespace is also needed in attributes where namespace are necessary such as `xlink:href`
 /// where the namespace `xlink` is needed in order for the linked element in an svg image to work.
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Clone, PartialEq, Default)]
 pub struct Element<NS, TAG, ATT, VAL, EVENT, MSG> {
     /// namespace of this element,
     /// svg elements requires namespace to render correcly in the browser
@@ -99,6 +100,11 @@ impl<NS, TAG, ATT, VAL, EVENT, MSG> Element<NS, TAG, ATT, VAL, EVENT, MSG> {
     }
 }
 
+/// Note:
+/// using the #[derive(PartialEq)] needs EVENT and MSG to also be PartialEq.
+///
+/// The reason this is manually implemented is, so that EVENT and MSG
+/// doesn't need to be PartialEq as it is part of the Callback objects and are not compared
 impl<NS, TAG, ATT, VAL, EVENT, MSG> Element<NS, TAG, ATT, VAL, EVENT, MSG>
 where
     ATT: PartialEq,
@@ -157,5 +163,29 @@ where
                 .map(|child| child.map_callback(cb.clone()))
                 .collect(),
         }
+    }
+}
+
+/// Note:
+/// using the #[derive(Debug)] needs EVENT and MSG to also be Debug
+///
+/// The reason this is manually implemented is, so that EVENT and MSG
+/// doesn't need to be Debug as it is part of the Callback objects and are not shown.
+impl<NS, TAG, ATT, VAL, EVENT, MSG> fmt::Debug for Element<NS, TAG, ATT, VAL, EVENT, MSG>
+where
+    NS: fmt::Debug,
+    TAG: fmt::Debug,
+    ATT: fmt::Debug,
+    VAL: fmt::Debug,
+{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("Element")
+            .field("namespace", &self.namespace)
+            .field("tag", &self.tag)
+            .field("attrs", &self.attrs)
+            .field("children", &self.children)
+            .finish()?;
+
+        Ok(())
     }
 }

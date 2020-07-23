@@ -12,6 +12,12 @@ where
         Callback(Rc::new(func))
     }
 }
+
+/// Note:
+/// using the #[derive(Debug)] needs EVENT and MSG to also be Debug
+///
+/// The reason this is manually implemented is, so that EVENT and MSG
+/// doesn't need to be Debug as it is part of the Callback objects and are not shown.
 impl<EVENT, MSG> fmt::Debug for Callback<EVENT, MSG> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "||{{..}}")
@@ -42,12 +48,23 @@ where
     }
 }
 
+/// Note:
+/// using the #[derive(Clone)] needs EVENT and MSG to also be Clone
+///
+/// The reason this is manually implemented is, so that EVENT and MSG
+/// doesn't need to be Clone as it is part of the Callback objects and cloning here
+/// is just cloning the pointer of the actual callback function
 impl<EVENT, MSG> Clone for Callback<EVENT, MSG> {
     fn clone(&self) -> Self {
         Callback(Rc::clone(&self.0))
     }
 }
 
+/// Note:
+/// using the #[derive(PartialEq)] needs EVENT and MSG to also be PartialEq.
+///
+/// The reason this is manually implemented is, so that EVENT and MSG
+/// doesn't need to be PartialEq as it is part of the Callback objects and are not compared
 impl<EVENT, MSG> PartialEq for Callback<EVENT, MSG> {
     fn eq(&self, _rhs: &Self) -> bool {
         true
