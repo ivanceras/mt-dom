@@ -353,7 +353,6 @@ where
                 vec![old_idx],
             ));
         }
-        *cur_node_idx += 1;
     }
 
     // insert the rest of the new child element that wasn't inserted and wasnt matched

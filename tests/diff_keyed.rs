@@ -59,7 +59,7 @@ fn key_2_removed_at_the_end() {
     );
 
     let diff = diff_with_key(&old, &new, &"key");
-    assert_eq!(diff, vec![Patch::RemoveChildren(&"main", 1, vec![1])]);
+    assert_eq!(diff, vec![Patch::RemoveChildren(&"main", 0, vec![1])]);
 }
 
 #[test]
@@ -113,7 +113,7 @@ fn key_2_inserted_at_the_end() {
         diff,
         vec![Patch::AppendChildren(
             &"main",
-            1,
+            0,
             vec![&element("div", vec![attr("key", "2")], vec![])]
         )]
     );
@@ -145,7 +145,7 @@ fn key1_removed_at_start_then_key2_has_additional_attributes() {
         diff,
         vec![
             Patch::RemoveChildren(&"main", 0, vec![0]),
-            Patch::AddAttributes(&"div", 1, vec![&attr("class", "some-class")])
+            Patch::AddAttributes(&"div", 0, vec![&attr("class", "some-class")])
         ]
     );
 }
