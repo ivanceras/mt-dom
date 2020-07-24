@@ -47,8 +47,8 @@ pub enum Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG> {
         NodeIdx,
         Vec<&'a Node<NS, TAG, ATT, VAL, EVENT, MSG>>,
     ),
-    /// remove all children besides the first `len`
-    TruncateChildren(&'a TAG, NodeIdx, usize),
+    /// remove the children with the indices of this node.
+    RemoveChildren(&'a TAG, NodeIdx, Vec<usize>),
     /// Replace a node with another node. This typically happens when a node's tag changes.
     /// ex: <div> becomes <span>
     Replace(&'a TAG, NodeIdx, &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>),
@@ -79,7 +79,7 @@ impl<'a, NS, TAG, ATT, VAL, EVENT, MSG> Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>
     pub fn node_idx(&self) -> NodeIdx {
         match self {
             Patch::AppendChildren(_tag, node_idx, _) => *node_idx,
-            Patch::TruncateChildren(_tag, node_idx, _) => *node_idx,
+            Patch::RemoveChildren(_tag, node_idx, _) => *node_idx,
             Patch::Replace(_tag, node_idx, _) => *node_idx,
             Patch::AddAttributes(_tag, node_idx, _) => *node_idx,
             Patch::RemoveAttributes(_tag, node_idx, _) => *node_idx,
@@ -91,60 +91,11 @@ impl<'a, NS, TAG, ATT, VAL, EVENT, MSG> Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>
     pub fn tag(&self) -> Option<&TAG> {
         match self {
             Patch::AppendChildren(tag, _node_idx, _) => Some(tag),
-            Patch::TruncateChildren(tag, _node_idx, _) => Some(tag),
+            Patch::RemoveChildren(tag, _node_idx, _) => Some(tag),
             Patch::Replace(tag, _node_idx, _) => Some(tag),
             Patch::AddAttributes(tag, _node_idx, _) => Some(tag),
             Patch::RemoveAttributes(tag, _node_idx, _) => Some(tag),
             Patch::ChangeText(_node_idx, _) => None,
-        }
-    }
-}
-
-impl<'a, NS, TAG, ATT, VAL, EVENT, MSG> fmt::Debug for Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>
-where
-    NS: fmt::Debug,
-    TAG: fmt::Debug,
-    ATT: fmt::Debug,
-    VAL: fmt::Debug,
-{
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Patch::AppendChildren(tag, node_idx, nodes) => f
-                .debug_tuple("AppendChildren")
-                .field(tag)
-                .field(node_idx)
-                .field(nodes)
-                .finish(),
-            Patch::TruncateChildren(tag, node_idx, first) => f
-                .debug_tuple("TruncateChildren")
-                .field(tag)
-                .field(node_idx)
-                .field(first)
-                .finish(),
-            Patch::Replace(tag, node_idx, node) => f
-                .debug_tuple("Replace")
-                .field(tag)
-                .field(node_idx)
-                .field(node)
-                .finish(),
-            Patch::AddAttributes(tag, node_idx, attrs) => f
-                .debug_tuple("AddAttributes")
-                .field(tag)
-                .field(node_idx)
-                .field(attrs)
-                .finish(),
-            Patch::RemoveAttributes(tag, node_idx, attrs) => f
-                .debug_tuple("RemoveAttributes")
-                .field(tag)
-                .field(node_idx)
-                .field(attrs)
-                .finish(),
-
-            Patch::ChangeText(node_idx, text) => f
-                .debug_tuple("ChangeText")
-                .field(node_idx)
-                .field(text)
-                .finish(),
         }
     }
 }
@@ -181,6 +132,35 @@ fn increment_node_idx_for_children<NS, TAG, ATT, VAL, EVENT, MSG>(
     }
 }
 
+fn are_children_keyed<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
+    node: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+    key: &ATT,
+) -> bool
+where
+    ATT: PartialEq,
+{
+    if let Some(children) = node.get_children() {
+        children.iter().all(|child| is_keyed_node(child, key))
+    } else {
+        false
+    }
+}
+
+/// returns true if all of the children has key attributes
+fn is_keyed_node<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
+    node: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+    key: &ATT,
+) -> bool
+where
+    ATT: PartialEq,
+{
+    if let Some(attributes) = node.get_attributes() {
+        attributes.iter().any(|att| att.name == *key)
+    } else {
+        false
+    }
+}
+
 fn diff_recursive<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG>(
     old: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
     new: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
@@ -211,6 +191,11 @@ where
         let old_key_value = old_attributes.iter().find(|att| att.name == *key);
         let new_key_value = new_attributes.iter().find(|att| att.name == *key);
 
+        // TODO: need a smarter algorithmn here to find and match the new element key to the old element keys and patch the
+        // element instead of just dropping it completely.
+        //
+        // The upside of this approach will be that the events in old elements will still be the
+        // same behavior, as there is no way of comparing them
         match (old_key_value, new_key_value) {
             (Some(old_kv), Some(new_kv)) => {
                 if old_kv != new_kv {
@@ -266,10 +251,10 @@ where
             }
 
             if new_child_count < old_child_count {
-                patches.push(Patch::TruncateChildren(
+                patches.push(Patch::RemoveChildren(
                     &old_element.tag,
                     *cur_node_idx,
-                    new_child_count,
+                    (new_child_count..old_child_count).collect::<Vec<usize>>(),
                 ))
             }
 
@@ -363,4 +348,53 @@ where
         ));
     }
     patches
+}
+
+impl<'a, NS, TAG, ATT, VAL, EVENT, MSG> fmt::Debug for Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>
+where
+    NS: fmt::Debug,
+    TAG: fmt::Debug,
+    ATT: fmt::Debug,
+    VAL: fmt::Debug,
+{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Patch::AppendChildren(tag, node_idx, nodes) => f
+                .debug_tuple("AppendChildren")
+                .field(tag)
+                .field(node_idx)
+                .field(nodes)
+                .finish(),
+            Patch::RemoveChildren(tag, node_idx, first) => f
+                .debug_tuple("RemoveChildren")
+                .field(tag)
+                .field(node_idx)
+                .field(first)
+                .finish(),
+            Patch::Replace(tag, node_idx, node) => f
+                .debug_tuple("Replace")
+                .field(tag)
+                .field(node_idx)
+                .field(node)
+                .finish(),
+            Patch::AddAttributes(tag, node_idx, attrs) => f
+                .debug_tuple("AddAttributes")
+                .field(tag)
+                .field(node_idx)
+                .field(attrs)
+                .finish(),
+            Patch::RemoveAttributes(tag, node_idx, attrs) => f
+                .debug_tuple("RemoveAttributes")
+                .field(tag)
+                .field(node_idx)
+                .field(attrs)
+                .finish(),
+
+            Patch::ChangeText(node_idx, text) => f
+                .debug_tuple("ChangeText")
+                .field(node_idx)
+                .field(text)
+                .finish(),
+        }
+    }
 }
