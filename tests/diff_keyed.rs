@@ -145,7 +145,7 @@ fn key1_removed_at_start_then_key2_has_additional_attributes() {
         diff,
         vec![
             Patch::RemoveChildren(&"main", 0, vec![0]),
-            Patch::AddAttributes(&"div", 2, vec![&attr("class", "some-class")])
+            Patch::AddAttributes(&"div", 1, vec![&attr("class", "some-class")])
         ]
     );
 }

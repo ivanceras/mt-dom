@@ -347,12 +347,15 @@ where
             ));
         }
     }
+    println!("here...");
 
     // APPEND the rest of the new child element that wasn't inserted and wasnt matched
     for (new_idx, new_child) in new_element.get_children().iter().enumerate() {
+        println!("processing for append children...");
         if !matching_keys.iter().any(|(old, new)| *new == new_idx)
             && !inserted_new_idx.contains(&new_idx)
         {
+            println!("appending children at cur_node_idx: {}", cur_node_idx);
             patches.push(Patch::AppendChildren(
                 &old_element.tag,
                 *cur_node_idx,
@@ -364,7 +367,6 @@ where
 
     // patched the attributes of the matched_new_children
     for (old_idx, old_child) in old_element.get_children().iter().enumerate() {
-        *cur_node_idx += 1;
         if let Some(matched_new_idx) =
             matching_keys
                 .iter()
@@ -379,6 +381,7 @@ where
                 diff_recursive(old_child, matched_new_child, cur_node_idx, key);
             patches.extend(matched_element_patches);
         }
+        *cur_node_idx += 1;
     }
     patches
 }
