@@ -172,6 +172,11 @@ impl<NS, ATT, VAL, EVENT, MSG> Attribute<NS, ATT, VAL, EVENT, MSG> {
     pub fn namespace(&self) -> Option<&NS> {
         self.namespace.as_ref()
     }
+
+    /// return the plain value if it is a plain value
+    pub fn get_plain(&self) -> Vec<&VAL> {
+        self.value.iter().filter_map(|v| v.get_plain()).collect()
+    }
 }
 
 impl<NS, ATT, VAL, EVENT, MSG> Attribute<NS, ATT, VAL, EVENT, MSG>
@@ -195,14 +200,19 @@ where
         }
     }
 
-    /// return the plain value if it is a plain value
-    pub fn get_plain(&self) -> Vec<&VAL> {
-        self.value.iter().filter_map(|v| v.get_plain()).collect()
-    }
-
     /// return the callback values of this attribute
     pub fn get_callback(&self) -> Vec<&Callback<EVENT, MSG>> {
         self.value.iter().filter_map(|v| v.get_callback()).collect()
+    }
+}
+
+impl<VAL, EVENT, MSG> AttValue<VAL, EVENT, MSG> {
+    /// return a reference to the plain value if it is a plain value
+    pub fn get_plain(&self) -> Option<&VAL> {
+        match self {
+            AttValue::Plain(plain) => Some(plain),
+            AttValue::Callback(_) => None,
+        }
     }
 }
 
@@ -219,14 +229,6 @@ where
         match self {
             AttValue::Plain(plain) => AttValue::Plain(plain),
             AttValue::Callback(att_cb) => AttValue::Callback(att_cb.map_callback(cb)),
-        }
-    }
-
-    /// return a reference to the plain value if it is a plain value
-    pub fn get_plain(&self) -> Option<&VAL> {
-        match self {
-            AttValue::Plain(plain) => Some(plain),
-            AttValue::Callback(_) => None,
         }
     }
 

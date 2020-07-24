@@ -134,6 +134,14 @@ where
             }
         }
     }
+
+    /// return attribute values which match the name
+    pub fn get_attribute_value(&self, name: &ATT) -> Option<Vec<&VAL>> {
+        self.attrs
+            .iter()
+            .find(|att| att.name == *name)
+            .map(|att| att.get_plain())
+    }
 }
 
 impl<NS, TAG, ATT, VAL, EVENT, MSG> Element<NS, TAG, ATT, VAL, EVENT, MSG>

@@ -151,6 +151,15 @@ where
         }
         self
     }
+
+    /// returh the attribute values of this node which match the attribute name `name`
+    pub fn get_attribute_value(&self, name: &ATT) -> Option<Vec<&VAL>> {
+        if let Some(elm) = self.as_element_ref() {
+            elm.get_attribute_value(name)
+        } else {
+            None
+        }
+    }
 }
 
 impl<NS, TAG, ATT, VAL, EVENT, MSG> Node<NS, TAG, ATT, VAL, EVENT, MSG>

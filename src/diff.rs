@@ -1,6 +1,7 @@
 use crate::Attribute;
 use crate::Element;
 use crate::Node;
+use log::*;
 use std::cmp;
 use std::fmt;
 use std::mem;
@@ -41,6 +42,13 @@ use std::mem;
 ///
 #[derive(PartialEq)]
 pub enum Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG> {
+    /// Insert a vector of child nodes to the current node being patch.
+    InsertChildren(
+        &'a TAG,
+        NodeIdx,
+        usize,
+        Vec<&'a Node<NS, TAG, ATT, VAL, EVENT, MSG>>,
+    ),
     /// Append a vector of child nodes to a parent node id.
     AppendChildren(
         &'a TAG,
@@ -78,6 +86,7 @@ impl<'a, NS, TAG, ATT, VAL, EVENT, MSG> Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>
     /// depth first with the root node in the tree having index 0.
     pub fn node_idx(&self) -> NodeIdx {
         match self {
+            Patch::InsertChildren(_tag, node_idx, _, _) => *node_idx,
             Patch::AppendChildren(_tag, node_idx, _) => *node_idx,
             Patch::RemoveChildren(_tag, node_idx, _) => *node_idx,
             Patch::Replace(_tag, node_idx, _) => *node_idx,
@@ -90,6 +99,7 @@ impl<'a, NS, TAG, ATT, VAL, EVENT, MSG> Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>
     /// return the tag of this patch
     pub fn tag(&self) -> Option<&TAG> {
         match self {
+            Patch::InsertChildren(tag, _node_idx, _, _) => Some(tag),
             Patch::AppendChildren(tag, _node_idx, _) => Some(tag),
             Patch::RemoveChildren(tag, _node_idx, _) => Some(tag),
             Patch::Replace(tag, _node_idx, _) => Some(tag),
@@ -132,21 +142,21 @@ fn increment_node_idx_for_children<NS, TAG, ATT, VAL, EVENT, MSG>(
     }
 }
 
-fn are_children_keyed<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
-    node: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+/// returns true if any of the node children has key in their attributes
+fn is_any_children_keyed<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
+    element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
     key: &ATT,
 ) -> bool
 where
     ATT: PartialEq,
 {
-    if let Some(children) = node.get_children() {
-        children.iter().all(|child| is_keyed_node(child, key))
-    } else {
-        false
-    }
+    element
+        .get_children()
+        .iter()
+        .any(|child| is_keyed_node(child, key))
 }
 
-/// returns true if all of the children has key attributes
+/// returns true any attributes of this node attribute has key in it
 fn is_keyed_node<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
     node: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
     key: &ATT,
@@ -183,27 +193,6 @@ where
         if old_element.tag != new_element.tag {
             replace = true;
         }
-
-        let new_attributes = new_element.get_attributes();
-        let old_attributes = old_element.get_attributes();
-
-        // Replace if two elements have different keys
-        let old_key_value = old_attributes.iter().find(|att| att.name == *key);
-        let new_key_value = new_attributes.iter().find(|att| att.name == *key);
-
-        // TODO: need a smarter algorithmn here to find and match the new element key to the old element keys and patch the
-        // element instead of just dropping it completely.
-        //
-        // The upside of this approach will be that the events in old elements will still be the
-        // same behavior, as there is no way of comparing them
-        match (old_key_value, new_key_value) {
-            (Some(old_kv), Some(new_kv)) => {
-                if old_kv != new_kv {
-                    replace = true;
-                }
-            }
-            _ => (),
-        }
     }
 
     // Handle replacing of a node
@@ -234,46 +223,15 @@ where
 
         // We're comparing two element nodes
         (Node::Element(old_element), Node::Element(new_element)) => {
-            let attributes_patches = diff_attributes(old_element, new_element, cur_node_idx);
-            patches.extend(attributes_patches);
-
-            let old_child_count = old_element.children.len();
-            let new_child_count = new_element.children.len();
-
-            if new_child_count > old_child_count {
-                let append_patch: Vec<&'a Node<NS, TAG, ATT, VAL, EVENT, MSG>> =
-                    new_element.children[old_child_count..].iter().collect();
-                patches.push(Patch::AppendChildren(
-                    &old_element.tag,
-                    *cur_node_idx,
-                    append_patch,
-                ))
-            }
-
-            if new_child_count < old_child_count {
-                patches.push(Patch::RemoveChildren(
-                    &old_element.tag,
-                    *cur_node_idx,
-                    (new_child_count..old_child_count).collect::<Vec<usize>>(),
-                ))
-            }
-
-            let min_count = cmp::min(old_child_count, new_child_count);
-            for index in 0..min_count {
-                *cur_node_idx += 1;
-                let old_child = &old_element.children.get(index).expect("No old child node");
-                let new_child = &new_element.children.get(index).expect("No new chold node");
-                patches.append(&mut diff_recursive(
-                    &old_child,
-                    &new_child,
-                    cur_node_idx,
-                    key,
-                ))
-            }
-            if new_child_count < old_child_count {
-                for child in old_element.children[min_count..].iter() {
-                    increment_node_idx_for_children(child, cur_node_idx);
-                }
+            if is_any_children_keyed(old_element, key) || is_any_children_keyed(new_element, key) {
+                println!("keyed comparison..");
+                let keyed_patches =
+                    diff_keyed_elements(old_element, new_element, key, cur_node_idx);
+                patches.extend(keyed_patches);
+            } else {
+                let non_keyed_patches =
+                    diff_non_keyed_elements(old_element, new_element, key, cur_node_idx);
+                patches.extend(non_keyed_patches);
             }
         }
         (Node::Text(_), Node::Element(_)) | (Node::Element(_), Node::Text(_)) => {
@@ -281,6 +239,196 @@ where
         }
     };
 
+    patches
+}
+
+/// Reconciliation of keyed elements
+///
+/// # cases:
+///  - A child node is removed at the start
+///     - The old key is not on the new node keys anymore
+///  - A new child node is inserted at the start of the new element
+///     - This node doesn't match to the old node keys
+///
+/// # not handled
+///  - elements that are reorder among their siblings. We only match forward for a straigh-forward algorithmn.
+///
+///
+/// # Finding and matching the old keys
+///  - For each new node, iterate through the old element child nodes and
+///   match the new key to the old key.
+///   If a key is found in the old child nodes, that child_index is take into notice.
+///   child nodes that exist before this matching child index will be removed.
+///
+///  - If no key is matched from the old element children, the new children will be an
+///  InsertChild patch
+///
+fn diff_keyed_elements<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG>(
+    old_element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
+    new_element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
+    key: &ATT,
+    cur_node_idx: &'b mut usize,
+) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
+where
+    NS: PartialEq,
+    TAG: PartialEq,
+    ATT: PartialEq,
+    VAL: PartialEq,
+{
+    let mut patches = vec![];
+
+    let mut matching_keys: Vec<(usize, usize)> = vec![];
+    for (new_idx, new_child) in new_element.get_children().iter().enumerate() {
+        if let Some(new_child_key) = new_child.get_attribute_value(key) {
+            let found_match =
+                old_element
+                    .get_children()
+                    .iter()
+                    .enumerate()
+                    .find_map(|(old_idx, old_child)| {
+                        if let Some(old_child_key) = old_child.get_attribute_value(key) {
+                            if old_child_key == new_child_key {
+                                Some(old_idx)
+                            } else {
+                                None
+                            }
+                        } else {
+                            None
+                        }
+                    });
+            // If the new key_id is matched in the old children key_id,
+            // remove the prior siblings at this element, prior to the found old child index.
+            if let Some(old_idx) = found_match {
+                matching_keys.push((old_idx, new_idx));
+            }
+        }
+    }
+
+    println!("matching keys: {:?}", matching_keys);
+
+    // keep track of what's already included in the InsertChildren patch
+    let mut inserted_new_idx = vec![];
+
+    for (old_idx, old_child) in old_element.get_children().iter().enumerate() {
+        // if this old child element is matched, find the new child counter part
+        if let Some(matched_new_idx) =
+            matching_keys
+                .iter()
+                .find_map(|(old, new)| if *old == old_idx { Some(new) } else { None })
+        {
+            println!("processing matched_new_idx: {}", matched_new_idx);
+
+            // but first, all the new_child idx before matched_new_idx will have to be inserted
+            //
+            // insert the new_child that is not on the matching keys
+            // and has a index lesser than the matched_new_idx
+            for (new_idx, new_child) in new_element.get_children().iter().enumerate() {
+                if !matching_keys.iter().any(|(old, new)| *new == new_idx)
+                    && !inserted_new_idx.contains(&new_idx)
+                    && new_idx < *matched_new_idx
+                {
+                    patches.push(Patch::InsertChildren(
+                        &old_element.tag,
+                        *cur_node_idx,
+                        old_idx,
+                        vec![new_child],
+                    ));
+                    inserted_new_idx.push(new_idx);
+                }
+            }
+
+            let new_child = new_element
+                .get_children()
+                .get(*matched_new_idx)
+                .expect("the child must exist");
+
+            let matched_element_patches = diff_recursive(old_child, new_child, cur_node_idx, key);
+            patches.extend(matched_element_patches);
+        } else {
+            println!("not matched: {}", old_idx);
+            // if this old element was not matched remove it
+            patches.push(Patch::RemoveChildren(
+                &old_element.tag,
+                *cur_node_idx,
+                vec![old_idx],
+            ));
+        }
+        *cur_node_idx += 1;
+    }
+
+    // insert the rest of the new child element that wasn't inserted and wasnt matched
+    for (new_idx, new_child) in new_element.get_children().iter().enumerate() {
+        if !matching_keys.iter().any(|(old, new)| *new == new_idx)
+            && !inserted_new_idx.contains(&new_idx)
+        {
+            patches.push(Patch::AppendChildren(
+                &old_element.tag,
+                *cur_node_idx,
+                vec![new_child],
+            ));
+            inserted_new_idx.push(new_idx);
+        }
+    }
+    patches
+}
+
+fn diff_non_keyed_elements<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG>(
+    old_element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
+    new_element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
+    key: &ATT,
+    cur_node_idx: &'b mut usize,
+) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
+where
+    NS: PartialEq,
+    TAG: PartialEq,
+    ATT: PartialEq,
+    VAL: PartialEq,
+{
+    let mut patches = vec![];
+    let attributes_patches = diff_attributes(old_element, new_element, cur_node_idx);
+    patches.extend(attributes_patches);
+
+    let old_child_count = old_element.children.len();
+    let new_child_count = new_element.children.len();
+
+    // If there are more new child than old child, we make a patch to append the excess element
+    // starting from old_child_count to the last item of the new_elements
+    if new_child_count > old_child_count {
+        let append_patch: Vec<&'a Node<NS, TAG, ATT, VAL, EVENT, MSG>> =
+            new_element.children[old_child_count..].iter().collect();
+
+        patches.push(Patch::AppendChildren(
+            &old_element.tag,
+            *cur_node_idx,
+            append_patch,
+        ))
+    }
+
+    if new_child_count < old_child_count {
+        patches.push(Patch::RemoveChildren(
+            &old_element.tag,
+            *cur_node_idx,
+            (new_child_count..old_child_count).collect::<Vec<usize>>(),
+        ))
+    }
+
+    let min_count = cmp::min(old_child_count, new_child_count);
+    for index in 0..min_count {
+        *cur_node_idx += 1;
+        let old_child = &old_element.children.get(index).expect("No old child node");
+        let new_child = &new_element.children.get(index).expect("No new chold node");
+        patches.append(&mut diff_recursive(
+            &old_child,
+            &new_child,
+            cur_node_idx,
+            key,
+        ))
+    }
+    if new_child_count < old_child_count {
+        for child in old_element.children[min_count..].iter() {
+            increment_node_idx_for_children(child, cur_node_idx);
+        }
+    }
     patches
 }
 
@@ -359,17 +507,24 @@ where
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
+            Patch::InsertChildren(tag, node_idx, child_index, nodes) => f
+                .debug_tuple("InsertChildren")
+                .field(tag)
+                .field(node_idx)
+                .field(child_index)
+                .field(nodes)
+                .finish(),
             Patch::AppendChildren(tag, node_idx, nodes) => f
                 .debug_tuple("AppendChildren")
                 .field(tag)
                 .field(node_idx)
                 .field(nodes)
                 .finish(),
-            Patch::RemoveChildren(tag, node_idx, first) => f
+            Patch::RemoveChildren(tag, node_idx, child_indices) => f
                 .debug_tuple("RemoveChildren")
                 .field(tag)
                 .field(node_idx)
-                .field(first)
+                .field(child_indices)
                 .finish(),
             Patch::Replace(tag, node_idx, node) => f
                 .debug_tuple("Replace")

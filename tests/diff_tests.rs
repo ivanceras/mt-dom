@@ -35,24 +35,6 @@ fn test_no_changed() {
 }
 
 #[test]
-fn test_key_changed() {
-    let old: MyNode = element(
-        "div",
-        vec![attr("key", "node1"), attr("class", "some-class")],
-        vec![],
-    );
-
-    let new: MyNode = element(
-        "div",
-        vec![attr("key", "node2"), attr("class", "some-class")],
-        vec![],
-    );
-
-    let diff = diff_with_key(&old, &new, &"key");
-    assert_eq!(diff, vec![Patch::Replace(&"div", 0, &new)])
-}
-
-#[test]
 fn test_order_changed() {
     let old: MyNode = element(
         "div",
