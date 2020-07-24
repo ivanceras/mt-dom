@@ -63,6 +63,31 @@ fn key_2_removed_at_the_end() {
 }
 
 #[test]
+fn key_2_removed_at_the_middle() {
+    let old: MyNode = element(
+        "main",
+        vec![attr("class", "container")],
+        vec![
+            element("div", vec![attr("key", "1")], vec![]),
+            element("div", vec![attr("key", "2")], vec![]),
+            element("div", vec![attr("key", "3")], vec![]),
+        ],
+    );
+
+    let new: MyNode = element(
+        "main",
+        vec![attr("class", "container")],
+        vec![
+            element("div", vec![attr("key", "1")], vec![]),
+            element("div", vec![attr("key", "3")], vec![]),
+        ],
+    );
+
+    let diff = diff_with_key(&old, &new, &"key");
+    assert_eq!(diff, vec![Patch::RemoveChildren(&"main", 0, vec![1])]);
+}
+
+#[test]
 fn key_2_inserted_at_start() {
     let old: MyNode = element(
         "main",
@@ -114,6 +139,39 @@ fn key_2_inserted_at_the_end() {
         vec![Patch::AppendChildren(
             &"main",
             0,
+            vec![&element("div", vec![attr("key", "2")], vec![])]
+        )]
+    );
+}
+
+#[test]
+fn key_2_inserted_in_the_middle() {
+    let old: MyNode = element(
+        "main",
+        vec![attr("class", "container")],
+        vec![
+            element("div", vec![attr("key", "1")], vec![]),
+            element("div", vec![attr("key", "3")], vec![]),
+        ],
+    );
+
+    let new: MyNode = element(
+        "main",
+        vec![attr("class", "container")],
+        vec![
+            element("div", vec![attr("key", "1")], vec![]),
+            element("div", vec![attr("key", "2")], vec![]),
+            element("div", vec![attr("key", "3")], vec![]),
+        ],
+    );
+
+    let diff = diff_with_key(&old, &new, &"key");
+    assert_eq!(
+        diff,
+        vec![Patch::InsertChildren(
+            &"main",
+            0,
+            1,
             vec![&element("div", vec![attr("key", "2")], vec![])]
         )]
     );
