@@ -156,18 +156,6 @@ fn increment_node_idx_for_children<NS, TAG, ATT, VAL, EVENT, MSG>(
     }
 }
 
-fn decrement_node_idx_for_children<NS, TAG, ATT, VAL, EVENT, MSG>(
-    old: &Node<NS, TAG, ATT, VAL, EVENT, MSG>,
-    cur_node_idx: &mut usize,
-) {
-    *cur_node_idx -= 1;
-    if let Node::Element(element_node) = old {
-        for child in element_node.children.iter() {
-            decrement_node_idx_for_children(&child, cur_node_idx);
-        }
-    }
-}
-
 /// returns true if any of the node children has key in their attributes
 fn is_any_children_keyed<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
     element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
@@ -338,7 +326,9 @@ where
     }
 
     println!("matching keys: {:?}", matching_keys);
+    debug!("matching keys: {:?}", matching_keys);
 
+    let mut unmatched_old_keys = vec![];
     // patch the matching element first
     for (old_idx, old_child) in old_element.get_children().iter().enumerate() {
         *cur_node_idx += 1;
@@ -356,6 +346,8 @@ where
             let matched_element_patches =
                 diff_recursive(old_child, matched_new_child, cur_node_idx, key);
             patches.extend(matched_element_patches);
+        } else {
+            unmatched_old_keys.push(old_idx);
         }
     }
 
@@ -388,20 +380,18 @@ where
                         vec![new_child],
                     ));
                     inserted_new_idx.push(new_idx);
-                    increment_node_idx_for_children(new_child, cur_node_idx);
                 }
             }
         } else {
-            println!("not matched: {}", old_idx);
-            // if this old element was not matched remove it
-            patches.push(Patch::RemoveChildren(
-                &old_element.tag,
-                this_cur_node_idx,
-                vec![old_idx],
-            ));
-            // since the children was removed, decrement the cur_node_idx
-            decrement_node_idx_for_children(old_child, cur_node_idx);
         }
+    }
+
+    if !unmatched_old_keys.is_empty() {
+        patches.push(Patch::RemoveChildren(
+            &old_element.tag,
+            this_cur_node_idx,
+            unmatched_old_keys,
+        ));
     }
 
     // APPEND the rest of the new child element that wasn't inserted and wasnt matched
@@ -417,7 +407,6 @@ where
                 vec![new_child],
             ));
             inserted_new_idx.push(new_idx);
-            increment_node_idx_for_children(new_child, cur_node_idx);
         }
     }
 

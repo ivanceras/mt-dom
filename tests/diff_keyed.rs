@@ -282,8 +282,7 @@ fn deep_nested_more_children_key0_and_key1_removed_at_start_then_key2_has_additi
         diff,
         vec![
             Patch::AddAttributes(&"div", 4, vec![&attr("class", "some-class")]),
-            Patch::RemoveChildren(&"article", 1, vec![0]),
-            Patch::RemoveChildren(&"article", 1, vec![1]),
+            Patch::RemoveChildren(&"article", 1, vec![0, 1]),
         ]
     );
 }
