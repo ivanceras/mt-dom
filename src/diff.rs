@@ -382,7 +382,6 @@ where
                     inserted_new_idx.push(new_idx);
                 }
             }
-        } else {
         }
     }
 
