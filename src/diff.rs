@@ -313,10 +313,30 @@ where
 
     println!("matching keys: {:?}", matching_keys);
 
+    // patch the matching element first
+    for (old_idx, old_child) in old_element.get_children().iter().enumerate() {
+        *cur_node_idx += 1;
+        // if this old child element is matched, find the new child counter part
+        if let Some(matched_new_idx) =
+            matching_keys
+                .iter()
+                .find_map(|(old, new)| if *old == old_idx { Some(new) } else { None })
+        {
+            let matched_new_child = new_element
+                .get_children()
+                .get(*matched_new_idx)
+                .expect("the child must exist");
+
+            let matched_element_patches =
+                diff_recursive(old_child, matched_new_child, cur_node_idx, key);
+            patches.extend(matched_element_patches);
+        }
+    }
+
     // keep track of what's already included in the InsertChildren patch
     let mut inserted_new_idx = vec![];
 
-    // INSERT the unmatched children
+    // insertion and removal of children comes last
     for (old_idx, old_child) in old_element.get_children().iter().enumerate() {
         // if this old child element is matched, find the new child counter part
         if let Some(matched_new_idx) =
@@ -344,16 +364,6 @@ where
                     inserted_new_idx.push(new_idx);
                 }
             }
-
-            let matched_new_child = new_element
-                .get_children()
-                .get(*matched_new_idx)
-                .expect("the child must exist");
-
-            let matched_element_patches =
-                diff_recursive(old_child, matched_new_child, cur_node_idx, key);
-            patches.extend(matched_element_patches);
-            *cur_node_idx += 1;
         } else {
             println!("not matched: {}", old_idx);
             // if this old element was not matched remove it
@@ -365,7 +375,6 @@ where
             increment_node_idx_for_children(old_child, cur_node_idx);
         }
     }
-    println!("here...");
 
     // APPEND the rest of the new child element that wasn't inserted and wasnt matched
     for (new_idx, new_child) in new_element.get_children().iter().enumerate() {
