@@ -286,3 +286,59 @@ fn deep_nested_more_children_key0_and_key1_removed_at_start_then_key2_has_additi
         ]
     );
 }
+
+#[test]
+fn deep_nested_keyed_with_non_keyed_children() {
+    let old: MyNode = element(
+        "main",
+        vec![attr("class", "container")],
+        vec![element(
+            "article",
+            vec![],
+            vec![
+                element("div", vec![attr("key", "0")], vec![]),
+                element("div", vec![attr("key", "1")], vec![]),
+                element(
+                    "div",
+                    vec![attr("key", "2")],
+                    vec![
+                        element("p", vec![], vec![text("paragraph1")]),
+                        element("a", vec![attr("href", "#link1")], vec![text("Click here")]),
+                    ],
+                ),
+            ],
+        )],
+    );
+
+    let new: MyNode = element(
+        "main",
+        vec![attr("class", "container")],
+        vec![element(
+            "article",
+            vec![],
+            vec![element(
+                "div",
+                vec![attr("key", "2"), attr("class", "some-class")],
+                vec![
+                    element("p", vec![], vec![text("paragraph1, with added content")]),
+                    element(
+                        "a",
+                        vec![attr("href", "#link1")],
+                        vec![text("Click here to continue")],
+                    ),
+                ],
+            )],
+        )],
+    );
+
+    let diff = diff_with_key(&old, &new, &"key");
+    assert_eq!(
+        diff,
+        vec![
+            Patch::AddAttributes(&"div", 4, vec![&attr("class", "some-class")]),
+            Patch::ChangeText(6, "paragraph1, with added content"),
+            Patch::ChangeText(8, "Click here to continue"),
+            Patch::RemoveChildren(&"article", 1, vec![0, 1]),
+        ]
+    );
+}
