@@ -108,6 +108,20 @@ impl<'a, NS, TAG, ATT, VAL, EVENT, MSG> Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>
             Patch::ChangeText(_node_idx, _) => None,
         }
     }
+
+    /// prioritize patches,
+    /// patches that doesn't change the NodeIdx in the actual DOM tree will be executed first.
+    pub fn priority(&self) -> usize {
+        match self {
+            Patch::AddAttributes(..) => 1,
+            Patch::RemoveAttributes(..) => 2,
+            Patch::ChangeText(..) => 3,
+            Patch::Replace(..) => 4,
+            Patch::AppendChildren(..) => 5,
+            Patch::InsertChildren(..) => 6,
+            Patch::RemoveChildren(..) => 7,
+        }
+    }
 }
 
 /// calculate the difference of 2 nodes
@@ -138,6 +152,18 @@ fn increment_node_idx_for_children<NS, TAG, ATT, VAL, EVENT, MSG>(
     if let Node::Element(element_node) = old {
         for child in element_node.children.iter() {
             increment_node_idx_for_children(&child, cur_node_idx);
+        }
+    }
+}
+
+fn decrement_node_idx_for_children<NS, TAG, ATT, VAL, EVENT, MSG>(
+    old: &Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+    cur_node_idx: &mut usize,
+) {
+    *cur_node_idx -= 1;
+    if let Node::Element(element_node) = old {
+        for child in element_node.children.iter() {
+            decrement_node_idx_for_children(&child, cur_node_idx);
         }
     }
 }
@@ -362,6 +388,7 @@ where
                         vec![new_child],
                     ));
                     inserted_new_idx.push(new_idx);
+                    increment_node_idx_for_children(new_child, cur_node_idx);
                 }
             }
         } else {
@@ -372,7 +399,8 @@ where
                 this_cur_node_idx,
                 vec![old_idx],
             ));
-            increment_node_idx_for_children(old_child, cur_node_idx);
+            // since the children was removed, decrement the cur_node_idx
+            decrement_node_idx_for_children(old_child, cur_node_idx);
         }
     }
 
@@ -389,6 +417,7 @@ where
                 vec![new_child],
             ));
             inserted_new_idx.push(new_idx);
+            increment_node_idx_for_children(new_child, cur_node_idx);
         }
     }
 
