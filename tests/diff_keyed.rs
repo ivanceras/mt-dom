@@ -207,3 +207,42 @@ fn key1_removed_at_start_then_key2_has_additional_attributes() {
         ]
     );
 }
+
+#[test]
+fn deep_nested_key1_removed_at_start_then_key2_has_additional_attributes() {
+    let old: MyNode = element(
+        "main",
+        vec![attr("class", "container")],
+        vec![element(
+            "article",
+            vec![],
+            vec![
+                element("div", vec![attr("key", "1")], vec![]),
+                element("div", vec![attr("key", "2")], vec![]),
+            ],
+        )],
+    );
+
+    let new: MyNode = element(
+        "main",
+        vec![attr("class", "container")],
+        vec![element(
+            "article",
+            vec![],
+            vec![element(
+                "div",
+                vec![attr("key", "2"), attr("class", "some-class")],
+                vec![],
+            )],
+        )],
+    );
+
+    let diff = diff_with_key(&old, &new, &"key");
+    assert_eq!(
+        diff,
+        vec![
+            Patch::RemoveChildren(&"article", 1, vec![0]),
+            Patch::AddAttributes(&"div", 2, vec![&attr("class", "some-class")])
+        ]
+    );
+}

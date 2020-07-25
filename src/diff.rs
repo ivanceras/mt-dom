@@ -263,6 +263,11 @@ where
 ///  - If no key is matched from the old element children, the new children will be an
 ///  InsertChild patch
 ///
+/// # Warning:
+///  The order of patch will be executed as they appear,
+///  this will be tricky in the case where the prior patch is RemoveChildren
+///  and the next_patch will be AddAttributes, as the NodeIdx has already changed
+///  when the RemoveChildren patch was applied.
 fn diff_keyed_elements<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG>(
     old_element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
     new_element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
