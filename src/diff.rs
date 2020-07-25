@@ -277,6 +277,8 @@ where
 {
     let mut patches = vec![];
 
+    let this_cur_node_idx = *cur_node_idx;
+
     let mut matching_keys: Vec<(usize, usize)> = vec![];
     for (new_idx, new_child) in new_element.get_children().iter().enumerate() {
         if let Some(new_child_key) = new_child.get_attribute_value(key) {
@@ -330,7 +332,7 @@ where
                 {
                     patches.push(Patch::InsertChildren(
                         &old_element.tag,
-                        *cur_node_idx,
+                        this_cur_node_idx,
                         old_idx,
                         vec![new_child],
                     ));
@@ -346,12 +348,13 @@ where
             let matched_element_patches =
                 diff_recursive(old_child, matched_new_child, cur_node_idx, key);
             patches.extend(matched_element_patches);
+            *cur_node_idx += 1;
         } else {
             println!("not matched: {}", old_idx);
             // if this old element was not matched remove it
             patches.push(Patch::RemoveChildren(
                 &old_element.tag,
-                *cur_node_idx,
+                this_cur_node_idx,
                 vec![old_idx],
             ));
             increment_node_idx_for_children(old_child, cur_node_idx);
@@ -368,33 +371,13 @@ where
             println!("appending children at cur_node_idx: {}", cur_node_idx);
             patches.push(Patch::AppendChildren(
                 &old_element.tag,
-                *cur_node_idx,
+                this_cur_node_idx,
                 vec![new_child],
             ));
             inserted_new_idx.push(new_idx);
         }
     }
 
-    /*
-    // patched the attributes of the matched_new_children
-    for (old_idx, old_child) in old_element.get_children().iter().enumerate() {
-        if let Some(matched_new_idx) =
-            matching_keys
-                .iter()
-                .find_map(|(old, new)| if *old == old_idx { Some(new) } else { None })
-        {
-            let matched_new_child = new_element
-                .get_children()
-                .get(*matched_new_idx)
-                .expect("the child must exist");
-
-            let matched_element_patches =
-                diff_recursive(old_child, matched_new_child, cur_node_idx, key);
-            patches.extend(matched_element_patches);
-        }
-        *cur_node_idx += 1;
-    }
-    */
     patches
 }
 
