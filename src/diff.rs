@@ -145,13 +145,18 @@ where
 /// utility function to recursively increment the node_idx baed on the node tree which depends on the children
 /// count
 fn increment_node_idx_for_children<NS, TAG, ATT, VAL, EVENT, MSG>(
-    old: &Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+    node: &Node<NS, TAG, ATT, VAL, EVENT, MSG>,
     cur_node_idx: &mut usize,
 ) {
-    *cur_node_idx += 1;
-    if let Node::Element(element_node) = old {
-        for child in element_node.children.iter() {
-            increment_node_idx_for_children(&child, cur_node_idx);
+    match node {
+        Node::Element(element_node) => {
+            for child in element_node.get_children().iter() {
+                *cur_node_idx += 1;
+                increment_node_idx_for_children(&child, cur_node_idx);
+            }
+        }
+        Node::Text(_) => {
+            *cur_node_idx += 1;
         }
     }
 }
@@ -216,11 +221,7 @@ where
             *cur_node_idx,
             &new,
         ));
-        if let Node::Element(old_element_node) = old {
-            for child in old_element_node.children.iter() {
-                increment_node_idx_for_children(child, cur_node_idx);
-            }
-        }
+        increment_node_idx_for_children(old, cur_node_idx);
         return patches;
     }
 
@@ -331,7 +332,6 @@ where
     let mut unmatched_old_keys = vec![];
     // patch the matching element first
     for (old_idx, old_child) in old_element.get_children().iter().enumerate() {
-        *cur_node_idx += 1;
         // if this old child element is matched, find the new child counter part
         if let Some(matched_new_idx) =
             matching_keys
@@ -343,12 +343,14 @@ where
                 .get(*matched_new_idx)
                 .expect("the child must exist");
 
+            *cur_node_idx += 1;
             let matched_element_patches =
                 diff_recursive(old_child, matched_new_child, cur_node_idx, key);
             patches.extend(matched_element_patches);
         } else {
             unmatched_old_keys.push(old_idx);
         }
+        *cur_node_idx += 1;
     }
 
     // keep track of what's already included in the InsertChildren patch
@@ -357,6 +359,7 @@ where
     // insertion and removal of children comes last
     for (old_idx, old_child) in old_element.get_children().iter().enumerate() {
         // if this old child element is matched, find the new child counter part
+        *cur_node_idx += 1;
         if let Some(matched_new_idx) =
             matching_keys
                 .iter()

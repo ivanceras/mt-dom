@@ -342,3 +342,98 @@ fn deep_nested_keyed_with_non_keyed_children() {
         ]
     );
 }
+
+#[test]
+fn text_changed_in_keyed_elements() {
+    let old: MyNode = element(
+        "main",
+        vec![attr("class", "test4")],
+        vec![element(
+            "section",
+            vec![attr("class", "todo")],
+            vec![
+                element("article", vec![attr("key", "1")], vec![text("item1")]),
+                element("article", vec![attr("key", "2")], vec![text("item2")]),
+                element("article", vec![attr("key", "3")], vec![text("item3")]),
+            ],
+        )],
+    );
+
+    // we remove the key1, and change the text in item3
+    let update1: MyNode = element(
+        "main",
+        vec![attr("class", "test4")],
+        vec![element(
+            "section",
+            vec![attr("class", "todo")],
+            vec![
+                element("article", vec![attr("key", "2")], vec![text("item2")]),
+                element(
+                    "article",
+                    vec![attr("key", "3")],
+                    vec![text("item3 with changes")],
+                ),
+            ],
+        )],
+    );
+
+    let patch = diff_with_key(&old, &update1, &"key");
+    assert_eq!(
+        patch,
+        vec![
+            Patch::ChangeText(7, "item3 with changes"),
+            Patch::RemoveChildren(&"section", 1, vec![0])
+        ]
+    );
+}
+
+#[test]
+fn text_changed_in_mixed_keyed_and_non_keyed_elements() {
+    let old: MyNode = element(
+        "main",
+        vec![attr("class", "test4")],
+        vec![
+            element(
+                "section",
+                vec![attr("class", "todo")],
+                vec![
+                    element("article", vec![attr("key", "1")], vec![text("item1")]),
+                    element("article", vec![attr("key", "2")], vec![text("item2")]),
+                    element("article", vec![attr("key", "3")], vec![text("item3")]),
+                ],
+            ),
+            element("footer", vec![], vec![text("3 items left")]),
+        ],
+    );
+
+    // we remove the key1, and change the text in item3
+    let update1: MyNode = element(
+        "main",
+        vec![attr("class", "test4")],
+        vec![
+            element(
+                "section",
+                vec![attr("class", "todo")],
+                vec![
+                    element("article", vec![attr("key", "2")], vec![text("item2")]),
+                    element(
+                        "article",
+                        vec![attr("key", "3")],
+                        vec![text("item3 with changes")],
+                    ),
+                ],
+            ),
+            element("footer", vec![], vec![text("2 items left")]),
+        ],
+    );
+
+    let patch = diff_with_key(&old, &update1, &"key");
+    assert_eq!(
+        patch,
+        vec![
+            Patch::ChangeText(7, "item3 with changes"),
+            Patch::RemoveChildren(&"section", 1, vec![0]),
+            Patch::ChangeText(9, "2 items left"),
+        ]
+    );
+}
