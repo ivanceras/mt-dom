@@ -340,6 +340,7 @@ where
     let mut unmatched_old_keys = vec![];
     // patch the matching element first
     for (old_idx, old_child) in old_element.get_children().iter().enumerate() {
+        *cur_node_idx += 1;
         // if this old child element is matched, find the new child counter part
         if let Some(matched_new_idx) =
             matching_keys
@@ -357,16 +358,15 @@ where
                 matched_new_child.tag()
             );
 
-            //increment_node_idx_for_children(old_child, cur_node_idx);
-            *cur_node_idx += 1;
+            let mut child_cur_node_idx = *cur_node_idx;
+
             let matched_element_patches =
-                diff_recursive(old_child, matched_new_child, cur_node_idx, key);
+                diff_recursive(old_child, matched_new_child, &mut child_cur_node_idx, key);
             patches.extend(matched_element_patches);
         } else {
             unmatched_old_keys.push(old_idx);
-            //increment_node_idx_for_children(old_child, cur_node_idx);
+            increment_node_idx_for_children(old_child, cur_node_idx);
         }
-        *cur_node_idx += 1;
     }
 
     // keep track of what's already included in the InsertChildren patch
