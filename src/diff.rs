@@ -134,7 +134,7 @@ pub fn diff_with_key<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG>(
     key: &ATT,
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
 where
-    TAG: PartialEq,
+    TAG: PartialEq + fmt::Debug,
     ATT: PartialEq,
     NS: PartialEq,
     VAL: PartialEq,
@@ -198,7 +198,7 @@ fn diff_recursive<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG>(
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
 where
     NS: PartialEq,
-    TAG: PartialEq,
+    TAG: PartialEq + fmt::Debug,
     ATT: PartialEq,
     VAL: PartialEq,
 {
@@ -239,7 +239,6 @@ where
         // We're comparing two element nodes
         (Node::Element(old_element), Node::Element(new_element)) => {
             if is_any_children_keyed(old_element, key) || is_any_children_keyed(new_element, key) {
-                println!("keyed comparison..");
                 let keyed_patches =
                     diff_keyed_elements(old_element, new_element, key, cur_node_idx);
                 patches.extend(keyed_patches);
@@ -291,13 +290,23 @@ fn diff_keyed_elements<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG>(
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
 where
     NS: PartialEq,
-    TAG: PartialEq,
+    TAG: PartialEq + fmt::Debug,
     ATT: PartialEq,
     VAL: PartialEq,
 {
     let mut patches = vec![];
 
     let this_cur_node_idx = *cur_node_idx;
+
+    println!(
+        "\n---Entering KEYED elements at CUR_NODE_IDX: {}---",
+        cur_node_idx
+    );
+    println!(
+        "\tsubject: ({:?},{:?})",
+        old_element.tag(),
+        new_element.tag()
+    );
 
     let mut matching_keys: Vec<(usize, usize)> = vec![];
     for (new_idx, new_child) in new_element.get_children().iter().enumerate() {
@@ -326,8 +335,7 @@ where
         }
     }
 
-    println!("matching keys: {:?}", matching_keys);
-    debug!("matching keys: {:?}", matching_keys);
+    println!("\tmatching keys: {:?}", matching_keys);
 
     let mut unmatched_old_keys = vec![];
     // patch the matching element first
@@ -343,12 +351,20 @@ where
                 .get(*matched_new_idx)
                 .expect("the child must exist");
 
+            println!(
+                "\tdoing a diff for matched element ({:?}, {:?})",
+                old_child.tag(),
+                matched_new_child.tag()
+            );
+
+            //increment_node_idx_for_children(old_child, cur_node_idx);
             *cur_node_idx += 1;
             let matched_element_patches =
                 diff_recursive(old_child, matched_new_child, cur_node_idx, key);
             patches.extend(matched_element_patches);
         } else {
             unmatched_old_keys.push(old_idx);
+            //increment_node_idx_for_children(old_child, cur_node_idx);
         }
         *cur_node_idx += 1;
     }
@@ -359,14 +375,11 @@ where
     // insertion and removal of children comes last
     for (old_idx, old_child) in old_element.get_children().iter().enumerate() {
         // if this old child element is matched, find the new child counter part
-        *cur_node_idx += 1;
         if let Some(matched_new_idx) =
             matching_keys
                 .iter()
                 .find_map(|(old, new)| if *old == old_idx { Some(new) } else { None })
         {
-            println!("processing matched_new_idx: {}", matched_new_idx);
-
             // but first, all the new_child idx before matched_new_idx will have to be inserted
             //
             // insert the new_child that is not on the matching keys
@@ -398,11 +411,9 @@ where
 
     // APPEND the rest of the new child element that wasn't inserted and wasnt matched
     for (new_idx, new_child) in new_element.get_children().iter().enumerate() {
-        println!("processing for append children...");
         if !matching_keys.iter().any(|(old, new)| *new == new_idx)
             && !inserted_new_idx.contains(&new_idx)
         {
-            println!("appending children at cur_node_idx: {}", cur_node_idx);
             patches.push(Patch::AppendChildren(
                 &old_element.tag,
                 this_cur_node_idx,
@@ -423,10 +434,17 @@ fn diff_non_keyed_elements<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG>(
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
 where
     NS: PartialEq,
-    TAG: PartialEq,
+    TAG: PartialEq + fmt::Debug,
     ATT: PartialEq,
     VAL: PartialEq,
 {
+    println!("\n===>AT NON-KEYED with cur_node_idx: {}", cur_node_idx);
+    println!(
+        "\tsubject: ({:?},{:?})",
+        old_element.tag(),
+        new_element.tag()
+    );
+
     let mut patches = vec![];
     let attributes_patches = diff_attributes(old_element, new_element, cur_node_idx);
     patches.extend(attributes_patches);
