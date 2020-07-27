@@ -9,11 +9,51 @@ fn test_replace_node() {
     let new = element("span", vec![], vec![]);
 
     let diff = diff_with_key(&old, &new, &"key");
+    assert_eq!(diff, vec![Patch::Replace(&"div", 0, &new)],);
+}
+
+#[test]
+fn test_replace_node_in_child() {
+    let old: MyNode = element("main", vec![], vec![element("div", vec![], vec![])]);
+    let new = element("main", vec![], vec![element("span", vec![], vec![])]);
+
+    let diff = diff_with_key(&old, &new, &"key");
     assert_eq!(
         diff,
-        vec![Patch::Replace(&"div", 0, &new)],
+        vec![Patch::Replace(&"div", 1, &element("span", vec![], vec![]))],
         "Should replace the first node"
     );
+}
+
+#[test]
+fn test_205() {
+    let old: MyNode = element(
+        "div",
+        vec![],
+        vec![
+            element(
+                "b",
+                vec![],
+                vec![element("i", vec![], vec![]), element("i", vec![], vec![])],
+            ),
+            element("b", vec![], vec![]),
+        ],
+    ); //{ <div> <b> <i></i> <i></i> </b> <b></b> </div> },
+    let new = element(
+        "div",
+        vec![],
+        vec![
+            element("b", vec![], vec![element("i", vec![], vec![])]),
+            element("i", vec![], vec![]),
+        ],
+    ); //{ <div> <b> <i></i> </b> <i></i> </div>},
+    assert_eq!(
+        diff_with_key(&old, &new, &"key"),
+        vec![
+            Patch::RemoveChildren(&"b", 1, vec![1]),
+            Patch::Replace(&"b", 4, &element("i", vec![], vec![])),
+        ],
+    )
 }
 
 #[test]
@@ -35,7 +75,7 @@ fn test_no_changed() {
 }
 
 #[test]
-fn test_order_changed() {
+fn test_attribute_order_changed() {
     let old: MyNode = element(
         "div",
         vec![attr("id", "some-id"), attr("class", "some-class")],
