@@ -2,6 +2,15 @@ use std::{convert::Into, fmt, rc::Rc};
 
 /// A generic sized representation of a function that can be
 /// attached to a Node. The callback will essentially be owned by the element
+///
+/// Limitations:
+/// The callback takes an Fn instead of FnMut,
+/// therefore it can not mutate the environment variables
+///
+/// In effect callbacks attached to DOM events are limited
+/// to only passing an MSG to the program and not complex statements.
+///
+///
 pub struct Callback<EVENT, MSG>(Rc<dyn Fn(EVENT) -> MSG>);
 
 impl<EVENT, F, MSG> From<F> for Callback<EVENT, MSG>
