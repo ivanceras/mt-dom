@@ -142,40 +142,22 @@ where
     diff_recursive(old, new, &mut 0, key)
 }
 
-/// utility function to recursively increment the node_idx baed on the node tree which depends on the children
-/// count
-fn increment_node_idx_for_children<NS, TAG, ATT, VAL, EVENT, MSG>(
-    old: &Node<NS, TAG, ATT, VAL, EVENT, MSG>,
-    cur_node_idx: &mut usize,
-) {
-    println!("incremeting..");
-    *cur_node_idx += 1;
-    if let Node::Element(element_node) = old {
-        for child in element_node.children.iter() {
-            increment_node_idx_for_children(&child, cur_node_idx);
-        }
-    }
-}
-
 /// increment the node_idx for children only,
-/// that is excluding counting the node
+/// that is excluding counting the node, since the node is being processed and the cur_node_idx is
+/// incremented in the loop together with its siblings
 fn increment_node_idx_for_children_only<NS, TAG, ATT, VAL, EVENT, MSG>(
     node: &Node<NS, TAG, ATT, VAL, EVENT, MSG>,
     cur_node_idx: &mut usize,
 ) {
     match node {
         Node::Element(element_node) => {
-            println!(
-                "\t\t\t it  has an element node with {} children",
-                element_node.get_children().len()
-            );
             for child in element_node.get_children().iter() {
                 *cur_node_idx += 1;
                 increment_node_idx_for_children_only(&child, cur_node_idx);
             }
         }
         Node::Text(_txt) => {
-            println!("\t\t\t It is text node child: {:?}", _txt);
+            // as is
         }
     }
 }
@@ -222,9 +204,6 @@ where
     VAL: PartialEq + fmt::Debug,
 {
     let mut patches = vec![];
-    println!("......IN DIFF RECURSIVE at cur_node_idx: {}", cur_node_idx);
-    println!("subject: ({:?}, {:?})", old.tag(), new.tag());
-
     // Different enum variants, replace!
     let mut replace = mem::discriminant(old) != mem::discriminant(new);
 
@@ -243,7 +222,6 @@ where
             &new,
         ));
         increment_node_idx_for_children_only(old, cur_node_idx);
-        //increment_node_idx_for_children(old, cur_node_idx);
         return patches;
     }
 
@@ -320,16 +298,6 @@ where
 
     let this_cur_node_idx = *cur_node_idx;
 
-    println!(
-        "\n---Entering KEYED elements at CUR_NODE_IDX: {}---",
-        cur_node_idx
-    );
-    println!(
-        "\tsubject: ({:?},{:?})",
-        old_element.tag(),
-        new_element.tag()
-    );
-
     let mut matching_keys: Vec<(usize, usize)> = vec![];
     for (new_idx, new_child) in new_element.get_children().iter().enumerate() {
         if let Some(new_child_key) = new_child.get_attribute_value(key) {
@@ -357,13 +325,10 @@ where
         }
     }
 
-    println!("\tmatching keys: {:?}", matching_keys);
-
     let mut unmatched_old_keys = vec![];
     // patch the matching element first
     for (old_idx, old_child) in old_element.get_children().iter().enumerate() {
         *cur_node_idx += 1;
-        println!("\t\tKEYED cur_node_idx: {}", cur_node_idx);
         // if this old child element is matched, find the new child counter part
         if let Some(matched_new_idx) =
             matching_keys
@@ -375,35 +340,14 @@ where
                 .get(*matched_new_idx)
                 .expect("the child must exist");
 
-            println!(
-                "\tdoing a diff for matched element ({:?}, {:?}) at cur_node_idx: {}",
-                old_child.tag(),
-                matched_new_child.tag(),
-                *cur_node_idx,
-            );
-
-            //let mut child_cur_node_idx = *cur_node_idx;
-
             let matched_element_patches =
                 diff_recursive(old_child, matched_new_child, cur_node_idx, key);
 
-            for patch in matched_element_patches.iter() {
-                println!("\t\t\tKEYED got some patches: {:?}", patch);
-            }
             patches.extend(matched_element_patches);
         } else {
             let before_inc = *cur_node_idx;
             unmatched_old_keys.push(old_idx);
             increment_node_idx_for_children_only(old_child, cur_node_idx);
-            println!(
-                "\t\tKEYED skipping from {} to {}",
-                before_inc, *cur_node_idx
-            );
-            println!(
-                "\t\t\tsince old_idx: {} is not matched, with {:?} children",
-                old_idx,
-                old_child.get_children().map(|c| c.len())
-            );
         }
     }
 
@@ -477,12 +421,6 @@ where
     VAL: PartialEq + fmt::Debug,
 {
     let this_cur_node_idx = *cur_node_idx;
-    println!("\n===>AT NON-KEYED with cur_node_idx: {}", cur_node_idx);
-    println!(
-        "\tsubject: ({:?},{:?})",
-        old_element.tag(),
-        new_element.tag()
-    );
 
     let mut patches = vec![];
     let attributes_patches = diff_attributes(old_element, new_element, cur_node_idx);
@@ -507,16 +445,11 @@ where
     let min_count = cmp::min(old_child_count, new_child_count);
     for index in 0..min_count {
         *cur_node_idx += 1;
-        println!("\t\tNON-KEYED cur_node_idx: {}", cur_node_idx);
 
         let old_child = &old_element.children.get(index).expect("No old child node");
         let new_child = &new_element.children.get(index).expect("No new chold node");
 
         let more_patches = diff_recursive(old_child, new_child, cur_node_idx, key);
-        println!("\t\t\tNON-KEYED got {} patches", more_patches.len());
-        for patch in more_patches.iter() {
-            println!("\t\t\tNON-KEYED patch: {:?}", patch);
-        }
         patches.extend(more_patches);
     }
 
