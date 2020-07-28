@@ -153,7 +153,7 @@ impl<NS, ATT, VAL, EVENT, MSG> Attribute<NS, ATT, VAL, EVENT, MSG> {
     pub fn with_multiple_values(namespace: Option<NS>, name: ATT, value: Vec<VAL>) -> Self {
         Attribute {
             name,
-            value: value.into_iter().map(|v| AttValue::from(v)).collect(),
+            value: value.into_iter().map(AttValue::from).collect(),
             namespace,
         }
     }

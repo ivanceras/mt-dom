@@ -127,7 +127,7 @@ impl<'a, NS, TAG, ATT, VAL, EVENT, MSG> Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>
 /// the supplied key will be taken into account
 /// that if the 2 keys differ, the element will be replaced without having to traverse the children
 /// nodes
-pub fn diff_with_key<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG>(
+pub fn diff_with_key<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
     old: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
     new: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
     key: &ATT,
