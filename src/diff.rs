@@ -143,10 +143,11 @@ where
     diff_recursive(old, new, &mut 0, key)
 }
 
-/// increment the node_idx for children only,
-/// that is excluding counting the node, since the node is being processed and the cur_node_idx is
+/// increment the cur_node_idx based on how many descendant it contains.
+///
+/// Note: This is not including the count of itself, since the node is being processed and the cur_node_idx is
 /// incremented in the loop together with its siblings
-fn increment_node_idx_for_children_only<NS, TAG, ATT, VAL, EVENT, MSG>(
+fn increment_node_idx_to_descendant_count<NS, TAG, ATT, VAL, EVENT, MSG>(
     node: &Node<NS, TAG, ATT, VAL, EVENT, MSG>,
     cur_node_idx: &mut usize,
 ) {
@@ -154,7 +155,7 @@ fn increment_node_idx_for_children_only<NS, TAG, ATT, VAL, EVENT, MSG>(
         Node::Element(element_node) => {
             for child in element_node.get_children().iter() {
                 *cur_node_idx += 1;
-                increment_node_idx_for_children_only(&child, cur_node_idx);
+                increment_node_idx_to_descendant_count(&child, cur_node_idx);
             }
         }
         Node::Text(_txt) => {
@@ -223,7 +224,7 @@ where
             *cur_node_idx,
             &new,
         ));
-        increment_node_idx_for_children_only(old, cur_node_idx);
+        increment_node_idx_to_descendant_count(old, cur_node_idx);
         return patches;
     }
 
@@ -311,6 +312,7 @@ where
 
     let this_cur_node_idx = *cur_node_idx;
 
+    // keeps track of the matching keys. This stores only the node_index
     let mut matching_keys: Vec<(usize, usize)> = vec![];
     for (new_idx, new_child) in new_element.get_children().iter().enumerate() {
         if let Some(new_child_key) = new_child.get_attribute_value(key) {
@@ -330,19 +332,19 @@ where
                         }
                     },
                 );
-            // If the new key_id is matched in the old children key_id,
-            // remove the prior siblings at this element, prior to the found old child index.
             if let Some(old_idx) = found_match {
                 matching_keys.push((old_idx, new_idx));
             }
         }
     }
 
+    // keeps track of unmatched old keys
     let mut unmatched_old_keys = vec![];
-    // patch the matching element first
+
     for (old_idx, old_child) in old_element.get_children().iter().enumerate() {
         *cur_node_idx += 1;
-        // if this old child element is matched, find the new child counter part
+
+        // get a patch of the matching elements by diffing them
         if let Some(matched_new_idx) =
             matching_keys.iter().find_map(|(old, new)| {
                 if *old == old_idx {
@@ -363,14 +365,13 @@ where
             patches.extend(matched_element_patches);
         } else {
             unmatched_old_keys.push(old_idx);
-            increment_node_idx_for_children_only(old_child, cur_node_idx);
+            increment_node_idx_to_descendant_count(old_child, cur_node_idx);
         }
     }
 
     // keep track of what's already included in the InsertChildren patch
     let mut inserted_new_idx = vec![];
 
-    // insertion and removal of children comes last
     for (old_idx, _old_child) in old_element.get_children().iter().enumerate() {
         // if this old child element is matched, find the new child counter part
         if let Some(matched_new_idx) =
@@ -382,8 +383,6 @@ where
                 }
             })
         {
-            // but first, all the new_child idx before matched_new_idx will have to be inserted
-            //
             // insert the new_child that is not on the matching keys
             // and has a index lesser than the matched_new_idx
             for (new_idx, new_child) in
@@ -430,6 +429,18 @@ where
     patches
 }
 
+/// In diffing non_keyed elements,
+///  we reuse existing DOM elements as much as possible
+///
+///  The algorithm used here is very simple.
+///
+///  If there are more children in the old_element than the new_element
+///  the excess children is all removed.
+///
+///  If there are more children in the new_element than the old_element
+///  it will be all appended in the old_element.
+///
+///
 fn diff_non_keyed_elements<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG>(
     old_element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
     new_element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
@@ -489,7 +500,7 @@ where
         for old_child in old_element.get_children().iter().skip(new_child_count)
         {
             *cur_node_idx += 1;
-            increment_node_idx_for_children_only(old_child, cur_node_idx);
+            increment_node_idx_to_descendant_count(old_child, cur_node_idx);
         }
     }
 
