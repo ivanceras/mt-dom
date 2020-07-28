@@ -1,7 +1,6 @@
 use crate::Attribute;
 use crate::Element;
 use crate::Node;
-use log::*;
 use std::cmp;
 use std::fmt;
 use std::mem;
@@ -345,7 +344,6 @@ where
 
             patches.extend(matched_element_patches);
         } else {
-            let before_inc = *cur_node_idx;
             unmatched_old_keys.push(old_idx);
             increment_node_idx_for_children_only(old_child, cur_node_idx);
         }
@@ -355,7 +353,7 @@ where
     let mut inserted_new_idx = vec![];
 
     // insertion and removal of children comes last
-    for (old_idx, old_child) in old_element.get_children().iter().enumerate() {
+    for (old_idx, _old_child) in old_element.get_children().iter().enumerate() {
         // if this old child element is matched, find the new child counter part
         if let Some(matched_new_idx) =
             matching_keys
@@ -367,7 +365,7 @@ where
             // insert the new_child that is not on the matching keys
             // and has a index lesser than the matched_new_idx
             for (new_idx, new_child) in new_element.get_children().iter().enumerate() {
-                if !matching_keys.iter().any(|(old, new)| *new == new_idx)
+                if !matching_keys.iter().any(|(_old, new)| *new == new_idx)
                     && !inserted_new_idx.contains(&new_idx)
                     && new_idx < *matched_new_idx
                 {
@@ -393,7 +391,7 @@ where
 
     // APPEND the rest of the new child element that wasn't inserted and wasnt matched
     for (new_idx, new_child) in new_element.get_children().iter().enumerate() {
-        if !matching_keys.iter().any(|(old, new)| *new == new_idx)
+        if !matching_keys.iter().any(|(_old, new)| *new == new_idx)
             && !inserted_new_idx.contains(&new_idx)
         {
             patches.push(Patch::AppendChildren(
