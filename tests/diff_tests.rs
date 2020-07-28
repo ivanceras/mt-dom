@@ -1,7 +1,8 @@
 #![deny(warnings)]
 use mt_dom::*;
 
-pub type MyNode = Node<&'static str, &'static str, &'static str, &'static str, (), ()>;
+pub type MyNode =
+    Node<&'static str, &'static str, &'static str, &'static str, (), ()>;
 
 #[test]
 fn test_replace_node() {
@@ -14,7 +15,8 @@ fn test_replace_node() {
 
 #[test]
 fn test_replace_node_in_child() {
-    let old: MyNode = element("main", vec![], vec![element("div", vec![], vec![])]);
+    let old: MyNode =
+        element("main", vec![], vec![element("div", vec![], vec![])]);
     let new = element("main", vec![], vec![element("span", vec![], vec![])]);
 
     let diff = diff_with_key(&old, &new, &"key");
@@ -34,7 +36,10 @@ fn test_205() {
             element(
                 "b",
                 vec![],
-                vec![element("i", vec![], vec![]), element("i", vec![], vec![])],
+                vec![
+                    element("i", vec![], vec![]),
+                    element("i", vec![], vec![]),
+                ],
             ),
             element("b", vec![], vec![]),
         ],

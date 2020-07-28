@@ -45,12 +45,18 @@ impl<NS, TAG, ATT, VAL, EVENT, MSG> Element<NS, TAG, ATT, VAL, EVENT, MSG> {
         }
     }
     /// add attributes to this element
-    pub fn add_attributes(&mut self, attrs: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>) {
+    pub fn add_attributes(
+        &mut self,
+        attrs: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>,
+    ) {
         self.attrs.extend(attrs)
     }
 
     /// add children virtual node to this element
-    pub fn add_children(&mut self, children: Vec<Node<NS, TAG, ATT, VAL, EVENT, MSG>>) {
+    pub fn add_children(
+        &mut self,
+        children: Vec<Node<NS, TAG, ATT, VAL, EVENT, MSG>>,
+    ) {
         self.children.extend(children);
     }
 
@@ -60,7 +66,9 @@ impl<NS, TAG, ATT, VAL, EVENT, MSG> Element<NS, TAG, ATT, VAL, EVENT, MSG> {
     }
 
     /// returns a mutable refernce to the children of this node
-    pub fn children_mut(&mut self) -> &mut [Node<NS, TAG, ATT, VAL, EVENT, MSG>] {
+    pub fn children_mut(
+        &mut self,
+    ) -> &mut [Node<NS, TAG, ATT, VAL, EVENT, MSG>] {
         &mut self.children
     }
 
@@ -116,7 +124,10 @@ where
 
     /// remove the existing values of this attribute
     /// and add the new values
-    pub fn set_attributes(&mut self, attrs: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>) {
+    pub fn set_attributes(
+        &mut self,
+        attrs: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>,
+    ) {
         attrs
             .iter()
             .for_each(|att| self.remove_attribute(&att.name));
@@ -124,9 +135,13 @@ where
     }
 
     /// merge to existing attributes if it exist
-    pub fn merge_attributes(&mut self, new_attrs: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>) {
+    pub fn merge_attributes(
+        &mut self,
+        new_attrs: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>,
+    ) {
         for new_att in new_attrs {
-            if let Some(existing_attr) = self.attrs.iter_mut().find(|att| att.name == new_att.name)
+            if let Some(existing_attr) =
+                self.attrs.iter_mut().find(|att| att.name == new_att.name)
             {
                 existing_attr.value.extend(new_att.value);
             } else {
@@ -179,7 +194,8 @@ where
 ///
 /// The reason this is manually implemented is, so that EVENT and MSG
 /// doesn't need to be Debug as it is part of the Callback objects and are not shown.
-impl<NS, TAG, ATT, VAL, EVENT, MSG> fmt::Debug for Element<NS, TAG, ATT, VAL, EVENT, MSG>
+impl<NS, TAG, ATT, VAL, EVENT, MSG> fmt::Debug
+    for Element<NS, TAG, ATT, VAL, EVENT, MSG>
 where
     NS: fmt::Debug,
     TAG: fmt::Debug,

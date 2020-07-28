@@ -79,7 +79,9 @@ pub enum Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG> {
 
 type NodeIdx = usize;
 
-impl<'a, NS, TAG, ATT, VAL, EVENT, MSG> Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG> {
+impl<'a, NS, TAG, ATT, VAL, EVENT, MSG>
+    Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>
+{
     /// Every Patch is meant to be applied to a specific node within the DOM. Get the
     /// index of the DOM node that this patch should apply to. DOM nodes are indexed
     /// depth first with the root node in the tree having index 0.
@@ -206,7 +208,8 @@ where
     // Different enum variants, replace!
     let mut replace = mem::discriminant(old) != mem::discriminant(new);
 
-    if let (Node::Element(old_element), Node::Element(new_element)) = (old, new) {
+    if let (Node::Element(old_element), Node::Element(new_element)) = (old, new)
+    {
         // Replace if there are different element tags
         if old_element.tag != new_element.tag {
             replace = true;
@@ -237,17 +240,28 @@ where
 
         // We're comparing two element nodes
         (Node::Element(old_element), Node::Element(new_element)) => {
-            if is_any_children_keyed(old_element, key) || is_any_children_keyed(new_element, key) {
-                let keyed_patches =
-                    diff_keyed_elements(old_element, new_element, key, cur_node_idx);
+            if is_any_children_keyed(old_element, key)
+                || is_any_children_keyed(new_element, key)
+            {
+                let keyed_patches = diff_keyed_elements(
+                    old_element,
+                    new_element,
+                    key,
+                    cur_node_idx,
+                );
                 patches.extend(keyed_patches);
             } else {
-                let non_keyed_patches =
-                    diff_non_keyed_elements(old_element, new_element, key, cur_node_idx);
+                let non_keyed_patches = diff_non_keyed_elements(
+                    old_element,
+                    new_element,
+                    key,
+                    cur_node_idx,
+                );
                 patches.extend(non_keyed_patches);
             }
         }
-        (Node::Text(_), Node::Element(_)) | (Node::Element(_), Node::Text(_)) => {
+        (Node::Text(_), Node::Element(_))
+        | (Node::Element(_), Node::Text(_)) => {
             unreachable!("Unequal variant discriminants should already have been handled");
         }
     };
@@ -301,12 +315,11 @@ where
     for (new_idx, new_child) in new_element.get_children().iter().enumerate() {
         if let Some(new_child_key) = new_child.get_attribute_value(key) {
             let found_match =
-                old_element
-                    .get_children()
-                    .iter()
-                    .enumerate()
-                    .find_map(|(old_idx, old_child)| {
-                        if let Some(old_child_key) = old_child.get_attribute_value(key) {
+                old_element.get_children().iter().enumerate().find_map(
+                    |(old_idx, old_child)| {
+                        if let Some(old_child_key) =
+                            old_child.get_attribute_value(key)
+                        {
                             if old_child_key == new_child_key {
                                 Some(old_idx)
                             } else {
@@ -315,7 +328,8 @@ where
                         } else {
                             None
                         }
-                    });
+                    },
+                );
             // If the new key_id is matched in the old children key_id,
             // remove the prior siblings at this element, prior to the found old child index.
             if let Some(old_idx) = found_match {
@@ -330,9 +344,13 @@ where
         *cur_node_idx += 1;
         // if this old child element is matched, find the new child counter part
         if let Some(matched_new_idx) =
-            matching_keys
-                .iter()
-                .find_map(|(old, new)| if *old == old_idx { Some(new) } else { None })
+            matching_keys.iter().find_map(|(old, new)| {
+                if *old == old_idx {
+                    Some(new)
+                } else {
+                    None
+                }
+            })
         {
             let matched_new_child = new_element
                 .get_children()
@@ -356,15 +374,21 @@ where
     for (old_idx, _old_child) in old_element.get_children().iter().enumerate() {
         // if this old child element is matched, find the new child counter part
         if let Some(matched_new_idx) =
-            matching_keys
-                .iter()
-                .find_map(|(old, new)| if *old == old_idx { Some(new) } else { None })
+            matching_keys.iter().find_map(|(old, new)| {
+                if *old == old_idx {
+                    Some(new)
+                } else {
+                    None
+                }
+            })
         {
             // but first, all the new_child idx before matched_new_idx will have to be inserted
             //
             // insert the new_child that is not on the matching keys
             // and has a index lesser than the matched_new_idx
-            for (new_idx, new_child) in new_element.get_children().iter().enumerate() {
+            for (new_idx, new_child) in
+                new_element.get_children().iter().enumerate()
+            {
                 if !matching_keys.iter().any(|(_old, new)| *new == new_idx)
                     && !inserted_new_idx.contains(&new_idx)
                     && new_idx < *matched_new_idx
@@ -421,7 +445,8 @@ where
     let this_cur_node_idx = *cur_node_idx;
 
     let mut patches = vec![];
-    let attributes_patches = diff_attributes(old_element, new_element, cur_node_idx);
+    let attributes_patches =
+        diff_attributes(old_element, new_element, cur_node_idx);
     patches.extend(attributes_patches);
 
     let old_child_count = old_element.children.len();
@@ -444,10 +469,13 @@ where
     for index in 0..min_count {
         *cur_node_idx += 1;
 
-        let old_child = &old_element.children.get(index).expect("No old child node");
-        let new_child = &new_element.children.get(index).expect("No new chold node");
+        let old_child =
+            &old_element.children.get(index).expect("No old child node");
+        let new_child =
+            &new_element.children.get(index).expect("No new chold node");
 
-        let more_patches = diff_recursive(old_child, new_child, cur_node_idx, key);
+        let more_patches =
+            diff_recursive(old_child, new_child, cur_node_idx, key);
         patches.extend(more_patches);
     }
 
@@ -458,7 +486,8 @@ where
             (new_child_count..old_child_count).collect::<Vec<usize>>(),
         ));
 
-        for old_child in old_element.get_children().iter().skip(new_child_count) {
+        for old_child in old_element.get_children().iter().skip(new_child_count)
+        {
             *cur_node_idx += 1;
             increment_node_idx_for_children_only(old_child, cur_node_idx);
         }
@@ -484,7 +513,8 @@ where
 {
     let mut patches = vec![];
     let mut add_attributes: Vec<&Attribute<NS, ATT, VAL, EVENT, MSG>> = vec![];
-    let mut remove_attributes: Vec<&Attribute<NS, ATT, VAL, EVENT, MSG>> = vec![];
+    let mut remove_attributes: Vec<&Attribute<NS, ATT, VAL, EVENT, MSG>> =
+        vec![];
 
     let new_attributes = new_element.get_attributes();
     let old_attributes = old_element.get_attributes();
@@ -509,7 +539,9 @@ where
     // if this attribute name does not exist anymore
     // to the new element, remove it
     for old_attr in old_element.get_attributes().iter() {
-        if let Some(_pre_attr) = new_attributes.iter().find(|att| att.name == old_attr.name) {
+        if let Some(_pre_attr) =
+            new_attributes.iter().find(|att| att.name == old_attr.name)
+        {
             //
         } else {
             remove_attributes.push(&old_attr);
@@ -533,7 +565,8 @@ where
     patches
 }
 
-impl<'a, NS, TAG, ATT, VAL, EVENT, MSG> fmt::Debug for Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>
+impl<'a, NS, TAG, ATT, VAL, EVENT, MSG> fmt::Debug
+    for Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>
 where
     NS: fmt::Debug,
     TAG: fmt::Debug,

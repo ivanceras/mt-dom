@@ -48,7 +48,9 @@ where
     VAL: PartialEq,
 {
     fn eq(&self, other: &Self) -> bool {
-        self.namespace == other.namespace && self.name == other.name && self.value == other.value
+        self.namespace == other.namespace
+            && self.name == other.name
+            && self.value == other.value
     }
 }
 
@@ -57,7 +59,8 @@ where
 ///
 /// The reason this is manually implemented is, so that EVENT and MSG
 /// doesn't need to be Debug as it is part of the Callback objects and are not shown.
-impl<NS, ATT, VAL, EVENT, MSG> fmt::Debug for Attribute<NS, ATT, VAL, EVENT, MSG>
+impl<NS, ATT, VAL, EVENT, MSG> fmt::Debug
+    for Attribute<NS, ATT, VAL, EVENT, MSG>
 where
     NS: fmt::Debug,
     ATT: fmt::Debug,
@@ -109,8 +112,12 @@ where
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            AttValue::Plain(value) => f.debug_tuple("Plain").field(value).finish(),
-            AttValue::Callback(cb) => f.debug_tuple("Callback").field(cb).finish(),
+            AttValue::Plain(value) => {
+                f.debug_tuple("Plain").field(value).finish()
+            }
+            AttValue::Callback(cb) => {
+                f.debug_tuple("Callback").field(cb).finish()
+            }
         }
     }
 }
@@ -127,7 +134,9 @@ where
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (AttValue::Plain(val), AttValue::Plain(other)) => *val == *other,
-            (AttValue::Callback(cb), AttValue::Callback(other)) => *cb == *other,
+            (AttValue::Callback(cb), AttValue::Callback(other)) => {
+                *cb == *other
+            }
             _ => false,
         }
     }
@@ -150,7 +159,11 @@ impl<NS, ATT, VAL, EVENT, MSG> Attribute<NS, ATT, VAL, EVENT, MSG> {
     }
 
     /// create from multiple values
-    pub fn with_multiple_values(namespace: Option<NS>, name: ATT, value: Vec<VAL>) -> Self {
+    pub fn with_multiple_values(
+        namespace: Option<NS>,
+        name: ATT,
+        value: Vec<VAL>,
+    ) -> Self {
         Attribute {
             name,
             value: value.into_iter().map(AttValue::from).collect(),
@@ -185,7 +198,10 @@ where
     MSG: 'static,
 {
     /// transform the callback of this attribute
-    pub fn map_callback<MSG2>(self, cb: Callback<MSG, MSG2>) -> Attribute<NS, ATT, VAL, EVENT, MSG2>
+    pub fn map_callback<MSG2>(
+        self,
+        cb: Callback<MSG, MSG2>,
+    ) -> Attribute<NS, ATT, VAL, EVENT, MSG2>
     where
         MSG2: 'static,
     {
@@ -222,13 +238,18 @@ where
     MSG: 'static,
 {
     /// transform att_value such that MSG becomes MSG2
-    pub fn map_callback<MSG2>(self, cb: Callback<MSG, MSG2>) -> AttValue<VAL, EVENT, MSG2>
+    pub fn map_callback<MSG2>(
+        self,
+        cb: Callback<MSG, MSG2>,
+    ) -> AttValue<VAL, EVENT, MSG2>
     where
         MSG2: 'static,
     {
         match self {
             AttValue::Plain(plain) => AttValue::Plain(plain),
-            AttValue::Callback(att_cb) => AttValue::Callback(att_cb.map_callback(cb)),
+            AttValue::Callback(att_cb) => {
+                AttValue::Callback(att_cb.map_callback(cb))
+            }
         }
     }
 
@@ -290,7 +311,9 @@ where
 {
     let mut merged: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>> = vec![];
     for att in attributes {
-        if let Some(existing) = merged.iter_mut().find(|m_att| m_att.name == att.name) {
+        if let Some(existing) =
+            merged.iter_mut().find(|m_att| m_att.name == att.name)
+        {
             existing.value.extend(att.value.clone());
         } else {
             merged.push(Attribute {

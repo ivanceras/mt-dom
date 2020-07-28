@@ -38,7 +38,9 @@ impl<NS, TAG, ATT, VAL, EVENT, MSG> Node<NS, TAG, ATT, VAL, EVENT, MSG> {
 
     /// consume self and return the element if it is an element variant
     /// None if it is a text node
-    pub fn take_element(self) -> Option<Element<NS, TAG, ATT, VAL, EVENT, MSG>> {
+    pub fn take_element(
+        self,
+    ) -> Option<Element<NS, TAG, ATT, VAL, EVENT, MSG>> {
         match self {
             Node::Element(element) => Some(element),
             Node::Text(_) => None,
@@ -46,7 +48,9 @@ impl<NS, TAG, ATT, VAL, EVENT, MSG> Node<NS, TAG, ATT, VAL, EVENT, MSG> {
     }
 
     /// Get a mutable reference to the element, if this node is an element node
-    pub fn as_element_mut(&mut self) -> Option<&mut Element<NS, TAG, ATT, VAL, EVENT, MSG>> {
+    pub fn as_element_mut(
+        &mut self,
+    ) -> Option<&mut Element<NS, TAG, ATT, VAL, EVENT, MSG>> {
         match *self {
             Node::Element(ref mut element) => Some(element),
             Node::Text(_) => None,
@@ -54,7 +58,9 @@ impl<NS, TAG, ATT, VAL, EVENT, MSG> Node<NS, TAG, ATT, VAL, EVENT, MSG> {
     }
 
     /// returns a reference to the element if this is an element node
-    pub fn as_element_ref(&self) -> Option<&Element<NS, TAG, ATT, VAL, EVENT, MSG>> {
+    pub fn as_element_ref(
+        &self,
+    ) -> Option<&Element<NS, TAG, ATT, VAL, EVENT, MSG>> {
         match *self {
             Node::Element(ref element) => Some(element),
             Node::Text(_) => None,
@@ -64,7 +70,10 @@ impl<NS, TAG, ATT, VAL, EVENT, MSG> Node<NS, TAG, ATT, VAL, EVENT, MSG> {
     /// Consume a mutable self and add a children to this node it if is an element
     /// will have no effect if it is a text node.
     /// This is used in building the nodes in a builder pattern
-    pub fn add_children(mut self, children: Vec<Node<NS, TAG, ATT, VAL, EVENT, MSG>>) -> Self {
+    pub fn add_children(
+        mut self,
+        children: Vec<Node<NS, TAG, ATT, VAL, EVENT, MSG>>,
+    ) -> Self {
         if let Some(element) = self.as_element_mut() {
             element.add_children(children);
         }
@@ -73,7 +82,10 @@ impl<NS, TAG, ATT, VAL, EVENT, MSG> Node<NS, TAG, ATT, VAL, EVENT, MSG> {
 
     /// add attributes to the node and returns itself
     /// this is used in view building
-    pub fn add_attributes(mut self, attributes: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>) -> Self {
+    pub fn add_attributes(
+        mut self,
+        attributes: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>,
+    ) -> Self {
         if let Some(elm) = self.as_element_mut() {
             elm.add_attributes(attributes);
         }
@@ -81,7 +93,10 @@ impl<NS, TAG, ATT, VAL, EVENT, MSG> Node<NS, TAG, ATT, VAL, EVENT, MSG> {
     }
 
     /// add attributes using a mutable reference to self
-    pub fn add_attributes_ref_mut(&mut self, attributes: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>) {
+    pub fn add_attributes_ref_mut(
+        &mut self,
+        attributes: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>,
+    ) {
         if let Some(elm) = self.as_element_mut() {
             elm.add_attributes(attributes);
         }
@@ -89,7 +104,9 @@ impl<NS, TAG, ATT, VAL, EVENT, MSG> Node<NS, TAG, ATT, VAL, EVENT, MSG> {
 
     /// get the attributes of this node
     /// returns None if it is a text node
-    pub fn get_attributes(&self) -> Option<&[Attribute<NS, ATT, VAL, EVENT, MSG>]> {
+    pub fn get_attributes(
+        &self,
+    ) -> Option<&[Attribute<NS, ATT, VAL, EVENT, MSG>]> {
         match *self {
             Node::Element(ref element) => Some(element.get_attributes()),
             Node::Text(_) => None,
@@ -116,7 +133,9 @@ impl<NS, TAG, ATT, VAL, EVENT, MSG> Node<NS, TAG, ATT, VAL, EVENT, MSG> {
 
     /// return the children of this node if it is an element
     /// returns None if it is a text node
-    pub fn get_children(&self) -> Option<&[Node<NS, TAG, ATT, VAL, EVENT, MSG>]> {
+    pub fn get_children(
+        &self,
+    ) -> Option<&[Node<NS, TAG, ATT, VAL, EVENT, MSG>]> {
         if let Some(element) = self.as_element_ref() {
             Some(element.get_children())
         } else {
@@ -135,7 +154,10 @@ where
     ATT: PartialEq,
 {
     /// remove the existing attributes and set with the new value
-    pub fn set_attributes_ref_mut(&mut self, attributes: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>) {
+    pub fn set_attributes_ref_mut(
+        &mut self,
+        attributes: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>,
+    ) {
         if let Some(elm) = self.as_element_mut() {
             elm.set_attributes(attributes);
         }
@@ -168,7 +190,10 @@ where
     MSG: 'static,
 {
     /// map the msg of callback of this element node
-    pub fn map_msg<F, MSG2>(self, func: F) -> Node<NS, TAG, ATT, VAL, EVENT, MSG2>
+    pub fn map_msg<F, MSG2>(
+        self,
+        func: F,
+    ) -> Node<NS, TAG, ATT, VAL, EVENT, MSG2>
     where
         F: Fn(MSG) -> MSG2 + 'static,
         MSG2: 'static,
@@ -178,7 +203,10 @@ where
     }
 
     /// map the msg of callback of this element node
-    pub fn map_callback<MSG2>(self, cb: Callback<MSG, MSG2>) -> Node<NS, TAG, ATT, VAL, EVENT, MSG2>
+    pub fn map_callback<MSG2>(
+        self,
+        cb: Callback<MSG, MSG2>,
+    ) -> Node<NS, TAG, ATT, VAL, EVENT, MSG2>
     where
         MSG2: 'static,
     {
@@ -194,7 +222,8 @@ where
 ///
 /// The reason this is manually implemented is, so that EVENT and MSG
 /// doesn't need to be Debug as it is part of the Callback objects and are not shown.
-impl<NS, TAG, ATT, VAL, EVENT, MSG> fmt::Debug for Node<NS, TAG, ATT, VAL, EVENT, MSG>
+impl<NS, TAG, ATT, VAL, EVENT, MSG> fmt::Debug
+    for Node<NS, TAG, ATT, VAL, EVENT, MSG>
 where
     NS: fmt::Debug,
     TAG: fmt::Debug,
@@ -203,7 +232,9 @@ where
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Node::Element(element) => f.debug_tuple("Element").field(element).finish(),
+            Node::Element(element) => {
+                f.debug_tuple("Element").field(element).finish()
+            }
             Node::Text(txt) => f.debug_tuple("Text").field(txt).finish(),
         }
     }
@@ -232,7 +263,9 @@ pub fn element_ns<NS, TAG, ATT, VAL, EVENT, MSG>(
 
 /// Create a textnode element
 #[inline]
-pub fn text<S, NS, TAG, ATT, VAL, EVENT, MSG>(s: S) -> Node<NS, TAG, ATT, VAL, EVENT, MSG>
+pub fn text<S, NS, TAG, ATT, VAL, EVENT, MSG>(
+    s: S,
+) -> Node<NS, TAG, ATT, VAL, EVENT, MSG>
 where
     S: ToString,
     ATT: Clone,
