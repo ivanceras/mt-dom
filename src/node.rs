@@ -142,6 +142,18 @@ impl<NS, TAG, ATT, VAL, EVENT, MSG> Node<NS, TAG, ATT, VAL, EVENT, MSG> {
             None
         }
     }
+
+    /// return the children of this node if it is an element
+    /// returns None if it is a text node
+    pub fn children_mut(
+        &mut self,
+    ) -> Option<&mut [Node<NS, TAG, ATT, VAL, EVENT, MSG>]> {
+        if let Some(element) = self.as_element_mut() {
+            Some(element.children_mut())
+        } else {
+            None
+        }
+    }
 }
 
 /// Note:

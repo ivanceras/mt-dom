@@ -65,7 +65,7 @@ impl<NS, TAG, ATT, VAL, EVENT, MSG> Element<NS, TAG, ATT, VAL, EVENT, MSG> {
         &self.children
     }
 
-    /// returns a mutable refernce to the children of this node
+    /// returns a mutable reference to the children of this node
     pub fn children_mut(
         &mut self,
     ) -> &mut [Node<NS, TAG, ATT, VAL, EVENT, MSG>] {
