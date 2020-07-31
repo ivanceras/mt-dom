@@ -167,3 +167,37 @@ fn test_class_removed() {
         )]
     )
 }
+
+#[test]
+fn test_multiple_calls_to_style() {
+    let old: MyNode = element(
+        "div",
+        vec![
+            attr("style", "display:flex"),
+            attr("style", "width:100px;height:100px"),
+        ],
+        vec![],
+    );
+
+    let new = element(
+        "div",
+        vec![
+            attr("style", "display:flex"),
+            attr("style", "width:200px;height:200px"),
+        ],
+        vec![],
+    );
+
+    let diff = diff_with_key(&old, &new, &"key");
+    assert_eq!(
+        diff,
+        vec![Patch::AddAttributes(
+            &"div",
+            0,
+            vec![
+                &attr("style", "display:flex"),
+                &attr("style", "width:200px;height:200px"),
+            ]
+        )]
+    )
+}
