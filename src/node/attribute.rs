@@ -325,3 +325,26 @@ where
     }
     merged
 }
+
+/// group attributes of the same name
+pub fn group_attributes_per_name<'a, NS, ATT, VAL, EVENT, MSG>(
+    attributes: &'a [Attribute<NS, ATT, VAL, EVENT, MSG>],
+) -> Vec<(&'a ATT, Vec<&'a Attribute<NS, ATT, VAL, EVENT, MSG>>)>
+where
+    ATT: PartialEq,
+{
+    let mut grouped: Vec<(&ATT, Vec<&Attribute<NS, ATT, VAL, EVENT, MSG>>)> =
+        vec![];
+    for attr in attributes {
+        if let Some(existing) = grouped
+            .iter_mut()
+            .find(|(g_att, _)| **g_att == attr.name)
+            .map(|(_, attr)| attr)
+        {
+            existing.push(attr);
+        } else {
+            grouped.push((&attr.name, vec![attr]))
+        }
+    }
+    grouped
+}

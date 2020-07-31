@@ -1,3 +1,4 @@
+use crate::node::attribute::group_attributes_per_name;
 use crate::Attribute;
 use crate::Element;
 use crate::Node;
@@ -527,35 +528,51 @@ where
     let mut remove_attributes: Vec<&Attribute<NS, ATT, VAL, EVENT, MSG>> =
         vec![];
 
-    let new_attributes = new_element.get_attributes();
-    let old_attributes = old_element.get_attributes();
+    let new_attributes_grouped =
+        group_attributes_per_name(new_element.get_attributes());
+    let old_attributes_grouped =
+        group_attributes_per_name(old_element.get_attributes());
     // for all new elements that doesn't exist in the old elements
     // or the values differ
     // add it to the AddAttribute patches
-    for new_attr in new_attributes.iter() {
-        let old_attr_value = old_attributes
+    for (new_attr_name, new_attrs) in new_attributes_grouped.iter() {
+        // Issue: only the first found attribute's value is returned
+        // This could be problematic if there are multiple attributes of the same name
+        let old_attr_values = old_attributes_grouped
             .iter()
-            .find(|att| att.name == new_attr.name)
-            .map(|att| &att.value);
+            .find(|(att_name, _)| att_name == new_attr_name)
+            .map(|(_, attrs)| {
+                attrs.iter().map(|attr| &attr.value).collect::<Vec<_>>()
+            });
 
-        if let Some(old_attr_value) = old_attr_value {
-            if *old_attr_value != new_attr.value {
-                add_attributes.push(new_attr);
+        let new_attr_values = new_attributes_grouped
+            .iter()
+            .find(|(att_name, _)| att_name == new_attr_name)
+            .map(|(_, attrs)| {
+                attrs.iter().map(|attr| &attr.value).collect::<Vec<_>>()
+            });
+
+        if let Some(old_attr_values) = old_attr_values {
+            let new_attr_values =
+                new_attr_values.expect("must have new attr values");
+            if old_attr_values != new_attr_values {
+                add_attributes.extend(new_attrs);
             }
         } else {
-            add_attributes.push(new_attr);
+            add_attributes.extend(new_attrs);
         }
     }
 
     // if this attribute name does not exist anymore
     // to the new element, remove it
-    for old_attr in old_element.get_attributes().iter() {
-        if let Some(_pre_attr) =
-            new_attributes.iter().find(|att| att.name == old_attr.name)
+    for (old_attr_name, old_attrs) in old_attributes_grouped.iter() {
+        if let Some(_pre_attr) = new_attributes_grouped
+            .iter()
+            .find(|(new_attr_name, _)| new_attr_name == old_attr_name)
         {
             //
         } else {
-            remove_attributes.push(&old_attr);
+            remove_attributes.extend(old_attrs);
         }
     }
 
