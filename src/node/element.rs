@@ -150,12 +150,20 @@ where
         }
     }
 
-    /// return attribute values which match the name
+    /// return all the attribute values which the name &ATT
     pub fn get_attribute_value(&self, name: &ATT) -> Option<Vec<&VAL>> {
-        self.attrs
+        let result: Vec<&VAL> = self
+            .attrs
             .iter()
-            .find(|att| att.name == *name)
-            .map(|att| att.get_plain())
+            .filter(|att| att.name == *name)
+            .flat_map(|att| att.get_plain())
+            .collect();
+
+        if result.is_empty() {
+            None
+        } else {
+            Some(result)
+        }
     }
 }
 
