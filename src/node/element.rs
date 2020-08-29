@@ -17,25 +17,27 @@ use std::fmt;
 /// The namespace is also needed in attributes where namespace are necessary such as `xlink:href`
 /// where the namespace `xlink` is needed in order for the linked element in an svg image to work.
 #[derive(Clone, PartialEq, Default)]
-pub struct Element<NS, TAG, ATT, VAL, EVENT, MSG> {
+pub struct Element<'a, NS, TAG, ATT, VAL, EVENT, MSG> {
     /// namespace of this element,
     /// svg elements requires namespace to render correcly in the browser
     pub namespace: Option<NS>,
     /// the element tag, such as div, a, button
     pub tag: TAG,
     /// attributes for this element
-    pub attrs: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>,
+    pub attrs: Vec<Attribute<'a, NS, ATT, VAL, EVENT, MSG>>,
     /// children elements of this element
-    pub children: Vec<Node<NS, TAG, ATT, VAL, EVENT, MSG>>,
+    pub children: Vec<Node<'a, NS, TAG, ATT, VAL, EVENT, MSG>>,
 }
 
-impl<NS, TAG, ATT, VAL, EVENT, MSG> Element<NS, TAG, ATT, VAL, EVENT, MSG> {
+impl<'a, NS, TAG, ATT, VAL, EVENT, MSG>
+    Element<'a, NS, TAG, ATT, VAL, EVENT, MSG>
+{
     /// create a new instance of an element
     pub fn new(
         namespace: Option<NS>,
         tag: TAG,
-        attrs: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>,
-        children: Vec<Node<NS, TAG, ATT, VAL, EVENT, MSG>>,
+        attrs: Vec<Attribute<'a, NS, ATT, VAL, EVENT, MSG>>,
+        children: Vec<Node<'a, NS, TAG, ATT, VAL, EVENT, MSG>>,
     ) -> Self {
         Element {
             namespace,
@@ -47,7 +49,7 @@ impl<NS, TAG, ATT, VAL, EVENT, MSG> Element<NS, TAG, ATT, VAL, EVENT, MSG> {
     /// add attributes to this element
     pub fn add_attributes(
         &mut self,
-        attrs: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>,
+        attrs: Vec<Attribute<'a, NS, ATT, VAL, EVENT, MSG>>,
     ) {
         self.attrs.extend(attrs)
     }
@@ -55,35 +57,37 @@ impl<NS, TAG, ATT, VAL, EVENT, MSG> Element<NS, TAG, ATT, VAL, EVENT, MSG> {
     /// add children virtual node to this element
     pub fn add_children(
         &mut self,
-        children: Vec<Node<NS, TAG, ATT, VAL, EVENT, MSG>>,
+        children: Vec<Node<'a, NS, TAG, ATT, VAL, EVENT, MSG>>,
     ) {
         self.children.extend(children);
     }
 
     /// returns a refernce to the children of this node
-    pub fn get_children(&self) -> &[Node<NS, TAG, ATT, VAL, EVENT, MSG>] {
+    pub fn get_children(&self) -> &[Node<'a, NS, TAG, ATT, VAL, EVENT, MSG>] {
         &self.children
     }
 
     /// returns a mutable reference to the children of this node
     pub fn children_mut(
         &mut self,
-    ) -> &mut [Node<NS, TAG, ATT, VAL, EVENT, MSG>] {
+    ) -> &mut [Node<'a, NS, TAG, ATT, VAL, EVENT, MSG>] {
         &mut self.children
     }
 
     /// consume self and return the children
-    pub fn take_children(self) -> Vec<Node<NS, TAG, ATT, VAL, EVENT, MSG>> {
+    pub fn take_children(self) -> Vec<Node<'a, NS, TAG, ATT, VAL, EVENT, MSG>> {
         self.children
     }
 
     /// return a reference to the attribute of this element
-    pub fn get_attributes(&self) -> &[Attribute<NS, ATT, VAL, EVENT, MSG>] {
+    pub fn get_attributes(&self) -> &[Attribute<'a, NS, ATT, VAL, EVENT, MSG>] {
         &self.attrs
     }
 
     /// consume self and return the attributes
-    pub fn take_attributes(self) -> Vec<Attribute<NS, ATT, VAL, EVENT, MSG>> {
+    pub fn take_attributes(
+        self,
+    ) -> Vec<Attribute<'a, NS, ATT, VAL, EVENT, MSG>> {
         self.attrs
     }
 
@@ -113,7 +117,8 @@ impl<NS, TAG, ATT, VAL, EVENT, MSG> Element<NS, TAG, ATT, VAL, EVENT, MSG> {
 ///
 /// The reason this is manually implemented is, so that EVENT and MSG
 /// doesn't need to be PartialEq as it is part of the Callback objects and are not compared
-impl<NS, TAG, ATT, VAL, EVENT, MSG> Element<NS, TAG, ATT, VAL, EVENT, MSG>
+impl<'a, NS, TAG, ATT, VAL, EVENT, MSG>
+    Element<'a, NS, TAG, ATT, VAL, EVENT, MSG>
 where
     ATT: PartialEq,
 {
@@ -126,7 +131,7 @@ where
     /// and add the new values
     pub fn set_attributes(
         &mut self,
-        attrs: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>,
+        attrs: Vec<Attribute<'a, NS, ATT, VAL, EVENT, MSG>>,
     ) {
         attrs
             .iter()
@@ -137,7 +142,7 @@ where
     /// merge to existing attributes if it exist
     pub fn merge_attributes(
         &mut self,
-        new_attrs: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>,
+        new_attrs: Vec<Attribute<'a, NS, ATT, VAL, EVENT, MSG>>,
     ) {
         for new_att in new_attrs {
             if let Some(existing_attr) =
@@ -167,18 +172,19 @@ where
     }
 }
 
-impl<NS, TAG, ATT, VAL, EVENT, MSG> Element<NS, TAG, ATT, VAL, EVENT, MSG>
+impl<'a, NS, TAG, ATT, VAL, EVENT, MSG>
+    Element<'a, NS, TAG, ATT, VAL, EVENT, MSG>
 where
-    EVENT: 'static,
-    MSG: 'static,
+    EVENT: 'a,
+    MSG: 'a,
 {
     /// map_callback the return of the callback from MSG to MSG2
     pub fn map_callback<MSG2>(
         self,
-        cb: Callback<MSG, MSG2>,
-    ) -> Element<NS, TAG, ATT, VAL, EVENT, MSG2>
+        cb: Callback<'a, MSG, MSG2>,
+    ) -> Element<'a, NS, TAG, ATT, VAL, EVENT, MSG2>
     where
-        MSG2: 'static,
+        MSG2: 'a,
     {
         Element {
             namespace: self.namespace,
@@ -202,8 +208,8 @@ where
 ///
 /// The reason this is manually implemented is, so that EVENT and MSG
 /// doesn't need to be Debug as it is part of the Callback objects and are not shown.
-impl<NS, TAG, ATT, VAL, EVENT, MSG> fmt::Debug
-    for Element<NS, TAG, ATT, VAL, EVENT, MSG>
+impl<'a, NS, TAG, ATT, VAL, EVENT, MSG> fmt::Debug
+    for Element<'a, NS, TAG, ATT, VAL, EVENT, MSG>
 where
     NS: fmt::Debug,
     TAG: fmt::Debug,

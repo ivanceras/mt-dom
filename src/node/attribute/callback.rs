@@ -1,4 +1,4 @@
-use std::{convert::Into, fmt, rc::Rc};
+use std::{fmt, rc::Rc};
 
 /// A generic sized representation of a function that can be
 /// attached to a Node. The callback will essentially be owned by the element
@@ -11,11 +11,11 @@ use std::{convert::Into, fmt, rc::Rc};
 /// to only passing an MSG to the program and not complex statements.
 ///
 ///
-pub struct Callback<EVENT, MSG>(Rc<dyn Fn(EVENT) -> MSG>);
+pub struct Callback<'a, EVENT, MSG>(Rc<dyn Fn(EVENT) -> MSG + 'a>);
 
-impl<EVENT, F, MSG> From<F> for Callback<EVENT, MSG>
+impl<'a, EVENT, F, MSG> From<F> for Callback<'a, EVENT, MSG>
 where
-    F: Fn(EVENT) -> MSG + 'static,
+    F: Fn(EVENT) -> MSG + 'a,
 {
     fn from(func: F) -> Self {
         Callback(Rc::new(func))
@@ -27,30 +27,30 @@ where
 ///
 /// The reason this is manually implemented is, so that EVENT and MSG
 /// doesn't need to be Debug as it is part of the Callback objects and are not shown.
-impl<EVENT, MSG> fmt::Debug for Callback<EVENT, MSG> {
+impl<'a, EVENT, MSG> fmt::Debug for Callback<'a, EVENT, MSG> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "||{{..}}")
     }
 }
 
-impl<EVENT, MSG> Callback<EVENT, MSG>
+impl<'a, EVENT, MSG> Callback<'a, EVENT, MSG>
 where
-    EVENT: 'static,
-    MSG: 'static,
+    EVENT: 'a,
+    MSG: 'a,
 {
     /// This method calls the actual callback.
-    pub fn emit<T: Into<EVENT>>(&self, value: T) -> MSG {
-        (self.0)(value.into())
+    pub fn emit(&self, event: EVENT) -> MSG {
+        (self.0)(event)
     }
 
     /// map this callback using another callback such that
     /// MSG becomes MSG2
     pub fn map_callback<MSG2>(
         self,
-        cb: Callback<MSG, MSG2>,
+        cb: Callback<'a, MSG, MSG2>,
     ) -> Callback<EVENT, MSG2>
     where
-        MSG2: 'static,
+        MSG2: 'a,
     {
         let func_wrap = move |input| {
             let out = self.emit(input);
@@ -66,7 +66,7 @@ where
 /// The reason this is manually implemented is, so that EVENT and MSG
 /// doesn't need to be Clone as it is part of the Callback objects and cloning here
 /// is just cloning the pointer of the actual callback function
-impl<EVENT, MSG> Clone for Callback<EVENT, MSG> {
+impl<'a, EVENT, MSG> Clone for Callback<'a, EVENT, MSG> {
     fn clone(&self) -> Self {
         Callback(Rc::clone(&self.0))
     }
@@ -77,7 +77,7 @@ impl<EVENT, MSG> Clone for Callback<EVENT, MSG> {
 ///
 /// The reason this is manually implemented is, so that EVENT and MSG
 /// doesn't need to be PartialEq as it is part of the Callback objects and are not compared
-impl<EVENT, MSG> PartialEq for Callback<EVENT, MSG> {
+impl<'a, EVENT, MSG> PartialEq for Callback<'a, EVENT, MSG> {
     fn eq(&self, _rhs: &Self) -> bool {
         true
         // Comparing the callback is only applicable

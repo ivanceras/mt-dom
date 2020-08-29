@@ -4,7 +4,7 @@ use std::fmt;
 mod callback;
 
 /// These are the plain attributes of an element
-pub struct Attribute<NS, ATT, VAL, EVENT, MSG> {
+pub struct Attribute<'a, NS, ATT, VAL, EVENT, MSG> {
     /// namespace of an attribute.
     /// This is specifically used by svg attributes
     /// such as xlink-href
@@ -13,7 +13,7 @@ pub struct Attribute<NS, ATT, VAL, EVENT, MSG> {
     /// optional since style attribute doesn't need to have an attribute name
     pub(crate) name: ATT,
     /// the attribute value, which could be a simple value, and event or a function call
-    pub(crate) value: Vec<AttValue<VAL, EVENT, MSG>>,
+    pub(crate) value: Vec<AttValue<'a, VAL, EVENT, MSG>>,
 }
 
 /// Note:
@@ -21,7 +21,8 @@ pub struct Attribute<NS, ATT, VAL, EVENT, MSG> {
 ///
 /// The reason this is manually implemented is, so that EVENT and MSG
 /// doesn't need to be Debug as it is part of the Callback objects and are not shown.
-impl<NS, ATT, VAL, EVENT, MSG> Clone for Attribute<NS, ATT, VAL, EVENT, MSG>
+impl<'a, NS, ATT, VAL, EVENT, MSG> Clone
+    for Attribute<'a, NS, ATT, VAL, EVENT, MSG>
 where
     NS: Clone,
     ATT: Clone,
@@ -41,7 +42,8 @@ where
 ///
 /// The reason this is manually implemented is, so that EVENT and MSG
 /// doesn't need to be PartialEq as it is part of the Callback objects and are not compared
-impl<NS, ATT, VAL, EVENT, MSG> PartialEq for Attribute<NS, ATT, VAL, EVENT, MSG>
+impl<'a, NS, ATT, VAL, EVENT, MSG> PartialEq
+    for Attribute<'a, NS, ATT, VAL, EVENT, MSG>
 where
     NS: PartialEq,
     ATT: PartialEq,
@@ -59,8 +61,8 @@ where
 ///
 /// The reason this is manually implemented is, so that EVENT and MSG
 /// doesn't need to be Debug as it is part of the Callback objects and are not shown.
-impl<NS, ATT, VAL, EVENT, MSG> fmt::Debug
-    for Attribute<NS, ATT, VAL, EVENT, MSG>
+impl<'a, NS, ATT, VAL, EVENT, MSG> fmt::Debug
+    for Attribute<'a, NS, ATT, VAL, EVENT, MSG>
 where
     NS: fmt::Debug,
     ATT: fmt::Debug,
@@ -76,11 +78,11 @@ where
 }
 
 /// Attribute Value which can be a plain attribute or a callback
-pub enum AttValue<VAL, EVENT, MSG> {
+pub enum AttValue<'a, VAL, EVENT, MSG> {
     /// Plain value
     Plain(VAL),
     /// An event listener attribute
-    Callback(Callback<EVENT, MSG>),
+    Callback(Callback<'a, EVENT, MSG>),
 }
 
 /// Note:
@@ -89,7 +91,7 @@ pub enum AttValue<VAL, EVENT, MSG> {
 /// The reason this is manually implemented is, so that EVENT and MSG
 /// doesn't need to be Clone as it is part of the Callback objects and cloning it
 /// is just cloning the pointer of the actual callback function
-impl<VAL, EVENT, MSG> Clone for AttValue<VAL, EVENT, MSG>
+impl<'a, VAL, EVENT, MSG> Clone for AttValue<'a, VAL, EVENT, MSG>
 where
     VAL: Clone,
 {
@@ -106,7 +108,7 @@ where
 ///
 /// The reason this is manually implemented is, so that EVENT and MSG
 /// doesn't need to be Debug as it is part of the Callback objects and are not shown.
-impl<VAL, EVENT, MSG> fmt::Debug for AttValue<VAL, EVENT, MSG>
+impl<'a, VAL, EVENT, MSG> fmt::Debug for AttValue<'a, VAL, EVENT, MSG>
 where
     VAL: fmt::Debug,
 {
@@ -127,7 +129,7 @@ where
 ///
 /// The reason this is manually implemented is, so that EVENT and MSG
 /// doesn't need to be PartialEq as it is part of the Callback objects and are not compared
-impl<VAL, EVENT, MSG> PartialEq for AttValue<VAL, EVENT, MSG>
+impl<'a, VAL, EVENT, MSG> PartialEq for AttValue<'a, VAL, EVENT, MSG>
 where
     VAL: PartialEq,
 {
@@ -142,13 +144,13 @@ where
     }
 }
 
-impl<VAL, EVENT, MSG> From<VAL> for AttValue<VAL, EVENT, MSG> {
+impl<'a, VAL, EVENT, MSG> From<VAL> for AttValue<'a, VAL, EVENT, MSG> {
     fn from(value: VAL) -> Self {
         AttValue::Plain(value)
     }
 }
 
-impl<NS, ATT, VAL, EVENT, MSG> Attribute<NS, ATT, VAL, EVENT, MSG> {
+impl<'a, NS, ATT, VAL, EVENT, MSG> Attribute<'a, NS, ATT, VAL, EVENT, MSG> {
     /// create a plain attribute with namespace
     pub fn new(namespace: Option<NS>, name: ATT, value: VAL) -> Self {
         Attribute {
@@ -177,7 +179,7 @@ impl<NS, ATT, VAL, EVENT, MSG> Attribute<NS, ATT, VAL, EVENT, MSG> {
     }
 
     /// return the value of this attribute
-    pub fn value(&self) -> &[AttValue<VAL, EVENT, MSG>] {
+    pub fn value(&self) -> &[AttValue<'a, VAL, EVENT, MSG>] {
         &self.value
     }
 
@@ -192,18 +194,18 @@ impl<NS, ATT, VAL, EVENT, MSG> Attribute<NS, ATT, VAL, EVENT, MSG> {
     }
 }
 
-impl<NS, ATT, VAL, EVENT, MSG> Attribute<NS, ATT, VAL, EVENT, MSG>
+impl<'a, NS, ATT, VAL, EVENT, MSG> Attribute<'a, NS, ATT, VAL, EVENT, MSG>
 where
-    EVENT: 'static,
-    MSG: 'static,
+    EVENT: 'a,
+    MSG: 'a,
 {
     /// transform the callback of this attribute
     pub fn map_callback<MSG2>(
         self,
-        cb: Callback<MSG, MSG2>,
-    ) -> Attribute<NS, ATT, VAL, EVENT, MSG2>
+        cb: Callback<'a, MSG, MSG2>,
+    ) -> Attribute<'a, NS, ATT, VAL, EVENT, MSG2>
     where
-        MSG2: 'static,
+        MSG2: 'a,
     {
         Attribute {
             name: self.name,
@@ -217,12 +219,12 @@ where
     }
 
     /// return the callback values of this attribute
-    pub fn get_callback(&self) -> Vec<&Callback<EVENT, MSG>> {
+    pub fn get_callback(&self) -> Vec<&Callback<'a, EVENT, MSG>> {
         self.value.iter().filter_map(|v| v.get_callback()).collect()
     }
 }
 
-impl<VAL, EVENT, MSG> AttValue<VAL, EVENT, MSG> {
+impl<'a, VAL, EVENT, MSG> AttValue<'a, VAL, EVENT, MSG> {
     /// return a reference to the plain value if it is a plain value
     pub fn get_plain(&self) -> Option<&VAL> {
         match self {
@@ -232,18 +234,18 @@ impl<VAL, EVENT, MSG> AttValue<VAL, EVENT, MSG> {
     }
 }
 
-impl<VAL, EVENT, MSG> AttValue<VAL, EVENT, MSG>
+impl<'a, VAL, EVENT, MSG> AttValue<'a, VAL, EVENT, MSG>
 where
-    EVENT: 'static,
-    MSG: 'static,
+    EVENT: 'a,
+    MSG: 'a,
 {
     /// transform att_value such that MSG becomes MSG2
     pub fn map_callback<MSG2>(
         self,
-        cb: Callback<MSG, MSG2>,
-    ) -> AttValue<VAL, EVENT, MSG2>
+        cb: Callback<'a, MSG, MSG2>,
+    ) -> AttValue<'a, VAL, EVENT, MSG2>
     where
-        MSG2: 'static,
+        MSG2: 'a,
     {
         match self {
             AttValue::Plain(plain) => AttValue::Plain(plain),
@@ -254,7 +256,7 @@ where
     }
 
     /// return a reference to the callback if it is a callback
-    pub fn get_callback(&self) -> Option<&Callback<EVENT, MSG>> {
+    pub fn get_callback(&self) -> Option<&Callback<'a, EVENT, MSG>> {
         match self {
             AttValue::Plain(_) => None,
             AttValue::Callback(cb) => Some(cb),
@@ -271,10 +273,10 @@ where
 }
 
 /// create an attribute from callback
-pub fn on<NS, ATT, VAL, EVENT, MSG>(
+pub fn on<'a, NS, ATT, VAL, EVENT, MSG>(
     name: ATT,
-    cb: Callback<EVENT, MSG>,
-) -> Attribute<NS, ATT, VAL, EVENT, MSG> {
+    cb: Callback<'a, EVENT, MSG>,
+) -> Attribute<'a, NS, ATT, VAL, EVENT, MSG> {
     Attribute {
         namespace: None,
         name,
@@ -284,32 +286,32 @@ pub fn on<NS, ATT, VAL, EVENT, MSG>(
 
 /// Create an attribute
 #[inline]
-pub fn attr<NS, ATT, VAL, EVENT, MSG>(
+pub fn attr<'a, NS, ATT, VAL, EVENT, MSG>(
     name: ATT,
     value: VAL,
-) -> Attribute<NS, ATT, VAL, EVENT, MSG> {
+) -> Attribute<'a, NS, ATT, VAL, EVENT, MSG> {
     attr_ns(None, name, value)
 }
 
 /// Create an attribute with namespace
 #[inline]
-pub fn attr_ns<NS, ATT, VAL, EVENT, MSG>(
+pub fn attr_ns<'a, NS, ATT, VAL, EVENT, MSG>(
     namespace: Option<NS>,
     name: ATT,
     value: VAL,
-) -> Attribute<NS, ATT, VAL, EVENT, MSG> {
+) -> Attribute<'a, NS, ATT, VAL, EVENT, MSG> {
     Attribute::new(namespace, name, value)
 }
 
 /// merge the values of attributes with the same name
-pub fn merge_attributes_of_same_name<NS, ATT, VAL, EVENT, MSG>(
-    attributes: &[&Attribute<NS, ATT, VAL, EVENT, MSG>],
-) -> Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>
+pub fn merge_attributes_of_same_name<'a, NS, ATT, VAL, EVENT, MSG>(
+    attributes: &[&Attribute<'a, NS, ATT, VAL, EVENT, MSG>],
+) -> Vec<Attribute<'a, NS, ATT, VAL, EVENT, MSG>>
 where
     ATT: PartialEq + Clone,
     VAL: Clone,
 {
-    let mut merged: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>> = vec![];
+    let mut merged: Vec<Attribute<'a, NS, ATT, VAL, EVENT, MSG>> = vec![];
     for att in attributes {
         if let Some(existing) =
             merged.iter_mut().find(|m_att| m_att.name == att.name)
@@ -328,13 +330,15 @@ where
 
 /// group attributes of the same name
 pub fn group_attributes_per_name<'a, NS, ATT, VAL, EVENT, MSG>(
-    attributes: &'a [Attribute<NS, ATT, VAL, EVENT, MSG>],
-) -> Vec<(&'a ATT, Vec<&'a Attribute<NS, ATT, VAL, EVENT, MSG>>)>
+    attributes: &'a [Attribute<'a, NS, ATT, VAL, EVENT, MSG>],
+) -> Vec<(&'a ATT, Vec<&'a Attribute<'a, NS, ATT, VAL, EVENT, MSG>>)>
 where
     ATT: PartialEq,
 {
-    let mut grouped: Vec<(&ATT, Vec<&Attribute<NS, ATT, VAL, EVENT, MSG>>)> =
-        vec![];
+    let mut grouped: Vec<(
+        &ATT,
+        Vec<&Attribute<'a, NS, ATT, VAL, EVENT, MSG>>,
+    )> = vec![];
     for attr in attributes {
         if let Some(existing) = grouped
             .iter_mut()

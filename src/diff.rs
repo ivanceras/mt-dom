@@ -47,32 +47,36 @@ pub enum Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG> {
         &'a TAG,
         NodeIdx,
         usize,
-        Vec<&'a Node<NS, TAG, ATT, VAL, EVENT, MSG>>,
+        Vec<&'a Node<'a, NS, TAG, ATT, VAL, EVENT, MSG>>,
     ),
     /// Append a vector of child nodes to a parent node id.
     AppendChildren(
         &'a TAG,
         NodeIdx,
-        Vec<&'a Node<NS, TAG, ATT, VAL, EVENT, MSG>>,
+        Vec<&'a Node<'a, NS, TAG, ATT, VAL, EVENT, MSG>>,
     ),
     /// remove the children with the indices of this node.
     RemoveChildren(&'a TAG, NodeIdx, Vec<usize>),
     /// Replace a node with another node. This typically happens when a node's tag changes.
     /// ex: <div> becomes <span>
-    Replace(&'a TAG, NodeIdx, &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>),
+    Replace(
+        &'a TAG,
+        NodeIdx,
+        &'a Node<'a, NS, TAG, ATT, VAL, EVENT, MSG>,
+    ),
     /// Add attributes that the new node has that the old node does not
     /// Note: the attributes is not a reference since attributes of same
     /// name are merged to produce a new unify attribute
     AddAttributes(
         &'a TAG,
         NodeIdx,
-        Vec<&'a Attribute<NS, ATT, VAL, EVENT, MSG>>,
+        Vec<&'a Attribute<'a, NS, ATT, VAL, EVENT, MSG>>,
     ),
     /// Remove attributes that the old node had that the new node doesn't
     RemoveAttributes(
         &'a TAG,
         NodeIdx,
-        Vec<&'a Attribute<NS, ATT, VAL, EVENT, MSG>>,
+        Vec<&'a Attribute<'a, NS, ATT, VAL, EVENT, MSG>>,
     ),
     /// Change the text of a Text node.
     ChangeText(NodeIdx, &'a str),
@@ -131,8 +135,8 @@ impl<'a, NS, TAG, ATT, VAL, EVENT, MSG>
 /// that if the 2 keys differ, the element will be replaced without having to traverse the children
 /// nodes
 pub fn diff_with_key<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
-    old: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
-    new: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+    old: &'a Node<'a, NS, TAG, ATT, VAL, EVENT, MSG>,
+    new: &'a Node<'a, NS, TAG, ATT, VAL, EVENT, MSG>,
     key: &ATT,
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
 where
@@ -148,8 +152,8 @@ where
 ///
 /// Note: This is not including the count of itself, since the node is being processed and the cur_node_idx is
 /// incremented in the loop together with its siblings
-fn increment_node_idx_to_descendant_count<NS, TAG, ATT, VAL, EVENT, MSG>(
-    node: &Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+fn increment_node_idx_to_descendant_count<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
+    node: &Node<'a, NS, TAG, ATT, VAL, EVENT, MSG>,
     cur_node_idx: &mut usize,
 ) {
     match node {
@@ -167,7 +171,7 @@ fn increment_node_idx_to_descendant_count<NS, TAG, ATT, VAL, EVENT, MSG>(
 
 /// returns true if any of the node children has key in their attributes
 fn is_any_children_keyed<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
-    element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
+    element: &'a Element<'a, NS, TAG, ATT, VAL, EVENT, MSG>,
     key: &ATT,
 ) -> bool
 where
@@ -181,7 +185,7 @@ where
 
 /// returns true any attributes of this node attribute has key in it
 fn is_keyed_node<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
-    node: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+    node: &'a Node<'a, NS, TAG, ATT, VAL, EVENT, MSG>,
     key: &ATT,
 ) -> bool
 where
@@ -195,8 +199,8 @@ where
 }
 
 fn diff_recursive<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG>(
-    old: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
-    new: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+    old: &'a Node<'a, NS, TAG, ATT, VAL, EVENT, MSG>,
+    new: &'a Node<'a, NS, TAG, ATT, VAL, EVENT, MSG>,
     cur_node_idx: &'b mut usize,
     key: &ATT,
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
@@ -298,8 +302,8 @@ where
 ///  and the next_patch will be AddAttributes, as the NodeIdx has already changed
 ///  when the RemoveChildren patch was applied.
 fn diff_keyed_elements<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG>(
-    old_element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
-    new_element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
+    old_element: &'a Element<'a, NS, TAG, ATT, VAL, EVENT, MSG>,
+    new_element: &'a Element<'a, NS, TAG, ATT, VAL, EVENT, MSG>,
     key: &ATT,
     cur_node_idx: &'b mut usize,
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
@@ -443,8 +447,8 @@ where
 ///
 ///
 fn diff_non_keyed_elements<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG>(
-    old_element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
-    new_element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
+    old_element: &'a Element<'a, NS, TAG, ATT, VAL, EVENT, MSG>,
+    new_element: &'a Element<'a, NS, TAG, ATT, VAL, EVENT, MSG>,
     key: &ATT,
     cur_node_idx: &'b mut usize,
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
@@ -467,7 +471,7 @@ where
     // If there are more new child than old child, we make a patch to append the excess element
     // starting from old_child_count to the last item of the new_elements
     if new_child_count > old_child_count {
-        let append_patch: Vec<&'a Node<NS, TAG, ATT, VAL, EVENT, MSG>> =
+        let append_patch: Vec<&'a Node<'a, NS, TAG, ATT, VAL, EVENT, MSG>> =
             new_element.children[old_child_count..].iter().collect();
 
         patches.push(Patch::AppendChildren(
@@ -514,8 +518,8 @@ where
 ///     - allocating new vec
 ///     - merging attributes of the same name
 fn diff_attributes<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG>(
-    old_element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
-    new_element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
+    old_element: &'a Element<'a, NS, TAG, ATT, VAL, EVENT, MSG>,
+    new_element: &'a Element<'a, NS, TAG, ATT, VAL, EVENT, MSG>,
     cur_node_idx: &'b mut usize,
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
 where
@@ -524,8 +528,9 @@ where
     VAL: PartialEq,
 {
     let mut patches = vec![];
-    let mut add_attributes: Vec<&Attribute<NS, ATT, VAL, EVENT, MSG>> = vec![];
-    let mut remove_attributes: Vec<&Attribute<NS, ATT, VAL, EVENT, MSG>> =
+    let mut add_attributes: Vec<&Attribute<'a, NS, ATT, VAL, EVENT, MSG>> =
+        vec![];
+    let mut remove_attributes: Vec<&Attribute<'a, NS, ATT, VAL, EVENT, MSG>> =
         vec![];
 
     let new_attributes_grouped =
