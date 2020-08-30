@@ -197,6 +197,19 @@ where
     EVENT: 'static,
     MSG: 'static,
 {
+    /// map the msg
+    pub fn map_msg<F, MSG2>(
+        self,
+        func: F,
+    ) -> Attribute<NS, ATT, VAL, EVENT, MSG2>
+    where
+        F: Fn(MSG) -> MSG2 + 'static,
+        MSG2: 'static,
+    {
+        let cb = Callback::from(func);
+        self.map_callback(cb)
+    }
+
     /// transform the callback of this attribute
     pub fn map_callback<MSG2>(
         self,
