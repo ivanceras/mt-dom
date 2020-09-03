@@ -164,6 +164,25 @@ impl<NS, TAG, ATT, VAL, EVENT, MSG> Node<NS, TAG, ATT, VAL, EVENT, MSG> {
             None
         }
     }
+
+    /// recursive count the number of nodes under this tree
+    pub fn node_count(&self) -> usize {
+        let mut current = 0;
+        self.node_count_recursive(&mut current);
+        current
+    }
+
+    fn node_count_recursive(&self, current: &mut usize) {
+        match self {
+            Node::Text(_) => *current += 1,
+            Node::Element(element) => {
+                *current += 1;
+                for child in element.children.iter() {
+                    child.node_count_recursive(current);
+                }
+            }
+        }
+    }
 }
 
 /// Note:

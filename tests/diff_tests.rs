@@ -44,6 +44,8 @@ fn test_205() {
             element("b", vec![], vec![]),
         ],
     ); //{ <div> <b> <i></i> <i></i> </b> <b></b> </div> },
+
+    assert_eq!(5, old.node_count());
     let new = element(
         "div",
         vec![],
