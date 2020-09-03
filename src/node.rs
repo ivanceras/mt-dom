@@ -80,6 +80,16 @@ impl<NS, TAG, ATT, VAL, EVENT, MSG> Node<NS, TAG, ATT, VAL, EVENT, MSG> {
         self
     }
 
+    /// add children but not consume self
+    pub fn add_children_ref_mut(
+        &mut self,
+        children: Vec<Node<NS, TAG, ATT, VAL, EVENT, MSG>>,
+    ) {
+        if let Some(element) = self.as_element_mut() {
+            element.add_children(children);
+        }
+    }
+
     /// add attributes to the node and returns itself
     /// this is used in view building
     pub fn add_attributes(
