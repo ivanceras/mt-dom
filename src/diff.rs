@@ -1,3 +1,5 @@
+//! provides diffing algorithm which returns patches
+//!
 use crate::node::attribute::group_attributes_per_name;
 use crate::Attribute;
 use crate::Element;
@@ -79,10 +81,28 @@ pub enum Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG> {
         Vec<&'a Attribute<NS, ATT, VAL, EVENT, MSG>>,
     ),
     /// Change the text of a Text node.
-    ChangeText(NodeIdx, &'a str),
+    ChangeText(ChangeText<'a>),
 }
 
-type NodeIdx = usize;
+#[derive(Debug, PartialEq)]
+pub struct ChangeText<'a> {
+    node_idx: NodeIdx,
+    old: &'a str,
+    new: &'a str,
+}
+
+impl<'a> ChangeText<'a> {
+    pub fn new(node_idx: NodeIdx, old: &'a str, new: &'a str) -> Self {
+        ChangeText { node_idx, old, new }
+    }
+
+    pub fn get_new(&self) -> &'a str {
+        self.new
+    }
+}
+
+/// NodeIdx alias type
+pub type NodeIdx = usize;
 
 impl<'a, NS, TAG, ATT, VAL, EVENT, MSG>
     Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>
@@ -98,7 +118,7 @@ impl<'a, NS, TAG, ATT, VAL, EVENT, MSG>
             Patch::Replace(_tag, node_idx, _) => *node_idx,
             Patch::AddAttributes(_tag, node_idx, _) => *node_idx,
             Patch::RemoveAttributes(_tag, node_idx, _) => *node_idx,
-            Patch::ChangeText(node_idx, _) => *node_idx,
+            Patch::ChangeText(ct) => ct.node_idx,
         }
     }
 
@@ -111,7 +131,7 @@ impl<'a, NS, TAG, ATT, VAL, EVENT, MSG>
             Patch::Replace(tag, _node_idx, _) => Some(tag),
             Patch::AddAttributes(tag, _node_idx, _) => Some(tag),
             Patch::RemoveAttributes(tag, _node_idx, _) => Some(tag),
-            Patch::ChangeText(_node_idx, _) => None,
+            Patch::ChangeText(_) => None,
         }
     }
 
@@ -240,7 +260,8 @@ where
         // We're comparing two text nodes
         (Node::Text(old_text), Node::Text(new_text)) => {
             if old_text != new_text {
-                patches.push(Patch::ChangeText(*cur_node_idx, &new_text));
+                let ct = ChangeText::new(*cur_node_idx, old_text, new_text);
+                patches.push(Patch::ChangeText(ct));
             }
         }
 
@@ -653,11 +674,7 @@ where
                 .field(attrs)
                 .finish(),
 
-            Patch::ChangeText(node_idx, text) => f
-                .debug_tuple("ChangeText")
-                .field(node_idx)
-                .field(text)
-                .finish(),
+            Patch::ChangeText(ct) => ct.fmt(f),
         }
     }
 }

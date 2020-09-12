@@ -1,3 +1,4 @@
+use mt_dom::diff::*;
 use mt_dom::*;
 
 pub type MyNode =
@@ -214,7 +215,14 @@ fn text_changed() {
     );
 
     let diff = diff_with_key(&old, &new, &"key");
-    assert_eq!(diff, vec![Patch::ChangeText(15, "line7_changed")]);
+    assert_eq!(
+        diff,
+        vec![Patch::ChangeText(ChangeText::new(
+            15,
+            "line7",
+            "line7_changed"
+        ))]
+    );
 }
 
 #[test]
@@ -261,5 +269,12 @@ fn text_changed_non_keyed() {
     );
 
     let diff = diff_with_key(&old, &new, &"key");
-    assert_eq!(diff, vec![Patch::ChangeText(15, "line7_changed")]);
+    assert_eq!(
+        diff,
+        vec![Patch::ChangeText(ChangeText::new(
+            15,
+            "line7",
+            "line7_changed"
+        ))]
+    );
 }

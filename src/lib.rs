@@ -1,13 +1,13 @@
-#![deny(
-    warnings,
-    missing_docs,
-    missing_debug_implementations,
-    missing_copy_implementations,
-    trivial_casts,
-    trivial_numeric_casts,
-    unstable_features,
-    unused_import_braces
-)]
+//#![deny(
+//    warnings,
+//    missing_docs,
+//    missing_debug_implementations,
+//    missing_copy_implementations,
+//    trivial_casts,
+//    trivial_numeric_casts,
+//    unstable_features,
+//    unused_import_braces
+//)]
 
 //! mt-dom is a generic virtual dom implementation which doesn't specify the types of the data that
 //! is being processed. It's up to the library user to specify those types
@@ -19,6 +19,7 @@
 //! for native UI elements.
 //!
 pub use diff::diff_with_key;
+pub use diff::NodeIdx;
 pub use diff::Patch;
 pub use node::attribute::{
     attr, attr_ns, merge_attributes_of_same_name, on, AttValue, Callback,
@@ -28,5 +29,5 @@ pub use node::Element;
 pub use node::Node;
 pub use node::{element, element_ns, text};
 
-mod diff;
+pub mod diff;
 mod node;

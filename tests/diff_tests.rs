@@ -1,4 +1,5 @@
 #![deny(warnings)]
+use mt_dom::diff::ChangeText;
 use mt_dom::*;
 
 pub type MyNode =
@@ -139,7 +140,10 @@ fn text_node_changed() {
     );
 
     let diff = diff_with_key(&old, &new, &"key");
-    assert_eq!(diff, vec![Patch::ChangeText(1, "text2")])
+    assert_eq!(
+        diff,
+        vec![Patch::ChangeText(ChangeText::new(1, "text1", "text2"))]
+    )
 }
 
 #[test]

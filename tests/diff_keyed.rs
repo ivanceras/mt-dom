@@ -1,3 +1,4 @@
+use mt_dom::diff::*;
 use mt_dom::*;
 
 pub type MyNode =
@@ -346,8 +347,16 @@ fn deep_nested_keyed_with_non_keyed_children() {
         diff,
         vec![
             Patch::AddAttributes(&"div", 4, vec![&attr("class", "some-class")]),
-            Patch::ChangeText(6, "paragraph1, with added content"),
-            Patch::ChangeText(8, "Click here to continue"),
+            Patch::ChangeText(ChangeText::new(
+                6,
+                "paragraph1",
+                "paragraph1, with added content"
+            )),
+            Patch::ChangeText(ChangeText::new(
+                8,
+                "Click here",
+                "Click here to continue"
+            )),
             Patch::RemoveChildren(&"article", 1, vec![0, 1]),
         ]
     );
@@ -391,7 +400,11 @@ fn text_changed_in_keyed_elements() {
     assert_eq!(
         patch,
         vec![
-            Patch::ChangeText(7, "item3 with changes"),
+            Patch::ChangeText(ChangeText::new(
+                7,
+                "item3",
+                "item3 with changes"
+            )),
             Patch::RemoveChildren(&"section", 1, vec![0])
         ]
     );
@@ -457,9 +470,17 @@ fn text_changed_in_mixed_keyed_and_non_keyed_elements() {
     assert_eq!(
         patch,
         vec![
-            Patch::ChangeText(7, "item3 with changes"),
+            Patch::ChangeText(ChangeText::new(
+                7,
+                "item3",
+                "item3 with changes"
+            )),
             Patch::RemoveChildren(&"section", 1, vec![0]),
-            Patch::ChangeText(9, "2 items left"),
+            Patch::ChangeText(ChangeText::new(
+                9,
+                "3 items left",
+                "2 items left"
+            )),
         ]
     );
 }
@@ -527,9 +548,17 @@ fn test12() {
     assert_eq!(
         patch,
         vec![
-            Patch::ChangeText(9, "item3 with changes"),
+            Patch::ChangeText(ChangeText::new(
+                9,
+                "item3",
+                "item3 with changes"
+            )),
             Patch::RemoveChildren(&"section", 3, vec![0]),
-            Patch::ChangeText(11, "2 items left"),
+            Patch::ChangeText(ChangeText::new(
+                11,
+                "3 items left",
+                "2 items left"
+            )),
         ]
     );
 }
