@@ -87,6 +87,9 @@ pub enum Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG> {
 #[derive(Debug, PartialEq)]
 pub struct ChangeText<'a> {
     node_idx: NodeIdx,
+    // the old text is not really needed for applying the patch.
+    // but it is useful for debugging purposed, that we are changing the intended target text by
+    // visual inspection
     old: &'a str,
     new: &'a str,
 }
@@ -322,6 +325,8 @@ where
 ///  this will be tricky in the case where the prior patch is RemoveChildren
 ///  and the next_patch will be AddAttributes, as the NodeIdx has already changed
 ///  when the RemoveChildren patch was applied.
+///
+///  TODO: modularize and simplify this algorithm
 fn diff_keyed_elements<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG>(
     old_element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
     new_element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
@@ -334,8 +339,8 @@ where
     ATT: PartialEq + fmt::Debug,
     VAL: PartialEq + fmt::Debug,
 {
-    #[cfg(feature = "with-measure")]
-    log::trace!("entering diff_keyed_elements");
+    //#[cfg(feature = "with-measure")]
+    //log::trace!("entering diff_keyed_elements");
 
     let mut patches = vec![];
 
@@ -352,11 +357,13 @@ where
                             old_child.get_attribute_value(key)
                         {
                             if old_child_key == new_child_key {
+                                /*
                                 #[cfg(feature = "with-measure")]
                                 log::trace!(
                                     "found matched key: {:?}",
                                     old_child_key
                                 );
+                                */
                                 Some(old_idx)
                             } else {
                                 None
@@ -398,6 +405,7 @@ where
 
             patches.extend(matched_element_patches);
         } else {
+            //TODO: the unmatched children will have to be diff recursively as well
             unmatched_old_keys.push(old_idx);
             increment_node_idx_to_descendant_count(old_child, cur_node_idx);
         }
@@ -417,6 +425,7 @@ where
                 }
             })
         {
+            let mut insert_children_patches = vec![];
             // insert the new_child that is not on the matching keys
             // and has a index lesser than the matched_new_idx
             for (new_idx, new_child) in
@@ -426,19 +435,25 @@ where
                     && !inserted_new_idx.contains(&new_idx)
                     && new_idx < *matched_new_idx
                 {
-                    patches.push(Patch::InsertChildren(
-                        &old_element.tag,
-                        this_cur_node_idx,
-                        old_idx,
-                        vec![new_child],
-                    ));
+                    insert_children_patches.push(new_child);
                     inserted_new_idx.push(new_idx);
                 }
+            }
+            if !insert_children_patches.is_empty() {
+                patches.push(Patch::InsertChildren(
+                    &old_element.tag,
+                    this_cur_node_idx,
+                    old_idx,
+                    insert_children_patches,
+                ));
             }
         }
     }
 
     if !unmatched_old_keys.is_empty() {
+        // ISSUE: patch is reporting ChangeText and RemoveChildren
+        // with the same element
+        //
         patches.push(Patch::RemoveChildren(
             &old_element.tag,
             this_cur_node_idx,

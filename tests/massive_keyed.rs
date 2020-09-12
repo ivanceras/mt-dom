@@ -278,3 +278,234 @@ fn text_changed_non_keyed() {
         ))]
     );
 }
+
+#[test]
+fn insert_one_line_at_start() {
+    pretty_env_logger::try_init();
+    let old: MyNode = element(
+        "article",
+        vec![],
+        vec![element(
+            "main",
+            vec![attr("class", "container")],
+            vec![
+                element(
+                    "div",
+                    vec![attr("key", "hash1")],
+                    vec![
+                        element("div", vec![], vec![text(1)]),
+                        element("div", vec![], vec![text("line1")]),
+                    ],
+                ),
+                element(
+                    "div",
+                    vec![attr("key", "hash2")],
+                    vec![
+                        element("div", vec![], vec![text(2)]),
+                        element("div", vec![], vec![text("line3")]),
+                    ],
+                ),
+                element(
+                    "div",
+                    vec![attr("key", "hash3")],
+                    vec![
+                        element("div", vec![], vec![text(3)]),
+                        element("div", vec![], vec![text("line3")]),
+                    ],
+                ),
+            ],
+        )],
+    );
+
+    let new: MyNode = element(
+        "article",
+        vec![],
+        vec![element(
+            "main",
+            vec![attr("class", "container")],
+            vec![
+                element(
+                    "div",
+                    vec![attr("key", "hashXXX")],
+                    vec![
+                        element("div", vec![], vec![text(1)]),
+                        element("div", vec![], vec![text("XXX")]),
+                    ],
+                ),
+                element(
+                    "div",
+                    vec![attr("key", "hash1")],
+                    vec![
+                        element("div", vec![], vec![text(2)]),
+                        element("div", vec![], vec![text("line1")]),
+                    ],
+                ),
+                element(
+                    "div",
+                    vec![attr("key", "hash2")],
+                    vec![
+                        element("div", vec![], vec![text(3)]),
+                        element("div", vec![], vec![text("line3")]),
+                    ],
+                ),
+                element(
+                    "div",
+                    vec![attr("key", "hash3")],
+                    vec![
+                        element("div", vec![], vec![text(4)]),
+                        element("div", vec![], vec![text("line3")]),
+                    ],
+                ),
+            ],
+        )],
+    );
+
+    let diff = diff_with_key(&old, &new, &"key");
+    println!("{:#?}", diff);
+    assert_eq!(
+        diff,
+        vec![
+            Patch::ChangeText(ChangeText::new(4, "1", "2")),
+            Patch::ChangeText(ChangeText::new(9, "2", "3")),
+            Patch::ChangeText(ChangeText::new(14, "3", "4")),
+            Patch::InsertChildren(
+                &"main",
+                1,
+                0,
+                vec![&element(
+                    "div",
+                    vec![attr("key", "hashXXX")],
+                    vec![
+                        element("div", vec![], vec![text(1)]),
+                        element("div", vec![], vec![text("XXX")]),
+                    ],
+                )],
+            )
+        ]
+    );
+}
+
+#[test]
+fn insert_two_lines_at_start() {
+    pretty_env_logger::try_init();
+    let old: MyNode = element(
+        "article",
+        vec![],
+        vec![element(
+            "main",
+            vec![attr("class", "container")],
+            vec![
+                element(
+                    "div",
+                    vec![attr("key", "hash1")],
+                    vec![
+                        element("div", vec![], vec![text(1)]),
+                        element("div", vec![], vec![text("line1")]),
+                    ],
+                ),
+                element(
+                    "div",
+                    vec![attr("key", "hash2")],
+                    vec![
+                        element("div", vec![], vec![text(2)]),
+                        element("div", vec![], vec![text("line2")]),
+                    ],
+                ),
+                element(
+                    "div",
+                    vec![attr("key", "hash3")],
+                    vec![
+                        element("div", vec![], vec![text(2)]),
+                        element("div", vec![], vec![text("line3")]),
+                    ],
+                ),
+            ],
+        )],
+    );
+
+    let new: MyNode = element(
+        "article",
+        vec![],
+        vec![element(
+            "main",
+            vec![attr("class", "container")],
+            vec![
+                element(
+                    "div",
+                    vec![attr("key", "hashXXX")],
+                    vec![
+                        element("div", vec![], vec![text(1)]),
+                        element("div", vec![], vec![text("XXX")]),
+                    ],
+                ),
+                element(
+                    "div",
+                    vec![attr("key", "hashYYY")],
+                    vec![
+                        element("div", vec![], vec![text(2)]),
+                        element("div", vec![], vec![text("YYY")]),
+                    ],
+                ),
+                element(
+                    "div",
+                    vec![attr("key", "hash1")],
+                    vec![
+                        element("div", vec![], vec![text(3)]),
+                        element("div", vec![], vec![text("line1")]),
+                    ],
+                ),
+                element(
+                    "div",
+                    vec![attr("key", "hash2")],
+                    vec![
+                        element("div", vec![], vec![text(4)]),
+                        element("div", vec![], vec![text("line2")]),
+                    ],
+                ),
+                element(
+                    "div",
+                    vec![attr("key", "hash3")],
+                    vec![
+                        element("div", vec![], vec![text(5)]),
+                        element("div", vec![], vec![text("line3")]),
+                    ],
+                ),
+            ],
+        )],
+    );
+
+    let diff = diff_with_key(&old, &new, &"key");
+    println!("{:#?}", diff);
+
+    assert_eq!(
+        diff,
+        vec![
+            Patch::ChangeText(ChangeText::new(4, "1", "3")),
+            Patch::ChangeText(ChangeText::new(9, "2", "4")),
+            Patch::ChangeText(ChangeText::new(14, "2", "5")),
+            Patch::InsertChildren(
+                &"main",
+                1,
+                0,
+                vec![
+                    &element(
+                        "div",
+                        vec![attr("key", "hashXXX")],
+                        vec![
+                            element("div", vec![], vec![text(1)]),
+                            element("div", vec![], vec![text("XXX")]),
+                        ],
+                    ),
+                    &element(
+                        "div",
+                        vec![attr("key", "hashYYY")],
+                        vec![
+                            element("div", vec![], vec![text(2)]),
+                            element("div", vec![], vec![text("YYY")]),
+                        ],
+                    )
+                ],
+            ),
+        ]
+    );
+}
