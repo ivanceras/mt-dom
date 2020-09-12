@@ -309,6 +309,9 @@ where
     ATT: PartialEq + fmt::Debug,
     VAL: PartialEq + fmt::Debug,
 {
+    #[cfg(feature = "with-measure")]
+    log::trace!("entering diff_keyed_elements");
+
     let mut patches = vec![];
 
     let this_cur_node_idx = *cur_node_idx;
