@@ -331,6 +331,11 @@ where
                             old_child.get_attribute_value(key)
                         {
                             if old_child_key == new_child_key {
+                                #[cfg(feature = "with-measure")]
+                                log::trace!(
+                                    "found matched key: {:?}",
+                                    old_child_key
+                                );
                                 Some(old_idx)
                             } else {
                                 None

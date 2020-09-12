@@ -165,3 +165,101 @@ fn wrapped_elements() {
         )]
     );
 }
+
+#[test]
+fn text_changed() {
+    pretty_env_logger::try_init();
+    let old: MyNode = element(
+        "article",
+        vec![],
+        vec![element(
+            "main",
+            vec![attr("class", "container")],
+            vec![
+                element("div", vec![attr("key", "1")], vec![text("line1")]),
+                element("div", vec![attr("key", "2")], vec![text("line2")]),
+                element("div", vec![attr("key", "3")], vec![text("line3")]),
+                element("div", vec![attr("key", "4")], vec![text("line4")]),
+                element("div", vec![attr("key", "5")], vec![text("line5")]),
+                element("div", vec![attr("key", "6")], vec![text("line6")]),
+                element("div", vec![attr("key", "7")], vec![text("line7")]),
+                element("div", vec![attr("key", "8")], vec![text("line8")]),
+                element("div", vec![attr("key", "9")], vec![text("line9")]),
+            ],
+        )],
+    );
+
+    let new: MyNode = element(
+        "article",
+        vec![],
+        vec![element(
+            "main",
+            vec![attr("class", "container")],
+            vec![
+                element("div", vec![attr("key", "1")], vec![text("line1")]),
+                element("div", vec![attr("key", "2")], vec![text("line2")]),
+                element("div", vec![attr("key", "3")], vec![text("line3")]),
+                element("div", vec![attr("key", "4")], vec![text("line4")]),
+                element("div", vec![attr("key", "5")], vec![text("line5")]),
+                element("div", vec![attr("key", "6")], vec![text("line6")]),
+                element(
+                    "div",
+                    vec![attr("key", "7")],
+                    vec![text("line7_changed")],
+                ),
+                element("div", vec![attr("key", "8")], vec![text("line8")]),
+                element("div", vec![attr("key", "9")], vec![text("line9")]),
+            ],
+        )],
+    );
+
+    let diff = diff_with_key(&old, &new, &"key");
+    assert_eq!(diff, vec![Patch::ChangeText(15, "line7_changed")]);
+}
+
+#[test]
+fn text_changed_non_keyed() {
+    pretty_env_logger::try_init();
+    let old: MyNode = element(
+        "article",
+        vec![],
+        vec![element(
+            "main",
+            vec![attr("class", "container")],
+            vec![
+                element("div", vec![], vec![text("line1")]),
+                element("div", vec![], vec![text("line2")]),
+                element("div", vec![], vec![text("line3")]),
+                element("div", vec![], vec![text("line4")]),
+                element("div", vec![], vec![text("line5")]),
+                element("div", vec![], vec![text("line6")]),
+                element("div", vec![], vec![text("line7")]),
+                element("div", vec![], vec![text("line8")]),
+                element("div", vec![], vec![text("line9")]),
+            ],
+        )],
+    );
+
+    let new: MyNode = element(
+        "article",
+        vec![],
+        vec![element(
+            "main",
+            vec![attr("class", "container")],
+            vec![
+                element("div", vec![], vec![text("line1")]),
+                element("div", vec![], vec![text("line2")]),
+                element("div", vec![], vec![text("line3")]),
+                element("div", vec![], vec![text("line4")]),
+                element("div", vec![], vec![text("line5")]),
+                element("div", vec![], vec![text("line6")]),
+                element("div", vec![], vec![text("line7_changed")]),
+                element("div", vec![], vec![text("line8")]),
+                element("div", vec![], vec![text("line9")]),
+            ],
+        )],
+    );
+
+    let diff = diff_with_key(&old, &new, &"key");
+    assert_eq!(diff, vec![Patch::ChangeText(15, "line7_changed")]);
+}

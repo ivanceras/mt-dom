@@ -125,6 +125,24 @@ fn test_class_changed() {
 }
 
 #[test]
+fn text_node_changed() {
+    let old: MyNode = element(
+        "div",
+        vec![attr("id", "some-id"), attr("class", "some-class")],
+        vec![text("text1")],
+    );
+
+    let new = element(
+        "div",
+        vec![attr("id", "some-id"), attr("class", "some-class")],
+        vec![text("text2")],
+    );
+
+    let diff = diff_with_key(&old, &new, &"key");
+    assert_eq!(diff, vec![Patch::ChangeText(1, "text2")])
+}
+
+#[test]
 fn test_class_will_not_be_merged_on_different_calls() {
     let old: MyNode = element("div", vec![], vec![]);
 
