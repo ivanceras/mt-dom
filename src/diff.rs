@@ -40,9 +40,12 @@ use std::mem;
 /// ```
 ///
 ///
+// TODO: create a struct for the contents of each variants
+// since they are getting larger
 #[derive(PartialEq)]
 pub enum Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG> {
     /// Insert a vector of child nodes to the current node being patch.
+    /// The usize is the index of of the children of this node to insert next to
     InsertChildren(
         &'a TAG,
         NodeIdx,
@@ -56,6 +59,7 @@ pub enum Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG> {
         Vec<&'a Node<NS, TAG, ATT, VAL, EVENT, MSG>>,
     ),
     /// remove the children with the indices of this node.
+    /// The usize if the index of the children of this node to remove from
     RemoveChildren(&'a TAG, NodeIdx, Vec<usize>),
     /// Replace a node with another node. This typically happens when a node's tag changes.
     /// ex: <div> becomes <span>
