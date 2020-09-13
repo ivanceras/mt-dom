@@ -1,6 +1,8 @@
-use crate::node::attribute::Callback;
-use crate::node::Attribute;
-use crate::node::Node;
+use crate::node::{
+    attribute::Callback,
+    Attribute,
+    Node,
+};
 use std::fmt;
 
 /// Represents an element of the virtual node
@@ -44,6 +46,7 @@ impl<NS, TAG, ATT, VAL, EVENT, MSG> Element<NS, TAG, ATT, VAL, EVENT, MSG> {
             children,
         }
     }
+
     /// add attributes to this element
     pub fn add_attributes(
         &mut self,

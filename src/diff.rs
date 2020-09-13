@@ -1,20 +1,26 @@
 //! provides diffing algorithm which returns patches
 //!
-use crate::node::attribute::group_attributes_per_name;
-use crate::patch::AddAttributes;
-use crate::patch::AppendChildren;
-use crate::patch::ChangeText;
-use crate::patch::InsertChildren;
-use crate::patch::RemoveAttributes;
-use crate::patch::RemoveChildren;
-use crate::patch::ReplaceNode;
-use crate::Attribute;
-use crate::Element;
-use crate::Node;
-use crate::Patch;
-use std::cmp;
-use std::fmt;
-use std::mem;
+use crate::{
+    node::attribute::group_attributes_per_name,
+    patch::{
+        AddAttributes,
+        AppendChildren,
+        ChangeText,
+        InsertChildren,
+        RemoveAttributes,
+        RemoveChildren,
+        ReplaceNode,
+    },
+    Attribute,
+    Element,
+    Node,
+    Patch,
+};
+use std::{
+    cmp,
+    fmt,
+    mem,
+};
 
 /// calculate the difference of 2 nodes
 /// the supplied key will be taken into account
