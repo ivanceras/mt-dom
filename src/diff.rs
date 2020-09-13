@@ -1,166 +1,20 @@
 //! provides diffing algorithm which returns patches
 //!
 use crate::node::attribute::group_attributes_per_name;
+use crate::patch::AddAttributes;
+use crate::patch::AppendChildren;
+use crate::patch::ChangeText;
+use crate::patch::InsertChildren;
+use crate::patch::RemoveAttributes;
+use crate::patch::RemoveChildren;
+use crate::patch::ReplaceNode;
 use crate::Attribute;
 use crate::Element;
 use crate::Node;
+use crate::Patch;
 use std::cmp;
 use std::fmt;
 use std::mem;
-
-/// A Patch encodes an operation that modifies a real DOM element or native UI element
-///
-/// To update the real DOM that a user sees you'll want to first diff your
-/// old virtual dom and new virtual dom.
-///
-/// This diff operation will generate `Vec<Patch>` with zero or more patches that, when
-/// applied to your real DOM, will make your real DOM look like your new virtual dom.
-///
-/// Each Patch has a usize node index that helps us identify the real DOM node that it applies to.
-///
-/// Our old virtual dom's nodes are indexed depth first, as shown in this illustration
-/// (0 being the root node, 1 being it's first child, 2 being it's first child's first child).
-///
-/// ```ignore
-///             .─.
-///            ( 0 )
-///             `-'
-///            /   \
-///           /     \
-///          /       \
-///         ▼         ▼
-///        .─.         .─.
-///       ( 1 )       ( 4 )
-///        `-'         `-'
-///       /  \          | \ '.
-///      /    \         |  \  '.
-///     ▼      ▼        |   \   '.
-///   .─.      .─.      ▼    ▼     ▼
-///  ( 2 )    ( 3 )    .─.   .─.   .─.
-///   `─'      `─'    ( 5 ) ( 6 ) ( 7 )
-///                    `─'   `─'   `─'
-/// ```
-///
-///
-// TODO: create a struct for the contents of each variants
-// since they are getting larger
-#[derive(PartialEq)]
-pub enum Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG> {
-    /// Insert a vector of child nodes to the current node being patch.
-    /// The usize is the index of of the children of the node to be
-    /// patch to insert to. The new children will be inserted before this usize
-    InsertChildren(
-        &'a TAG,
-        NodeIdx,
-        usize,
-        Vec<&'a Node<NS, TAG, ATT, VAL, EVENT, MSG>>,
-    ),
-    /// Append a vector of child nodes to a parent node id.
-    AppendChildren(
-        &'a TAG,
-        NodeIdx,
-        Vec<&'a Node<NS, TAG, ATT, VAL, EVENT, MSG>>,
-    ),
-    /// remove the children with the indices of this node.
-    /// The usize if the index of the children of this node to remove from
-    RemoveChildren(&'a TAG, NodeIdx, Vec<usize>),
-    /// Replace a node with another node. This typically happens when a node's tag changes.
-    /// ex: <div> becomes <span>
-    Replace(&'a TAG, NodeIdx, &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>),
-    /// Add attributes that the new node has that the old node does not
-    /// Note: the attributes is not a reference since attributes of same
-    /// name are merged to produce a new unify attribute
-    AddAttributes(
-        &'a TAG,
-        NodeIdx,
-        Vec<&'a Attribute<NS, ATT, VAL, EVENT, MSG>>,
-    ),
-    /// Remove attributes that the old node had that the new node doesn't
-    RemoveAttributes(
-        &'a TAG,
-        NodeIdx,
-        Vec<&'a Attribute<NS, ATT, VAL, EVENT, MSG>>,
-    ),
-    /// Change the text of a Text node.
-    ChangeText(ChangeText<'a>),
-}
-
-#[derive(Debug, PartialEq)]
-pub struct ChangeText<'a> {
-    node_idx: NodeIdx,
-    // the old text is not really needed for applying the patch.
-    // but it is useful for debugging purposed, that we are changing the intended target text by
-    // visual inspection
-    old: &'a str,
-    new: &'a str,
-}
-
-impl<'a> ChangeText<'a> {
-    pub fn new(node_idx: NodeIdx, old: &'a str, new: &'a str) -> Self {
-        ChangeText { node_idx, old, new }
-    }
-
-    pub fn get_new(&self) -> &'a str {
-        self.new
-    }
-}
-
-/// NodeIdx alias type
-pub type NodeIdx = usize;
-
-impl<'a, NS, TAG, ATT, VAL, EVENT, MSG>
-    Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>
-{
-    /// Every Patch is meant to be applied to a specific node within the DOM. Get the
-    /// index of the DOM node that this patch should apply to. DOM nodes are indexed
-    /// depth first with the root node in the tree having index 0.
-    pub fn node_idx(&self) -> NodeIdx {
-        match self {
-            Patch::InsertChildren(_tag, node_idx, _, _) => *node_idx,
-            Patch::AppendChildren(_tag, node_idx, _) => *node_idx,
-            Patch::RemoveChildren(_tag, node_idx, _) => *node_idx,
-            Patch::Replace(_tag, node_idx, _) => *node_idx,
-            Patch::AddAttributes(_tag, node_idx, _) => *node_idx,
-            Patch::RemoveAttributes(_tag, node_idx, _) => *node_idx,
-            Patch::ChangeText(ct) => ct.node_idx,
-        }
-    }
-
-    /// return the tag of this patch
-    pub fn tag(&self) -> Option<&TAG> {
-        match self {
-            Patch::InsertChildren(tag, _node_idx, _, _) => Some(tag),
-            Patch::AppendChildren(tag, _node_idx, _) => Some(tag),
-            Patch::RemoveChildren(tag, _node_idx, _) => Some(tag),
-            Patch::Replace(tag, _node_idx, _) => Some(tag),
-            Patch::AddAttributes(tag, _node_idx, _) => Some(tag),
-            Patch::RemoveAttributes(tag, _node_idx, _) => Some(tag),
-            Patch::ChangeText(_) => None,
-        }
-    }
-
-    /// prioritize patches,
-    /// patches that doesn't change the NodeIdx in the actual DOM tree will be executed first.
-    pub fn priority(&self) -> usize {
-        match self {
-            Patch::AddAttributes(..) => 1,
-            Patch::RemoveAttributes(..) => 2,
-            Patch::ChangeText(..) => 3,
-            Patch::Replace(..) => 4,
-            Patch::AppendChildren(..) => 5,
-            Patch::InsertChildren(..) => 6,
-            Patch::RemoveChildren(..) => 7,
-        }
-    }
-}
-
-impl<'a, NS, TAG, ATT, VAL, EVENT, MSG> From<ChangeText<'a>>
-    for Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>
-{
-    fn from(ct: ChangeText<'a>) -> Self {
-        Patch::ChangeText(ct)
-    }
-}
 
 /// calculate the difference of 2 nodes
 /// the supplied key will be taken into account
@@ -257,11 +111,14 @@ where
 
     // Handle replacing of a node
     if replace {
-        patches.push(Patch::Replace(
-            old.tag().expect("must have a tag"),
-            *cur_node_idx,
-            &new,
-        ));
+        patches.push(
+            ReplaceNode::new(
+                old.tag().expect("must have a tag"),
+                *cur_node_idx,
+                &new,
+            )
+            .into(),
+        );
         increment_node_idx_to_descendant_count(old, cur_node_idx);
         return patches;
     }
@@ -379,11 +236,11 @@ where
                                 );
                                 */
                                 // also check if the old_idx is not yet in matched
-                                if matching_keys.iter().find(|(old,new)| *old == old_idx).is_some(){
+                                if matching_keys.iter().find(|(old,_new)| *old == old_idx).is_none(){
+                                    Some(old_idx)
+                                }else{
                                     println!("old: {} has already been matched.. skipping..",old_idx);
                                     None
-                                }else{
-                                    Some(old_idx)
                                 }
 
                             } else {
@@ -461,12 +318,15 @@ where
                 }
             }
             if !insert_children_patches.is_empty() {
-                patches.push(Patch::InsertChildren(
-                    &old_element.tag,
-                    this_cur_node_idx,
-                    old_idx,
-                    insert_children_patches,
-                ));
+                patches.push(
+                    InsertChildren::new(
+                        &old_element.tag,
+                        this_cur_node_idx,
+                        old_idx,
+                        insert_children_patches,
+                    )
+                    .into(),
+                );
             }
         }
     }
@@ -475,11 +335,14 @@ where
         // ISSUE: patch is reporting ChangeText and RemoveChildren
         // with the same element
         //
-        patches.push(Patch::RemoveChildren(
-            &old_element.tag,
-            this_cur_node_idx,
-            unmatched_old_keys,
-        ));
+        patches.push(
+            RemoveChildren::new(
+                &old_element.tag,
+                this_cur_node_idx,
+                unmatched_old_keys,
+            )
+            .into(),
+        );
     }
 
     // APPEND the rest of the new child element that wasn't inserted and wasnt matched
@@ -487,11 +350,14 @@ where
         if !matching_keys.iter().any(|(_old, new)| *new == new_idx)
             && !inserted_new_idx.contains(&new_idx)
         {
-            patches.push(Patch::AppendChildren(
-                &old_element.tag,
-                this_cur_node_idx,
-                vec![new_child],
-            ));
+            patches.push(
+                AppendChildren::new(
+                    &old_element.tag,
+                    this_cur_node_idx,
+                    vec![new_child],
+                )
+                .into(),
+            );
             inserted_new_idx.push(new_idx);
         }
     }
@@ -543,11 +409,10 @@ where
         let append_patch: Vec<&'a Node<NS, TAG, ATT, VAL, EVENT, MSG>> =
             new_element.children[old_child_count..].iter().collect();
 
-        patches.push(Patch::AppendChildren(
-            &old_element.tag,
-            *cur_node_idx,
-            append_patch,
-        ))
+        patches.push(
+            AppendChildren::new(&old_element.tag, *cur_node_idx, append_patch)
+                .into(),
+        )
     }
 
     let min_count = cmp::min(old_child_count, new_child_count);
@@ -565,11 +430,14 @@ where
     }
 
     if new_child_count < old_child_count {
-        patches.push(Patch::RemoveChildren(
-            &old_element.tag,
-            this_cur_node_idx,
-            (new_child_count..old_child_count).collect::<Vec<usize>>(),
-        ));
+        patches.push(
+            RemoveChildren::new(
+                &old_element.tag,
+                this_cur_node_idx,
+                (new_child_count..old_child_count).collect::<Vec<usize>>(),
+            )
+            .into(),
+        );
 
         for old_child in old_element.get_children().iter().skip(new_child_count)
         {
@@ -650,71 +518,20 @@ where
     }
 
     if !add_attributes.is_empty() {
-        patches.push(Patch::AddAttributes(
-            &old_element.tag,
-            *cur_node_idx,
-            add_attributes,
-        ));
+        patches.push(
+            AddAttributes::new(&old_element.tag, *cur_node_idx, add_attributes)
+                .into(),
+        );
     }
     if !remove_attributes.is_empty() {
-        patches.push(Patch::RemoveAttributes(
-            &old_element.tag,
-            *cur_node_idx,
-            remove_attributes,
-        ));
+        patches.push(
+            RemoveAttributes::new(
+                &old_element.tag,
+                *cur_node_idx,
+                remove_attributes,
+            )
+            .into(),
+        );
     }
     patches
-}
-
-impl<'a, NS, TAG, ATT, VAL, EVENT, MSG> fmt::Debug
-    for Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>
-where
-    NS: fmt::Debug,
-    TAG: fmt::Debug,
-    ATT: fmt::Debug,
-    VAL: fmt::Debug,
-{
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Patch::InsertChildren(tag, node_idx, child_index, nodes) => f
-                .debug_tuple("InsertChildren")
-                .field(tag)
-                .field(node_idx)
-                .field(child_index)
-                .field(nodes)
-                .finish(),
-            Patch::AppendChildren(tag, node_idx, nodes) => f
-                .debug_tuple("AppendChildren")
-                .field(tag)
-                .field(node_idx)
-                .field(nodes)
-                .finish(),
-            Patch::RemoveChildren(tag, node_idx, child_indices) => f
-                .debug_tuple("RemoveChildren")
-                .field(tag)
-                .field(node_idx)
-                .field(child_indices)
-                .finish(),
-            Patch::Replace(tag, node_idx, node) => f
-                .debug_tuple("Replace")
-                .field(tag)
-                .field(node_idx)
-                .field(node)
-                .finish(),
-            Patch::AddAttributes(tag, node_idx, attrs) => f
-                .debug_tuple("AddAttributes")
-                .field(tag)
-                .field(node_idx)
-                .field(attrs)
-                .finish(),
-            Patch::RemoveAttributes(tag, node_idx, attrs) => f
-                .debug_tuple("RemoveAttributes")
-                .field(tag)
-                .field(node_idx)
-                .field(attrs)
-                .finish(),
-
-            Patch::ChangeText(ct) => ct.fmt(f),
-        }
-    }
 }

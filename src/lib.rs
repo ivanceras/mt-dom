@@ -19,8 +19,6 @@
 //! for native UI elements.
 //!
 pub use diff::diff_with_key;
-pub use diff::NodeIdx;
-pub use diff::Patch;
 pub use node::attribute::{
     attr, attr_ns, merge_attributes_of_same_name, on, AttValue, Callback,
 };
@@ -28,6 +26,9 @@ pub use node::Attribute;
 pub use node::Element;
 pub use node::Node;
 pub use node::{element, element_ns, text};
+pub use patch::NodeIdx;
+pub use patch::Patch;
 
 pub mod diff;
 mod node;
+pub mod patch;
