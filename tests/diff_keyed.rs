@@ -44,6 +44,27 @@ fn key_1_removed_at_start() {
 }
 
 #[test]
+fn non_unique_keys_matched_at_old() {
+    let old: MyNode = element(
+        "main",
+        vec![attr("class", "container")],
+        vec![
+            element("div", vec![attr("key", "2")], vec![]),
+            element("div", vec![attr("key", "2")], vec![]),
+        ],
+    );
+
+    let new: MyNode = element(
+        "main",
+        vec![attr("class", "container")],
+        vec![element("div", vec![attr("key", "2")], vec![])],
+    );
+
+    let diff = diff_with_key(&old, &new, &"key");
+    assert_eq!(diff, vec![Patch::RemoveChildren(&"main", 0, vec![1])]);
+}
+
+#[test]
 fn key_2_removed_at_the_end() {
     let old: MyNode = element(
         "main",
@@ -87,6 +108,69 @@ fn key_2_removed_at_the_middle() {
 
     let diff = diff_with_key(&old, &new, &"key");
     assert_eq!(diff, vec![Patch::RemoveChildren(&"main", 0, vec![1])]);
+}
+
+#[test]
+fn there_are_2_exact_same_keys_in_the_old() {
+    let old: MyNode = element(
+        "main",
+        vec![attr("class", "container")],
+        vec![
+            element("div", vec![attr("key", "1")], vec![text(0)]),
+            element("div", vec![attr("key", "1")], vec![text(1)]),
+            element("div", vec![attr("key", "3")], vec![text(2)]),
+        ],
+    );
+
+    let new: MyNode = element(
+        "main",
+        vec![attr("class", "container")],
+        vec![
+            element("div", vec![attr("key", "1")], vec![text(1)]),
+            element("div", vec![attr("key", "3")], vec![text(2)]),
+        ],
+    );
+
+    let diff = diff_with_key(&old, &new, &"key");
+    assert_eq!(
+        diff,
+        vec![
+            ChangeText::new(2, "0", "1").into(),
+            Patch::RemoveChildren(&"main", 0, vec![1])
+        ]
+    );
+}
+
+#[test]
+fn there_are_2_exact_same_keys_in_the_new() {
+    let old: MyNode = element(
+        "main",
+        vec![attr("class", "container")],
+        vec![
+            element("div", vec![attr("key", "1")], vec![text(0)]),
+            element("div", vec![attr("key", "3")], vec![text(2)]),
+        ],
+    );
+
+    let new: MyNode = element(
+        "main",
+        vec![attr("class", "container")],
+        vec![
+            element("div", vec![attr("key", "1")], vec![text(1)]),
+            element("div", vec![attr("key", "1")], vec![text(1)]),
+            element("div", vec![attr("key", "3")], vec![text(2)]),
+        ],
+    );
+
+    let diff = diff_with_key(&old, &new, &"key");
+    let for_insert = element("div", vec![attr("key", "1")], vec![text(1)]);
+    assert_eq!(
+        diff,
+        vec![
+            ChangeText::new(2, "0", "1").into(),
+            Patch::InsertChildren(&"main", 0, 1, vec![&for_insert]),
+        ]
+    );
 }
 
 #[test]

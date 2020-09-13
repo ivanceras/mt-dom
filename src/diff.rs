@@ -47,7 +47,8 @@ use std::mem;
 #[derive(PartialEq)]
 pub enum Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG> {
     /// Insert a vector of child nodes to the current node being patch.
-    /// The usize is the index of of the children of this node to insert next to
+    /// The usize is the index of of the children of the node to be
+    /// patch to insert to. The new children will be inserted before this usize
     InsertChildren(
         &'a TAG,
         NodeIdx,
@@ -153,6 +154,14 @@ impl<'a, NS, TAG, ATT, VAL, EVENT, MSG>
     }
 }
 
+impl<'a, NS, TAG, ATT, VAL, EVENT, MSG> From<ChangeText<'a>>
+    for Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>
+{
+    fn from(ct: ChangeText<'a>) -> Self {
+        Patch::ChangeText(ct)
+    }
+}
+
 /// calculate the difference of 2 nodes
 /// the supplied key will be taken into account
 /// that if the 2 keys differ, the element will be replaced without having to traverse the children
@@ -233,6 +242,7 @@ where
     ATT: PartialEq + fmt::Debug,
     VAL: PartialEq + fmt::Debug,
 {
+    //log::trace!("entering diff_recursive at cur_node_idx: {}", cur_node_idx);
     let mut patches = vec![];
     // Different enum variants, replace!
     let mut replace = mem::discriminant(old) != mem::discriminant(new);
@@ -339,6 +349,10 @@ where
     ATT: PartialEq + fmt::Debug,
     VAL: PartialEq + fmt::Debug,
 {
+    //log::trace!(
+    //    "entering diff_keyed_elements at cur_node_idx: {}",
+    //    cur_node_idx
+    //);
     //#[cfg(feature = "with-measure")]
     //log::trace!("entering diff_keyed_elements");
 
@@ -364,7 +378,14 @@ where
                                     old_child_key
                                 );
                                 */
-                                Some(old_idx)
+                                // also check if the old_idx is not yet in matched
+                                if matching_keys.iter().find(|(old,new)| *old == old_idx).is_some(){
+                                    println!("old: {} has already been matched.. skipping..",old_idx);
+                                    None
+                                }else{
+                                    Some(old_idx)
+                                }
+
                             } else {
                                 None
                             }
@@ -502,6 +523,10 @@ where
     ATT: PartialEq + fmt::Debug,
     VAL: PartialEq + fmt::Debug,
 {
+    //log::trace!(
+    //    "entering diff_non_keyed_elements at cur_node_idx: {}",
+    //    cur_node_idx
+    //);
     let this_cur_node_idx = *cur_node_idx;
 
     let mut patches = vec![];
