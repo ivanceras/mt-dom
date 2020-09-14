@@ -1,4 +1,4 @@
-
+//! patch module
 pub use add_attributes::AddAttributes;
 pub use append_children::AppendChildren;
 pub use change_text::ChangeText;
@@ -6,9 +6,7 @@ pub use insert_children::InsertChildren;
 pub use remove_attributes::RemoveAttributes;
 pub use remove_children::RemoveChildren;
 pub use replace_node::ReplaceNode;
-use std::{
-    fmt,
-};
+use std::fmt;
 
 mod add_attributes;
 mod append_children;

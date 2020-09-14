@@ -6,14 +6,18 @@ use std::fmt;
 /// ex: <div> becomes <span>
 #[derive(PartialEq)]
 pub struct ReplaceNode<'a, NS, TAG, ATT, VAL, EVENT, MSG> {
+    /// the tag of the node we are going to replace
     pub tag: &'a TAG,
+    /// the index of the node we are going to replace
     pub node_idx: NodeIdx,
+    /// the node that will replace the target node
     pub replacement: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
 }
 
 impl<'a, NS, TAG, ATT, VAL, EVENT, MSG>
     ReplaceNode<'a, NS, TAG, ATT, VAL, EVENT, MSG>
 {
+    /// create a new ReplaceNode patch
     pub fn new(
         tag: &'a TAG,
         node_idx: NodeIdx,

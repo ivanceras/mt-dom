@@ -1,14 +1,17 @@
 use super::NodeIdx;
-use crate::{
-    Attribute,
-};
+use crate::Attribute;
 use std::fmt;
 
 /// Remove attributes that the old node had that the new node doesn't
 #[derive(PartialEq)]
 pub struct RemoveAttributes<'a, NS, TAG, ATT, VAL, EVENT, MSG> {
+    /// the tag of the node to be remove
+    /// this is only used for verifying that we are patching the correct node
     pub tag: &'a TAG,
+    /// index of the node we are going to patch
+    /// relative to the application root node
     pub node_idx: NodeIdx,
+    /// attributes that are to be removed from this target node
     pub attrs: Vec<&'a Attribute<NS, ATT, VAL, EVENT, MSG>>,
 }
 

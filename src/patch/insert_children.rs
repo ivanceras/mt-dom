@@ -7,10 +7,13 @@ use std::fmt;
 /// patch to insert to. The new children will be inserted before this usize
 #[derive(PartialEq)]
 pub struct InsertChildren<'a, NS, TAG, ATT, VAL, EVENT, MSG> {
+    /// the tag of the target node we are going to insert children into
     pub tag: &'a TAG,
+    /// index of the target node we are patching
     pub node_idx: NodeIdx,
     /// which child index to insert to
     pub target_index: usize,
+    /// the nodes that are to be inserted into the target node
     pub children: Vec<&'a Node<NS, TAG, ATT, VAL, EVENT, MSG>>,
 }
 impl<'a, NS, TAG, ATT, VAL, EVENT, MSG>

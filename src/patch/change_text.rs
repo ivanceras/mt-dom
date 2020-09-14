@@ -1,7 +1,10 @@
 use super::NodeIdx;
 
+/// The patch is changing the text content of a text node
 #[derive(Debug, PartialEq)]
 pub struct ChangeText<'a> {
+    /// node index of the text node to be patch
+    /// relative to the root node of the application
     pub node_idx: NodeIdx,
     // the old text is not really needed for applying the patch.
     // but it is useful for debugging purposed, that we are changing the intended target text by
