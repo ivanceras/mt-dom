@@ -18,7 +18,7 @@ use crate::{
 };
 use std::{
     cmp,
-    collections::HashMap,
+    collections::BTreeMap,
     fmt,
     hash::Hash,
     iter::FromIterator,
@@ -218,10 +218,10 @@ where
     let mut patches = vec![];
     // create a hashmap for both the old and new element
     // we can not use VAL as the key, since it is not Hash
-    let old_keyed_elements: HashMap<
+    let old_keyed_elements: BTreeMap<
         usize,
         (Vec<&VAL>, &Node<NS, TAG, ATT, VAL, EVENT, MSG>),
-    > = HashMap::from_iter(
+    > = BTreeMap::from_iter(
         old_element.get_children().iter().enumerate().filter_map(
             |(old_idx, old_child)| {
                 if let Some(old_key) = old_child.get_attribute_value(key) {
@@ -233,10 +233,10 @@ where
         ),
     );
 
-    let new_keyed_elements: HashMap<
+    let new_keyed_elements: BTreeMap<
         usize,
         (Vec<&VAL>, &Node<NS, TAG, ATT, VAL, EVENT, MSG>),
-    > = HashMap::from_iter(
+    > = BTreeMap::from_iter(
         new_element.get_children().iter().enumerate().filter_map(
             |(new_idx, new_child)| {
                 if let Some(new_key) = new_child.get_attribute_value(key) {
@@ -250,13 +250,13 @@ where
 
     // compiles that matched old and new with
     // with their (old_idx, new_idx) as key and the value is (old_element, new_element)
-    let mut matched_old_new_keyed: HashMap<
+    let mut matched_old_new_keyed: BTreeMap<
         (usize, usize),
         (
             &Node<NS, TAG, ATT, VAL, EVENT, MSG>,
             &Node<NS, TAG, ATT, VAL, EVENT, MSG>,
         ),
-    > = HashMap::new();
+    > = BTreeMap::new();
 
     let mut matched_old_node_idx = vec![];
     for (new_idx, (new_key, new_element)) in new_keyed_elements.iter() {
@@ -277,9 +277,9 @@ where
             .map(|((old_idx, new_idx), _)| (old_idx, new_idx))
             .unzip();
 
-    matched_old_node_idx.sort();
-    matched_old_idx.sort();
-    matched_new_idx.sort();
+    //matched_old_node_idx.sort();
+    //matched_old_idx.sort();
+    //matched_new_idx.sort();
     assert_eq!(matched_old_node_idx, matched_old_idx);
 
     // process all children regardless if keyed or not
@@ -298,10 +298,10 @@ where
     let old_element_max_index = old_element.children.len() - 1;
 
     // group consecutive children to be inserted in one InsertChildren patch
-    let mut grouped_insert_children: HashMap<
+    let mut grouped_insert_children: BTreeMap<
         usize,
         Vec<&'a Node<NS, TAG, ATT, VAL, EVENT, MSG>>,
-    > = HashMap::new();
+    > = BTreeMap::new();
 
     unmatched_new_child
         .iter()
@@ -423,7 +423,7 @@ where
 /// find the element and its node_idx which has this key
 /// and its node_idx not in `not_in`
 fn find_node_with_key<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
-    hay_stack: &HashMap<
+    hay_stack: &BTreeMap<
         usize,
         (Vec<&'a VAL>, &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>),
     >,
@@ -436,7 +436,7 @@ where
     ATT: PartialEq + fmt::Debug,
     VAL: PartialEq + fmt::Debug,
 {
-    hay_stack.iter().find_map(|(node_idx, (key, node))| {
+    hay_stack.iter().rev().find_map(|(node_idx, (key, node))| {
         if key == find_key && !not_in.contains(node_idx) {
             Some((*node_idx, *node))
         } else {
@@ -446,7 +446,7 @@ where
 }
 
 fn find_matched_new_child<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
-    matched_old_new_keyed: &HashMap<
+    matched_old_new_keyed: &BTreeMap<
         (usize, usize),
         (
             &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
