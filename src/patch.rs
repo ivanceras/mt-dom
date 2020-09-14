@@ -1,9 +1,4 @@
-use crate::{
-    node::attribute::group_attributes_per_name,
-    Attribute,
-    Element,
-    Node,
-};
+
 pub use add_attributes::AddAttributes;
 pub use append_children::AppendChildren;
 pub use change_text::ChangeText;
@@ -12,7 +7,6 @@ pub use remove_attributes::RemoveAttributes;
 pub use remove_children::RemoveChildren;
 pub use replace_node::ReplaceNode;
 use std::{
-    cmp,
     fmt,
 };
 

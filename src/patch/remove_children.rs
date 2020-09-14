@@ -1,6 +1,6 @@
 use super::NodeIdx;
-use crate::Node;
-use std::fmt;
+
+
 
 /// remove the children with the indices of this node.
 /// The usize if the index of the children of this node to remove from

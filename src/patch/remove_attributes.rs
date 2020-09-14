@@ -1,7 +1,6 @@
 use super::NodeIdx;
 use crate::{
     Attribute,
-    Node,
 };
 use std::fmt;
 
