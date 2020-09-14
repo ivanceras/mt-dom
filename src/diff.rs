@@ -18,7 +18,10 @@ use crate::{
 };
 use std::{
     cmp,
+    collections::HashMap,
     fmt,
+    hash::Hash,
+    iter::FromIterator,
     mem,
 };
 
@@ -212,163 +215,255 @@ where
     ATT: PartialEq + fmt::Debug,
     VAL: PartialEq + fmt::Debug,
 {
-    //log::trace!(
-    //    "entering diff_keyed_elements at cur_node_idx: {}",
-    //    cur_node_idx
-    //);
-    //#[cfg(feature = "with-measure")]
-    //log::trace!("entering diff_keyed_elements");
-
     let mut patches = vec![];
-
-    let this_cur_node_idx = *cur_node_idx;
-
-    // keeps track of the matching keys. This stores only the node_index
-    let mut matching_keys: Vec<(usize, usize)> = vec![];
-    for (new_idx, new_child) in new_element.get_children().iter().enumerate() {
-        if let Some(new_child_key) = new_child.get_attribute_value(key) {
-            let found_match =
-                old_element.get_children().iter().enumerate().find_map(
-                    |(old_idx, old_child)| {
-                        if let Some(old_child_key) =
-                            old_child.get_attribute_value(key)
-                        {
-                            if old_child_key == new_child_key {
-                                /*
-                                #[cfg(feature = "with-measure")]
-                                log::trace!(
-                                    "found matched key: {:?}",
-                                    old_child_key
-                                );
-                                */
-                                // also check if the old_idx is not yet in matched
-                                if matching_keys.iter().find(|(old,_new)| *old == old_idx).is_none(){
-                                    Some(old_idx)
-                                }else{
-                                    println!("old: {} has already been matched.. skipping..",old_idx);
-                                    None
-                                }
-
-                            } else {
-                                None
-                            }
-                        } else {
-                            None
-                        }
-                    },
-                );
-            if let Some(old_idx) = found_match {
-                matching_keys.push((old_idx, new_idx));
-            }
-        }
-    }
-
-    // keeps track of unmatched old keys
-    let mut unmatched_old_keys = vec![];
-
-    for (old_idx, old_child) in old_element.get_children().iter().enumerate() {
-        *cur_node_idx += 1;
-
-        // get a patch of the matching elements by diffing them
-        if let Some(matched_new_idx) =
-            matching_keys.iter().find_map(|(old, new)| {
-                if *old == old_idx {
-                    Some(new)
+    // create a hashmap for both the old and new element
+    // we can not use VAL as the key, since it is not Hash
+    let old_keyed_elements: HashMap<
+        usize,
+        (Vec<&VAL>, &Node<NS, TAG, ATT, VAL, EVENT, MSG>),
+    > = HashMap::from_iter(
+        old_element.get_children().iter().enumerate().filter_map(
+            |(old_idx, old_child)| {
+                if let Some(old_key) = old_child.get_attribute_value(key) {
+                    Some((old_idx, (old_key, old_child)))
                 } else {
                     None
                 }
-            })
-        {
-            let matched_new_child = new_element
-                .get_children()
-                .get(*matched_new_idx)
-                .expect("the child must exist");
+            },
+        ),
+    );
 
-            let matched_element_patches =
-                diff_recursive(old_child, matched_new_child, cur_node_idx, key);
+    let new_keyed_elements: HashMap<
+        usize,
+        (Vec<&VAL>, &Node<NS, TAG, ATT, VAL, EVENT, MSG>),
+    > = HashMap::from_iter(
+        new_element.get_children().iter().enumerate().filter_map(
+            |(new_idx, new_child)| {
+                if let Some(new_key) = new_child.get_attribute_value(key) {
+                    Some((new_idx, (new_key, new_child)))
+                } else {
+                    None
+                }
+            },
+        ),
+    );
 
-            patches.extend(matched_element_patches);
+    // compiles that matched old and new with
+    // with their (old_idx, new_idx) as key and the value is (old_element, new_element)
+    let mut matched_old_new_keyed: HashMap<
+        (usize, usize),
+        (
+            &Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+            &Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+        ),
+    > = HashMap::new();
+
+    let mut matched_old_node_idx = vec![];
+    for (new_idx, (new_key, new_element)) in new_keyed_elements.iter() {
+        if let Some((old_idx, old_element)) = find_node_with_key(
+            &old_keyed_elements,
+            new_key,
+            &matched_old_node_idx,
+        ) {
+            matched_old_node_idx.push(old_idx);
+            matched_old_new_keyed
+                .insert((old_idx, *new_idx), (old_element, new_element));
+        }
+    }
+
+    let (mut matched_old_idx, mut matched_new_idx): (Vec<usize>, Vec<usize>) =
+        matched_old_new_keyed
+            .iter()
+            .map(|((old_idx, new_idx), _)| (old_idx, new_idx))
+            .unzip();
+
+    matched_old_node_idx.sort();
+    matched_old_idx.sort();
+    matched_new_idx.sort();
+    assert_eq!(matched_old_node_idx, matched_old_idx);
+
+    // process all children regardless if keyed or not
+    // for child element that are not matched, insert them
+    // but insert them where?
+    let unmatched_new_child: Vec<(
+        usize,
+        &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+    )> = new_element
+        .get_children()
+        .iter()
+        .enumerate()
+        .filter(|(new_idx, new_child)| !matched_new_idx.contains(new_idx))
+        .collect();
+
+    let old_element_max_index = old_element.children.len() - 1;
+
+    // group consecutive children to be inserted in one InsertChildren patch
+    let mut grouped_insert_children: HashMap<
+        usize,
+        Vec<&'a Node<NS, TAG, ATT, VAL, EVENT, MSG>>,
+    > = HashMap::new();
+
+    unmatched_new_child
+        .iter()
+        .filter(|(new_idx, _)| *new_idx <= old_element_max_index)
+        .for_each(|(new_idx, new_child)| {
+            if *new_idx > 0 {
+                if let Some(existing_children) =
+                    grouped_insert_children.get_mut(&(new_idx - 1))
+                {
+                    existing_children.push(new_child);
+                } else {
+                    grouped_insert_children.insert(*new_idx, vec![new_child]);
+                }
+            } else {
+                grouped_insert_children.insert(*new_idx, vec![new_child]);
+            }
+        });
+
+    dbg!(&unmatched_new_child);
+    let insert_children_patches = grouped_insert_children
+        .into_iter()
+        .map(|(new_idx, grouped_new_children)| {
+            InsertChildren::new(
+                &old_element.tag,
+                *cur_node_idx,
+                new_idx,
+                grouped_new_children,
+            )
+            .into()
+        })
+        .collect::<Vec<_>>();
+
+    let append_children_patches = unmatched_new_child
+        .iter()
+        .filter(|(new_idx, _)| *new_idx > old_element_max_index)
+        .map(|(new_idx, new_child)| {
+            AppendChildren::new(
+                &old_element.tag,
+                *cur_node_idx,
+                vec![new_child],
+            )
+            .into()
+        })
+        .collect::<Vec<_>>();
+
+    let unmatched_old_child_idx: Vec<usize> = old_element
+        .get_children()
+        .iter()
+        .enumerate()
+        .filter_map(|(old_idx, old_child)| {
+            if !matched_old_idx.contains(&old_idx) {
+                Some(old_idx)
+            } else {
+                None
+            }
+        })
+        .collect();
+
+    dbg!(&unmatched_old_child_idx);
+
+    let remove_children_patches = if !unmatched_old_child_idx.is_empty() {
+        vec![RemoveChildren::new(
+            &old_element.tag,
+            *cur_node_idx,
+            unmatched_old_child_idx,
+        )
+        .into()]
+    } else {
+        vec![]
+    };
+
+    // Process this last, so as not to increment the cur_node_idx for InsertChildren and
+    // RemoveChilren patches
+    //
+    // get a patch for the matched elements
+    //
+    /*
+    let matched_element_patches = matched_old_new_keyed
+        .iter()
+        .flat_map(|((old_idx, new_idx), (old_child, new_child))| {
+            diff_recursive(old_child, new_child, cur_node_idx, key)
+        })
+        .collect::<Vec<_>>();
+    */
+    let mut matched_element_patches = vec![];
+    for (old_idx, old_child) in old_element.children.iter().enumerate() {
+        *cur_node_idx += 1;
+        if matched_old_idx.contains(&old_idx) {
+            let new_child =
+                find_matched_new_child(&matched_old_new_keyed, old_idx)
+                    .expect("must have an old_child matched");
+
+            {
+                matched_element_patches.extend(diff_recursive(
+                    old_child,
+                    new_child,
+                    cur_node_idx,
+                    key,
+                ));
+            }
         } else {
-            //TODO: the unmatched children will have to be diff recursively as well
-            unmatched_old_keys.push(old_idx);
             increment_node_idx_to_descendant_count(old_child, cur_node_idx);
         }
     }
-
-    // keep track of what's already included in the InsertChildren patch
-    let mut inserted_new_idx = vec![];
-
-    for (old_idx, _old_child) in old_element.get_children().iter().enumerate() {
-        // if this old child element is matched, find the new child counter part
-        if let Some(matched_new_idx) =
-            matching_keys.iter().find_map(|(old, new)| {
-                if *old == old_idx {
-                    Some(new)
-                } else {
-                    None
-                }
-            })
-        {
-            let mut insert_children_patches = vec![];
-            // insert the new_child that is not on the matching keys
-            // and has a index lesser than the matched_new_idx
-            for (new_idx, new_child) in
-                new_element.get_children().iter().enumerate()
-            {
-                if !matching_keys.iter().any(|(_old, new)| *new == new_idx)
-                    && !inserted_new_idx.contains(&new_idx)
-                    && new_idx < *matched_new_idx
-                {
-                    insert_children_patches.push(new_child);
-                    inserted_new_idx.push(new_idx);
-                }
-            }
-            if !insert_children_patches.is_empty() {
-                patches.push(
-                    InsertChildren::new(
-                        &old_element.tag,
-                        this_cur_node_idx,
-                        old_idx,
-                        insert_children_patches,
-                    )
-                    .into(),
-                );
-            }
-        }
-    }
-
-    if !unmatched_old_keys.is_empty() {
-        // ISSUE: patch is reporting ChangeText and RemoveChildren
-        // with the same element
-        //
-        patches.push(
-            RemoveChildren::new(
-                &old_element.tag,
-                this_cur_node_idx,
-                unmatched_old_keys,
-            )
-            .into(),
-        );
-    }
-
-    // APPEND the rest of the new child element that wasn't inserted and wasnt matched
-    for (new_idx, new_child) in new_element.get_children().iter().enumerate() {
-        if !matching_keys.iter().any(|(_old, new)| *new == new_idx)
-            && !inserted_new_idx.contains(&new_idx)
-        {
-            patches.push(
-                AppendChildren::new(
-                    &old_element.tag,
-                    this_cur_node_idx,
-                    vec![new_child],
-                )
-                .into(),
-            );
-            inserted_new_idx.push(new_idx);
-        }
-    }
+    // patch order matters here
+    // apply changes to the matched element first,
+    // since it creates new changes to the child index nodes
+    patches.extend(matched_element_patches);
+    // then the inserted new children
+    patches.extend(insert_children_patches);
+    // then the appended children
+    patches.extend(append_children_patches);
+    // then remove the unmatched old children
+    patches.extend(remove_children_patches);
 
     patches
+}
+
+/// find the element and its node_idx which has this key
+/// and its node_idx not in `not_in`
+fn find_node_with_key<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
+    hay_stack: &HashMap<
+        usize,
+        (Vec<&'a VAL>, &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>),
+    >,
+    find_key: &Vec<&'a VAL>,
+    not_in: &[usize],
+) -> Option<(usize, &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>)>
+where
+    NS: PartialEq + fmt::Debug,
+    TAG: PartialEq + fmt::Debug,
+    ATT: PartialEq + fmt::Debug,
+    VAL: PartialEq + fmt::Debug,
+{
+    hay_stack.iter().find_map(|(node_idx, (key, node))| {
+        if key == find_key && !not_in.contains(node_idx) {
+            Some((*node_idx, *node))
+        } else {
+            None
+        }
+    })
+}
+
+fn find_matched_new_child<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
+    matched_old_new_keyed: &HashMap<
+        (usize, usize),
+        (
+            &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+            &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+        ),
+    >,
+    find_old_idx: usize,
+) -> Option<&'a Node<NS, TAG, ATT, VAL, EVENT, MSG>> {
+    matched_old_new_keyed
+        .iter()
+        .find_map(|((old_idx, _), (_, new_child))| {
+            if *old_idx == find_old_idx {
+                Some(*new_child)
+            } else {
+                None
+            }
+        })
 }
 
 /// In diffing non_keyed elements,

@@ -1,13 +1,13 @@
-#![deny(
-    warnings,
-    missing_docs,
-    missing_debug_implementations,
-    missing_copy_implementations,
-    trivial_casts,
-    trivial_numeric_casts,
-    unstable_features,
-    unused_import_braces
-)]
+//#![deny(
+//    warnings,
+//    missing_docs,
+//    missing_debug_implementations,
+//    missing_copy_implementations,
+//    trivial_casts,
+//    trivial_numeric_casts,
+//    unstable_features,
+//    unused_import_braces
+//)]
 
 //! mt-dom is a generic virtual dom implementation which doesn't specify the types of the data that
 //! is being processed. It's up to the library user to specify those types
