@@ -175,6 +175,61 @@ where
     patches
 }
 
+/// find the element and its node_idx which has this key
+/// and its node_idx not in `not_in`
+fn find_node_with_key<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
+    hay_stack: &BTreeMap<
+        usize,
+        (Vec<&'a VAL>, &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>),
+    >,
+    find_key: &Vec<&'a VAL>,
+    last_matched_node_idx: Option<usize>,
+) -> Option<(usize, &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>)>
+where
+    NS: PartialEq + fmt::Debug,
+    TAG: PartialEq + fmt::Debug,
+    ATT: PartialEq + fmt::Debug,
+    VAL: PartialEq + fmt::Debug,
+{
+    hay_stack.iter().find_map(|(node_idx, (key, node))| {
+        // also check if it hasn't been already matched
+        // and also check if node_idx is greater than last_matched_node_idx
+        if key == find_key {
+            let last_matched_node_idx_val = last_matched_node_idx.unwrap_or(0);
+            if last_matched_node_idx.is_none()
+                || *node_idx > last_matched_node_idx_val
+            {
+                Some((*node_idx, *node))
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    })
+}
+
+fn find_matched_new_child<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
+    matched_old_new_keyed: &BTreeMap<
+        (usize, usize),
+        (
+            &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+            &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+        ),
+    >,
+    find_old_idx: usize,
+) -> Option<&'a Node<NS, TAG, ATT, VAL, EVENT, MSG>> {
+    matched_old_new_keyed
+        .iter()
+        .find_map(|((old_idx, _), (_, new_child))| {
+            if *old_idx == find_old_idx {
+                Some(*new_child)
+            } else {
+                None
+            }
+        })
+}
+
 /// Reconciliation of keyed elements
 ///
 /// # cases:
@@ -258,16 +313,23 @@ where
         ),
     > = BTreeMap::new();
 
-    let mut matched_old_node_idx = vec![];
+    let mut last_matched_old_idx = None;
+    let mut last_matched_new_idx = None;
     for (new_idx, (new_key, new_element)) in new_keyed_elements.iter() {
         if let Some((old_idx, old_element)) = find_node_with_key(
             &old_keyed_elements,
             new_key,
-            &matched_old_node_idx,
+            last_matched_old_idx,
         ) {
-            matched_old_node_idx.push(old_idx);
-            matched_old_new_keyed
-                .insert((old_idx, *new_idx), (old_element, new_element));
+            let last_matched_new_idx_val = last_matched_new_idx.unwrap_or(0);
+            if last_matched_new_idx.is_none()
+                || *new_idx > last_matched_new_idx_val
+            {
+                last_matched_old_idx = Some(old_idx);
+                last_matched_new_idx = Some(*new_idx);
+                matched_old_new_keyed
+                    .insert((old_idx, *new_idx), (old_element, new_element));
+            }
         }
     }
 
@@ -306,6 +368,15 @@ where
     unmatched_new_child
         .iter()
         .filter(|(new_idx, _)| *new_idx <= old_element_max_index)
+        /*
+        .filter(|(new_idx, _)| {
+            // unmatched new child allowed are only the ones that comes
+            // after the matched new_child elements
+            let last_matched_new_idx_val = last_matched_new_idx.unwrap_or(0);
+            last_matched_new_idx.is_none()
+                || *new_idx > last_matched_new_idx_val
+        })
+        */
         .for_each(|(new_idx, new_child)| {
             if *new_idx > 0 {
                 if let Some(existing_children) =
@@ -373,19 +444,6 @@ where
         vec![]
     };
 
-    // Process this last, so as not to increment the cur_node_idx for InsertChildren and
-    // RemoveChilren patches
-    //
-    // get a patch for the matched elements
-    //
-    /*
-    let matched_element_patches = matched_old_new_keyed
-        .iter()
-        .flat_map(|((old_idx, new_idx), (old_child, new_child))| {
-            diff_recursive(old_child, new_child, cur_node_idx, key)
-        })
-        .collect::<Vec<_>>();
-    */
     let mut matched_element_patches = vec![];
     for (old_idx, old_child) in old_element.children.iter().enumerate() {
         *cur_node_idx += 1;
@@ -418,53 +476,6 @@ where
     patches.extend(remove_children_patches);
 
     patches
-}
-
-/// find the element and its node_idx which has this key
-/// and its node_idx not in `not_in`
-fn find_node_with_key<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
-    hay_stack: &BTreeMap<
-        usize,
-        (Vec<&'a VAL>, &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>),
-    >,
-    find_key: &Vec<&'a VAL>,
-    not_in: &[usize],
-) -> Option<(usize, &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>)>
-where
-    NS: PartialEq + fmt::Debug,
-    TAG: PartialEq + fmt::Debug,
-    ATT: PartialEq + fmt::Debug,
-    VAL: PartialEq + fmt::Debug,
-{
-    //hay_stack.iter().find_map(|(node_idx, (key, node))| {
-    hay_stack.iter().rev().find_map(|(node_idx, (key, node))| {
-        if key == find_key && !not_in.contains(node_idx) {
-            Some((*node_idx, *node))
-        } else {
-            None
-        }
-    })
-}
-
-fn find_matched_new_child<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
-    matched_old_new_keyed: &BTreeMap<
-        (usize, usize),
-        (
-            &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
-            &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
-        ),
-    >,
-    find_old_idx: usize,
-) -> Option<&'a Node<NS, TAG, ATT, VAL, EVENT, MSG>> {
-    matched_old_new_keyed
-        .iter()
-        .find_map(|((old_idx, _), (_, new_child))| {
-            if *old_idx == find_old_idx {
-                Some(*new_child)
-            } else {
-                None
-            }
-        })
 }
 
 /// In diffing non_keyed elements,

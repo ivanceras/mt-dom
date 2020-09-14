@@ -64,8 +64,8 @@ fn non_unique_keys_matched_at_old() {
     );
 
     let diff = diff_with_key(&old, &new, &"key");
-    //assert_eq!(diff, vec![RemoveChildren::new(&"main", 0, vec![1]).into()]);
-    assert_eq!(diff, vec![RemoveChildren::new(&"main", 0, vec![0]).into()]);
+    assert_eq!(diff, vec![RemoveChildren::new(&"main", 0, vec![1]).into()]);
+    //assert_eq!(diff, vec![RemoveChildren::new(&"main", 0, vec![0]).into()]);
 }
 
 #[test]
@@ -139,7 +139,6 @@ fn there_are_2_exact_same_keys_in_the_old() {
 
     dbg!(&diff);
 
-    /*
     assert_eq!(
         diff,
         vec![
@@ -147,9 +146,8 @@ fn there_are_2_exact_same_keys_in_the_old() {
             RemoveChildren::new(&"main", 0, vec![1]).into()
         ]
     );
-    */
 
-    assert_eq!(diff, vec![RemoveChildren::new(&"main", 0, vec![0]).into()]);
+    //assert_eq!(diff, vec![RemoveChildren::new(&"main", 0, vec![0]).into()]);
 }
 
 #[test]
@@ -211,7 +209,6 @@ fn there_are_2_exact_same_keys_in_both_old_and_new() {
     dbg!(&diff);
 
     let for_insert2 = element("div", vec![attr("key", "1")], vec![text(2)]);
-    /*
     assert_eq!(
         diff,
         vec![
@@ -221,8 +218,8 @@ fn there_are_2_exact_same_keys_in_both_old_and_new() {
             RemoveChildren::new(&"main", 0, vec![2]).into(),
         ]
     );
-    */
 
+    /*
     assert_eq!(
         diff,
         vec![
@@ -232,6 +229,7 @@ fn there_are_2_exact_same_keys_in_both_old_and_new() {
             RemoveChildren::new(&"main", 0, vec![1]).into(),
         ]
     );
+    */
 }
 
 #[test]
