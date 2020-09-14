@@ -280,7 +280,7 @@ where
     //matched_old_node_idx.sort();
     //matched_old_idx.sort();
     //matched_new_idx.sort();
-    assert_eq!(matched_old_node_idx, matched_old_idx);
+    //assert_eq!(matched_old_node_idx, matched_old_idx);
 
     // process all children regardless if keyed or not
     // for child element that are not matched, insert them
@@ -436,6 +436,7 @@ where
     ATT: PartialEq + fmt::Debug,
     VAL: PartialEq + fmt::Debug,
 {
+    //hay_stack.iter().find_map(|(node_idx, (key, node))| {
     hay_stack.iter().rev().find_map(|(node_idx, (key, node))| {
         if key == find_key && !not_in.contains(node_idx) {
             Some((*node_idx, *node))

@@ -1,4 +1,4 @@
 #!/bin/bash
 set -v
 
-RUST_LOG=trace cargo +stable test --features "with-measure"
+RUST_LOG=trace cargo test --features "with-measure"
