@@ -97,8 +97,14 @@ fn mixed_key_and_no_key_with_misordered_2_matched() {
     assert_eq!(
         diff,
         vec![
-            ChangeText::new(4, "2", "1").into(),
-            ChangeText::new(6, "2", "3").into()
+            InsertChildren::new(
+                &"main",
+                0,
+                0,
+                vec![&element("div", vec![], vec![text(1)])],
+            )
+            .into(),
+            RemoveChildren::new(&"main", 0, vec![1]).into(),
         ]
     );
 }
