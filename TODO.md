@@ -5,3 +5,4 @@
 - [ ] Use associated type rather than just all Generics to simplify the code.
 - [X] Modularize Patch
     - [X] Create a struct of each of the variants
+- [ ] Add a `self_closing` flag to element to be able to properly render self closing elements such as `<input />`, `<br/>` etc.

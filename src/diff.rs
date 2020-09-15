@@ -275,32 +275,18 @@ fn get_unmatched_children_node_idx<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
 
 /// Reconciliation of keyed elements
 ///
-/// # cases:
-///  - A child node is removed at the start
-///     - The old key is not on the new node keys anymore
-///  - A new child node is inserted at the start of the new element
-///     - This node doesn't match to the old node keys
+/// algorithm:
 ///
-/// # not handled
-///  - elements that are reorder among their siblings. We only match forward for a straigh-forward algorithmn.
+/// Phase1
+///   - prioritize matching elements that has the same key.
+///   - match non-keyed elements according to their node_idx alignment
 ///
+/// Phase2
+///   - old child elements that are not matched will be removed
+///   - new child elements that are not matched will be inserted or appended
+///     - inserted if the child node_idx <= old elements children
+///     - appended if the child node_idx is > old elements children
 ///
-/// # Finding and matching the old keys
-///  - For each new node, iterate through the old element child nodes and
-///   match the new key to the old key.
-///   If a key is found in the old child nodes, that child_index is take into notice.
-///   child nodes that exist before this matching child index will be removed.
-///
-///  - If no key is matched from the old element children, the new children will be an
-///  InsertChild patch
-///
-/// # Warning:
-///  The order of patch will be executed as they appear,
-///  this will be tricky in the case where the prior patch is RemoveChildren
-///  and the next_patch will be AddAttributes, as the NodeIdx has already changed
-///  when the RemoveChildren patch was applied.
-///
-///  TODO: modularize and simplify this algorithm
 fn diff_keyed_elements<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG>(
     old_element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
     new_element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
