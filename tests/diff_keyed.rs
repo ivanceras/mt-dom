@@ -114,6 +114,33 @@ fn key_2_removed_at_the_middle() {
     assert_eq!(diff, vec![RemoveChildren::new(&"main", 0, vec![1]).into()]);
 }
 
+// should have no changes
+#[test]
+fn mixed_key_and_no_key_with_no_change() {
+    let old: MyNode = element(
+        "main",
+        vec![attr("class", "container")],
+        vec![
+            element("div", vec![], vec![text(1)]),
+            element("div", vec![attr("key", "2")], vec![text(2)]),
+            element("div", vec![], vec![text(3)]),
+        ],
+    );
+
+    let new: MyNode = element(
+        "main",
+        vec![attr("class", "container")],
+        vec![
+            element("div", vec![], vec![text(1)]),
+            element("div", vec![attr("key", "2")], vec![text(2)]),
+            element("div", vec![], vec![text(3)]),
+        ],
+    );
+
+    let diff = diff_with_key(&old, &new, &"key");
+    assert_eq!(diff, vec![]);
+}
+
 #[test]
 fn there_are_2_exact_same_keys_in_the_old() {
     let old: MyNode = element(
