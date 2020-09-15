@@ -288,7 +288,7 @@ pub fn element<NS, TAG, ATT, VAL, EVENT, MSG>(
     attrs: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>,
     children: Vec<Node<NS, TAG, ATT, VAL, EVENT, MSG>>,
 ) -> Node<NS, TAG, ATT, VAL, EVENT, MSG> {
-    element_ns(None, tag, attrs, children)
+    element_ns(None, tag, attrs, children, false)
 }
 
 /// create a virtual node with namespace, tag, attrs and children
@@ -298,8 +298,9 @@ pub fn element_ns<NS, TAG, ATT, VAL, EVENT, MSG>(
     tag: TAG,
     attrs: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>,
     children: Vec<Node<NS, TAG, ATT, VAL, EVENT, MSG>>,
+    self_closing: bool,
 ) -> Node<NS, TAG, ATT, VAL, EVENT, MSG> {
-    Node::Element(Element::new(namespace, tag, attrs, children))
+    Node::Element(Element::new(namespace, tag, attrs, children, self_closing))
 }
 
 /// Create a textnode element

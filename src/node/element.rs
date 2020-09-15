@@ -29,6 +29,8 @@ pub struct Element<NS, TAG, ATT, VAL, EVENT, MSG> {
     pub attrs: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>,
     /// children elements of this element
     pub children: Vec<Node<NS, TAG, ATT, VAL, EVENT, MSG>>,
+    /// is the element has a self closing tag
+    pub self_closing: bool,
 }
 
 impl<NS, TAG, ATT, VAL, EVENT, MSG> Element<NS, TAG, ATT, VAL, EVENT, MSG> {
@@ -38,12 +40,14 @@ impl<NS, TAG, ATT, VAL, EVENT, MSG> Element<NS, TAG, ATT, VAL, EVENT, MSG> {
         tag: TAG,
         attrs: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>,
         children: Vec<Node<NS, TAG, ATT, VAL, EVENT, MSG>>,
+        self_closing: bool,
     ) -> Self {
         Element {
             namespace,
             tag,
             attrs,
             children,
+            self_closing,
         }
     }
 
@@ -196,6 +200,7 @@ where
                 .into_iter()
                 .map(|child| child.map_callback(cb.clone()))
                 .collect(),
+            self_closing: self.self_closing,
         }
     }
 }
@@ -219,6 +224,7 @@ where
             .field("tag", &self.tag)
             .field("attrs", &self.attrs)
             .field("children", &self.children)
+            .field("self_closing", &self.self_closing)
             .finish()?;
 
         Ok(())
