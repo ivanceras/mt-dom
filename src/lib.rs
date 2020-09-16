@@ -23,6 +23,7 @@ pub use node::{
     attribute::{
         attr,
         attr_ns,
+        group_attributes_per_name,
         merge_attributes_of_same_name,
         on,
         AttValue,

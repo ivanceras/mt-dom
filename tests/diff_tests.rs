@@ -236,3 +236,22 @@ fn test_multiple_calls_to_style() {
         .into()]
     )
 }
+
+#[test]
+fn inner_html_func_calls() {
+    let old: MyNode = element("div", vec![], vec![]);
+
+    let new: MyNode =
+        element("div", vec![attr("inner_html", "<h1>Hello</h2>")], vec![]);
+
+    let diff = diff_with_key(&old, &new, &"key");
+    assert_eq!(
+        diff,
+        vec![AddAttributes::new(
+            &"div",
+            0,
+            vec![&attr("inner_html", "<h1>Hello</h2>")]
+        )
+        .into()]
+    )
+}

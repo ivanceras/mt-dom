@@ -273,9 +273,9 @@ fn diff_attributes<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG>(
     cur_node_idx: &'b mut usize,
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
 where
-    NS: PartialEq,
-    ATT: PartialEq,
-    VAL: PartialEq,
+    NS: PartialEq + fmt::Debug,
+    ATT: PartialEq + fmt::Debug,
+    VAL: PartialEq + fmt::Debug,
 {
     let mut patches = vec![];
     let mut add_attributes: Vec<&Attribute<NS, ATT, VAL, EVENT, MSG>> = vec![];

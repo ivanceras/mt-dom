@@ -319,11 +319,13 @@ pub fn merge_attributes_of_same_name<NS, ATT, VAL, EVENT, MSG>(
     attributes: &[&Attribute<NS, ATT, VAL, EVENT, MSG>],
 ) -> Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>
 where
-    ATT: PartialEq + Clone,
-    VAL: Clone,
+    NS: fmt::Debug,
+    ATT: PartialEq + Clone + fmt::Debug,
+    VAL: fmt::Debug + Clone,
 {
     let mut merged: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>> = vec![];
     for att in attributes {
+        log::trace!("merging attrs: {:?}", att);
         if let Some(existing) =
             merged.iter_mut().find(|m_att| m_att.name == att.name)
         {
@@ -344,11 +346,14 @@ pub fn group_attributes_per_name<'a, NS, ATT, VAL, EVENT, MSG>(
     attributes: &'a [Attribute<NS, ATT, VAL, EVENT, MSG>],
 ) -> Vec<(&'a ATT, Vec<&'a Attribute<NS, ATT, VAL, EVENT, MSG>>)>
 where
-    ATT: PartialEq,
+    NS: fmt::Debug,
+    ATT: PartialEq + fmt::Debug,
+    VAL: fmt::Debug,
 {
     let mut grouped: Vec<(&ATT, Vec<&Attribute<NS, ATT, VAL, EVENT, MSG>>)> =
         vec![];
     for attr in attributes {
+        log::trace!("grouped attr: {:?}", attr);
         if let Some(existing) = grouped
             .iter_mut()
             .find(|(g_att, _)| **g_att == attr.name)
