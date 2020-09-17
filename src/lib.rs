@@ -42,7 +42,7 @@ pub use patch::{
     Patch,
 };
 
-mod apply_patches;
+pub mod apply_patches;
 pub mod diff;
 mod node;
 pub mod patch;

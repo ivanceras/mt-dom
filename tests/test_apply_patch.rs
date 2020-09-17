@@ -169,3 +169,163 @@ fn insert_children() {
     apply_patches(&mut old_clone, &patches);
     assert_eq!(&old_clone, &new);
 }
+
+#[test]
+fn test_multiple_patch_non_keyed() {
+    let old: MyNode = element(
+        "main",
+        vec![attr("class", "test4")],
+        vec![
+            element("header", vec![], vec![text("Items:")]),
+            element(
+                "section",
+                vec![attr("class", "todo")],
+                vec![
+                    element("article", vec![], vec![text("item1")]),
+                    element("article", vec![], vec![text("item2")]),
+                    element("article", vec![], vec![text("item3")]),
+                ],
+            ),
+            element("footer", vec![], vec![text("3 items left")]),
+        ],
+    );
+
+    // we remove the key1, and change the text in item3
+    let update1: MyNode = element(
+        "main",
+        vec![attr("class", "test4")],
+        vec![
+            element("header", vec![], vec![text("Items:")]),
+            element(
+                "section",
+                vec![attr("class", "todo")],
+                vec![
+                    element("article", vec![], vec![text("item2")]),
+                    element(
+                        "article",
+                        vec![],
+                        vec![text("item3 with changes")],
+                    ),
+                ],
+            ),
+            element("footer", vec![], vec![text("2 items left")]),
+        ],
+    );
+
+    let mut patch = diff_with_key(&old, &update1, &"key");
+    patch.sort_by_key(|p| p.priority());
+    dbg!(&patch);
+
+    assert_eq!(
+        patch,
+        vec![
+            ChangeText::new(5, "item1", "item2").into(),
+            ChangeText::new(7, "item2", "item3 with changes").into(),
+            ChangeText::new(11, "3 items left", "2 items left").into(),
+            RemoveChildren::new(&"section", 3, vec![2]).into(),
+        ]
+    );
+
+    let mut old_clone = old.clone();
+    apply_patches(&mut old_clone, &patch);
+    assert_eq!(&old_clone, &update1);
+}
+
+#[test]
+fn test_find_node() {
+    let mut old: MyNode = element(
+        "main",
+        vec![attr("class", "test4")],
+        vec![
+            element("header", vec![], vec![text("Items:")]),
+            element(
+                "section",
+                vec![attr("class", "todo")],
+                vec![
+                    element("article", vec![], vec![text("item1")]),
+                    element("article", vec![], vec![text("item2")]),
+                    element("article", vec![], vec![text("item3")]),
+                ],
+            ),
+            element("footer", vec![], vec![text("3 items left")]),
+        ],
+    );
+    let found = mt_dom::apply_patches::find_node(&mut old, 11);
+    dbg!(&found);
+    assert_eq!(found, Some(&mut text("3 items left")));
+}
+
+#[test]
+fn test_multiple_patch_keyed() {
+    let old: MyNode = element(
+        "main",
+        vec![attr("class", "test4")],
+        vec![
+            element("header", vec![], vec![text("Items:")]),
+            element(
+                "section",
+                vec![attr("class", "todo")],
+                vec![
+                    element(
+                        "article",
+                        vec![attr("key", "1")],
+                        vec![text("item1")],
+                    ),
+                    element(
+                        "article",
+                        vec![attr("key", "2")],
+                        vec![text("item2")],
+                    ),
+                    element(
+                        "article",
+                        vec![attr("key", "3")],
+                        vec![text("item3")],
+                    ),
+                ],
+            ),
+            element("footer", vec![], vec![text("3 items left")]),
+        ],
+    );
+
+    // we remove the key1, and change the text in item3
+    let update1: MyNode = element(
+        "main",
+        vec![attr("class", "test4")],
+        vec![
+            element("header", vec![], vec![text("Items:")]),
+            element(
+                "section",
+                vec![attr("class", "todo")],
+                vec![
+                    element(
+                        "article",
+                        vec![attr("key", "2")],
+                        vec![text("item2")],
+                    ),
+                    element(
+                        "article",
+                        vec![attr("key", "3")],
+                        vec![text("item3 with changes")],
+                    ),
+                ],
+            ),
+            element("footer", vec![], vec![text("2 items left")]),
+        ],
+    );
+
+    let mut patch = diff_with_key(&old, &update1, &"key");
+    patch.sort_by_key(|p| p.priority());
+    dbg!(&patch);
+    assert_eq!(
+        patch,
+        vec![
+            ChangeText::new(9, "item3", "item3 with changes").into(),
+            ChangeText::new(11, "3 items left", "2 items left").into(),
+            RemoveChildren::new(&"section", 3, vec![0]).into(),
+        ]
+    );
+
+    let mut old_clone = old.clone();
+    apply_patches(&mut old_clone, &patch);
+    assert_eq!(&old_clone, &update1);
+}

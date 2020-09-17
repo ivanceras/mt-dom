@@ -9,6 +9,13 @@ use std::{
     iter::FromIterator,
 };
 
+/// had to find the node each time, since rust does not allow multiple mutable borrows
+/// ISSUE: once a destructive patch such as RemoveChildren, InsertChildren, ReplaceNode is applied
+/// the Nodeidx is not synch with the root_node anymore.
+///
+/// To minimize this issue, destructive patches is applied last.
+/// It doesn't elimiate the problem completely, and it will arise
+/// when there are multiple destructive patch.
 pub fn apply_patches<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
     root_node: &mut Node<NS, TAG, ATT, VAL, EVENT, MSG>,
     patches: &[Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>],
@@ -18,19 +25,10 @@ pub fn apply_patches<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
     ATT: Clone + fmt::Debug + PartialEq,
     VAL: Clone + fmt::Debug,
 {
-    let target_nodes_idx: HashMap<NodeIdx, Option<&TAG>> = HashMap::from_iter(
-        patches.iter().map(|patch| (patch.node_idx(), patch.tag())),
-    );
-
-    let mut target_nodes =
-        find_nodes_to_patch(root_node, &mut 0, &target_nodes_idx);
-
-    dbg!(&target_nodes);
     for patch in patches {
         match patch {
             Patch::AppendChildren(ac) => {
-                let target_node = target_nodes
-                    .get_mut(&ac.node_idx)
+                let target_node = find_node(root_node, ac.node_idx)
                     .expect("must have found the target node");
                 let children: Vec<Node<NS, TAG, ATT, VAL, EVENT, MSG>> =
                     ac.children.iter().map(|c| *c).map(|c| c.clone()).collect();
@@ -39,8 +37,7 @@ pub fn apply_patches<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
                 target_element.children.extend(children);
             }
             Patch::InsertChildren(ic) => {
-                let target_node = target_nodes
-                    .get_mut(&ic.node_idx)
+                let target_node = find_node(root_node, ic.node_idx)
                     .expect("must have found the target node");
                 let children: Vec<Node<NS, TAG, ATT, VAL, EVENT, MSG>> =
                     ic.children.iter().map(|c| *c).map(|c| c.clone()).collect();
@@ -53,8 +50,7 @@ pub fn apply_patches<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
                 }
             }
             Patch::RemoveChildren(rc) => {
-                let target_node = target_nodes
-                    .get_mut(&rc.node_idx)
+                let target_node = find_node(root_node, rc.node_idx)
                     .expect("must have a target node");
                 let target_element =
                     target_node.as_element_mut().expect("must be an element");
@@ -63,8 +59,7 @@ pub fn apply_patches<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
                 }
             }
             Patch::ReplaceNode(rn) => {
-                let target_node = target_nodes
-                    .get_mut(&rn.node_idx)
+                let target_node = find_node(root_node, rn.node_idx)
                     .expect("must have a target node");
                 let target_element =
                     target_node.as_element_mut().expect("expecting an element");
@@ -80,8 +75,7 @@ pub fn apply_patches<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
                 target_element.self_closing = re.self_closing;
             }
             Patch::AddAttributes(at) => {
-                let target_node = target_nodes
-                    .get_mut(&at.node_idx)
+                let target_node = find_node(root_node, at.node_idx)
                     .expect("must have a target node");
                 let target_element =
                     target_node.as_element_mut().expect("expecting an element");
@@ -91,8 +85,7 @@ pub fn apply_patches<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
                 )
             }
             Patch::RemoveAttributes(rt) => {
-                let target_node = target_nodes
-                    .get_mut(&rt.node_idx)
+                let target_node = find_node(root_node, rt.node_idx)
                     .expect("must have a target node");
                 let target_element =
                     target_node.as_element_mut().expect("expecting an element");
@@ -110,9 +103,10 @@ pub fn apply_patches<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
                 target_element.attrs = new_attrs;
             }
             Patch::ChangeText(ct) => {
-                let target_node = target_nodes
-                    .get_mut(&ct.node_idx)
-                    .expect("must have a target node");
+                dbg!(&ct);
+                let target_node =
+                    find_node(root_node, ct.node_idx).expect("must find node");
+                dbg!(&target_node);
                 if let Node::Text(old_txt) = target_node {
                     *old_txt = ct.new.to_string();
                 } else {
@@ -123,34 +117,93 @@ pub fn apply_patches<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
     }
 }
 
-fn find_nodes_to_patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
+pub fn find_node<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
     node: &'a mut Node<NS, TAG, ATT, VAL, EVENT, MSG>,
-    cur_node_idx: &mut usize,
-    target_nodes_idx: &HashMap<NodeIdx, Option<&TAG>>,
-) -> HashMap<NodeIdx, &'a mut Node<NS, TAG, ATT, VAL, EVENT, MSG>>
+    node_idx: NodeIdx,
+) -> Option<&'a mut Node<NS, TAG, ATT, VAL, EVENT, MSG>>
 where
     NS: fmt::Debug,
     TAG: fmt::Debug,
     ATT: fmt::Debug,
     VAL: fmt::Debug,
 {
-    let mut target_nodes = HashMap::new();
-    if let Some(_tag) = target_nodes_idx.get(cur_node_idx) {
-        target_nodes.insert(*cur_node_idx, node);
+    find_node_recursive(node, node_idx, &mut 0)
+}
+
+fn find_node_recursive<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
+    node: &'a mut Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+    node_idx: NodeIdx,
+    cur_node_idx: &mut usize,
+) -> Option<&'a mut Node<NS, TAG, ATT, VAL, EVENT, MSG>>
+where
+    NS: fmt::Debug,
+    TAG: fmt::Debug,
+    ATT: fmt::Debug,
+    VAL: fmt::Debug,
+{
+    if node_idx == *cur_node_idx {
+        Some(node)
+    } else if let Some(children) = node.children_mut() {
+        children.iter_mut().find_map(|child| {
+            *cur_node_idx += 1;
+            find_node_recursive(child, node_idx, cur_node_idx)
+        })
     } else {
-        match node {
-            Node::Element(element) => {
-                for child in element.children_mut() {
-                    *cur_node_idx += 1;
-                    target_nodes.extend(find_nodes_to_patch(
-                        child,
-                        cur_node_idx,
-                        target_nodes_idx,
-                    ));
-                }
-            }
-            Node::Text(text) => {}
-        }
+        None
     }
-    target_nodes
+}
+
+use std::{
+    ops::DerefMut,
+    sync::{
+        Arc,
+        Mutex,
+    },
+};
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::*;
+
+    pub type MyNode =
+        Node<&'static str, &'static str, &'static str, &'static str, (), ()>;
+
+    #[test]
+    fn test_find_node() {
+        let mut old: MyNode = element(
+            "elm0",
+            vec![attr("node", "0")],
+            vec![
+                element("elm1", vec![attr("node", "1")], vec![text("Elm2")]),
+                element(
+                    "elm3",
+                    vec![attr("node", "3")],
+                    vec![
+                        element(
+                            "elm4",
+                            vec![attr("node", "4")],
+                            vec![text("Elm5")],
+                        ),
+                        element(
+                            "elm6",
+                            vec![attr("node", "6")],
+                            vec![text("Elm7")],
+                        ),
+                        element(
+                            "elm8",
+                            vec![attr("node", "8")],
+                            vec![text("Elm9")],
+                        ),
+                    ],
+                ),
+                element("elm10", vec![attr("node", "10")], vec![text("Elm11")]),
+            ],
+        );
+
+        let found = find_node(&mut old, 9).expect("must find the 9th node");
+        dbg!(&found);
+        assert_eq!(found, &text("Elm9"));
+        assert_eq!(find_node(&mut old, 11).unwrap(), &text("Elm11"));
+    }
 }
