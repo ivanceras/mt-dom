@@ -19,7 +19,7 @@ mod element;
 /// virtual dom implementation
 /// VAL - is the type for the value of the attribute, this will be String, f64, or just another
 /// generics that suits the implementing library which used mt-dom for just dom-diffing purposes
-#[derive(Clone, PartialEq)]
+#[derive(PartialEq)]
 pub enum Node<NS, TAG, ATT, VAL, EVENT, MSG> {
     /// Element variant of a virtual node
     Element(Element<NS, TAG, ATT, VAL, EVENT, MSG>),
@@ -277,6 +277,22 @@ where
                 f.debug_tuple("Element").field(element).finish()
             }
             Node::Text(txt) => f.debug_tuple("Text").field(txt).finish(),
+        }
+    }
+}
+
+impl<NS, TAG, ATT, VAL, EVENT, MSG> Clone
+    for Node<NS, TAG, ATT, VAL, EVENT, MSG>
+where
+    NS: Clone,
+    TAG: Clone,
+    ATT: Clone,
+    VAL: Clone,
+{
+    fn clone(&self) -> Self {
+        match self {
+            Node::Element(element) => Node::Element(element.clone()),
+            Node::Text(txt) => Node::Text(txt.clone()),
         }
     }
 }

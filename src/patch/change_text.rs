@@ -9,8 +9,8 @@ pub struct ChangeText<'a> {
     // the old text is not really needed for applying the patch.
     // but it is useful for debugging purposed, that we are changing the intended target text by
     // visual inspection
-    old: &'a str,
-    new: &'a str,
+    pub old: &'a str,
+    pub new: &'a str,
 }
 
 impl<'a> ChangeText<'a> {

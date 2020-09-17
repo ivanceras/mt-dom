@@ -18,7 +18,7 @@ use std::fmt;
 ///
 /// The namespace is also needed in attributes where namespace are necessary such as `xlink:href`
 /// where the namespace `xlink` is needed in order for the linked element in an svg image to work.
-#[derive(Clone, PartialEq, Default)]
+#[derive(PartialEq, Default)]
 pub struct Element<NS, TAG, ATT, VAL, EVENT, MSG> {
     /// namespace of this element,
     /// svg elements requires namespace to render correcly in the browser
@@ -228,5 +228,24 @@ where
             .finish()?;
 
         Ok(())
+    }
+}
+
+impl<NS, TAG, ATT, VAL, EVENT, MSG> Clone
+    for Element<NS, TAG, ATT, VAL, EVENT, MSG>
+where
+    NS: Clone,
+    TAG: Clone,
+    ATT: Clone,
+    VAL: Clone,
+{
+    fn clone(&self) -> Self {
+        Element {
+            namespace: self.namespace.clone(),
+            tag: self.tag.clone(),
+            attrs: self.attrs.clone(),
+            children: self.children.clone(),
+            self_closing: self.self_closing,
+        }
     }
 }
