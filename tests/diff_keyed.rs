@@ -43,7 +43,7 @@ fn key_1_removed_at_start() {
     );
 
     let diff = diff_with_key(&old, &new, &"key");
-    assert_eq!(diff, vec![RemoveChildren::new(&"main", 0, vec![0]).into()]);
+    assert_eq!(diff, vec![RemoveNode::new(Some(&"div"), 1).into()]);
 }
 
 #[test]
@@ -64,8 +64,7 @@ fn non_unique_keys_matched_at_old() {
     );
 
     let diff = diff_with_key(&old, &new, &"key");
-    assert_eq!(diff, vec![RemoveChildren::new(&"main", 0, vec![1]).into()]);
-    //assert_eq!(diff, vec![RemoveChildren::new(&"main", 0, vec![0]).into()]);
+    assert_eq!(diff, vec![RemoveNode::new(Some(&"div"), 2).into()]);
 }
 
 #[test]
@@ -86,7 +85,7 @@ fn key_2_removed_at_the_end() {
     );
 
     let diff = diff_with_key(&old, &new, &"key");
-    assert_eq!(diff, vec![RemoveChildren::new(&"main", 0, vec![1]).into()]);
+    assert_eq!(diff, vec![RemoveNode::new(Some(&"div"), 2).into()]);
 }
 
 #[test]
@@ -111,7 +110,7 @@ fn key_2_removed_at_the_middle() {
     );
 
     let diff = diff_with_key(&old, &new, &"key");
-    assert_eq!(diff, vec![RemoveChildren::new(&"main", 0, vec![1]).into()]);
+    assert_eq!(diff, vec![RemoveNode::new(Some(&"div"), 2).into()]);
 }
 
 #[test]
@@ -143,11 +142,9 @@ fn there_are_2_exact_same_keys_in_the_old() {
         diff,
         vec![
             ChangeText::new(2, "0", "1").into(),
-            RemoveChildren::new(&"main", 0, vec![1]).into()
+            RemoveNode::new(Some(&"div"), 3).into()
         ]
     );
-
-    //assert_eq!(diff, vec![RemoveChildren::new(&"main", 0, vec![0]).into()]);
 }
 
 #[test]
@@ -215,21 +212,9 @@ fn there_are_2_exact_same_keys_in_both_old_and_new() {
             ChangeText::new(2, "0", "1").into(),
             ChangeText::new(4, "1", "3").into(),
             InsertChildren::new(&"main", 0, 1, vec![&for_insert2]).into(),
-            RemoveChildren::new(&"main", 0, vec![2]).into(),
+            RemoveNode::new(Some(&"div"), 5).into(),
         ]
     );
-
-    /*
-    assert_eq!(
-        diff,
-        vec![
-            ChangeText::new(2, "0", "1").into(),
-            ChangeText::new(6, "2", "3").into(),
-            InsertChildren::new(&"main", 0, 1, vec![&for_insert2]).into(),
-            RemoveChildren::new(&"main", 0, vec![1]).into(),
-        ]
-    );
-    */
 }
 
 #[test]
@@ -361,7 +346,7 @@ fn key1_removed_at_start_then_key2_has_additional_attributes() {
                 vec![&attr("class", "some-class").into()]
             )
             .into(),
-            RemoveChildren::new(&"main", 0, vec![0]).into(),
+            RemoveNode::new(Some(&"div"), 1).into(),
         ]
     );
 }
@@ -405,7 +390,7 @@ fn deep_nested_key1_removed_at_start_then_key2_has_additional_attributes() {
                 vec![&attr("class", "some-class").into()]
             )
             .into(),
-            RemoveChildren::new(&"article", 1, vec![0]).into(),
+            RemoveNode::new(Some(&"div"), 2).into(),
         ]
     );
 }
@@ -451,7 +436,8 @@ fn deep_nested_more_children_key0_and_key1_removed_at_start_then_key2_has_additi
                 vec![&attr("class", "some-class").into()]
             )
             .into(),
-            RemoveChildren::new(&"article", 1, vec![0, 1]).into(),
+            RemoveNode::new(Some(&"div"), 2).into(),
+            RemoveNode::new(Some(&"div"), 3).into(),
         ]
     );
 }
@@ -521,7 +507,8 @@ fn deep_nested_keyed_with_non_keyed_children() {
             ChangeText::new(6, "paragraph1", "paragraph1, with added content")
                 .into(),
             ChangeText::new(8, "Click here", "Click here to continue").into(),
-            RemoveChildren::new(&"article", 1, vec![0, 1]).into(),
+            RemoveNode::new(Some(&"div"), 2).into(),
+            RemoveNode::new(Some(&"div"), 3).into(),
         ]
     );
 }
@@ -565,7 +552,7 @@ fn text_changed_in_keyed_elements() {
         patch,
         vec![
             ChangeText::new(7, "item3", "item3 with changes").into(),
-            RemoveChildren::new(&"section", 1, vec![0]).into()
+            RemoveNode::new(Some(&"article"), 2).into()
         ]
     );
 }
@@ -631,7 +618,7 @@ fn text_changed_in_mixed_keyed_and_non_keyed_elements() {
         patch,
         vec![
             ChangeText::new(7, "item3", "item3 with changes").into(),
-            RemoveChildren::new(&"section", 1, vec![0]).into(),
+            RemoveNode::new(Some(&"article"), 2).into(),
             ChangeText::new(9, "3 items left", "2 items left").into(),
         ]
     );
@@ -701,7 +688,7 @@ fn test12() {
         patch,
         vec![
             ChangeText::new(9, "item3", "item3 with changes").into(),
-            RemoveChildren::new(&"section", 3, vec![0]).into(),
+            RemoveNode::new(Some(&"article"), 4).into(),
             ChangeText::new(11, "3 items left", "2 items left").into(),
         ]
     );

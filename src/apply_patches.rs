@@ -49,15 +49,6 @@ pub fn apply_patches<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
                     target_element.children.insert(ic.target_index, child);
                 }
             }
-            Patch::RemoveChildren(rc) => {
-                let target_node = find_node(root_node, rc.node_idx)
-                    .expect("must have a target node");
-                let target_element =
-                    target_node.as_element_mut().expect("must be an element");
-                for idx in rc.target_index.iter().rev() {
-                    target_element.children.remove(*idx);
-                }
-            }
             Patch::RemoveNode(rn) => {
                 remove_node(root_node, rn.node_idx);
             }
@@ -228,14 +219,6 @@ where
         false
     }
 }
-
-use std::{
-    ops::DerefMut,
-    sync::{
-        Arc,
-        Mutex,
-    },
-};
 
 #[cfg(test)]
 mod test {

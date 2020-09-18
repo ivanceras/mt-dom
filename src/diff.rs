@@ -8,7 +8,6 @@ use crate::{
         ChangeText,
         InsertChildren,
         RemoveAttributes,
-        RemoveChildren,
         RemoveNode,
         ReplaceNode,
     },

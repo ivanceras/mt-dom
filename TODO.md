@@ -10,3 +10,5 @@
 - [ ] Remove the use of target_index usize index for InsertChildren and RemoveChildren
     - For InsertChildren, the NodeIdx will be the node after the insertion point
     - For RemoveChildren, the NodeIdx will be the actual NodeIdx of the node to be removed
+- [ ] Deprecate RemoveChildren with RemoveNode
+- [ ] Deprecate InsertChildren with InsertNode

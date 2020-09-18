@@ -104,7 +104,7 @@ fn mixed_key_and_no_key_with_misordered_2_matched() {
                 vec![&element("div", vec![], vec![text(1)])],
             )
             .into(),
-            RemoveChildren::new(&"main", 0, vec![1]).into(),
+            RemoveNode::new(Some(&"div"), 3).into(),
         ]
     );
 }

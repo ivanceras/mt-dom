@@ -10,7 +10,7 @@ use crate::{
         ChangeText,
         InsertChildren,
         RemoveAttributes,
-        RemoveChildren,
+        RemoveNode,
         ReplaceNode,
     },
     Attribute,
@@ -350,6 +350,7 @@ where
         .map(|(old_idx, _old_child)| *old_idx)
         .collect();
 
+    /*
     let remove_children_patches = if !for_removal_old_idx.is_empty() {
         Some(
             RemoveChildren::new(
@@ -362,10 +363,12 @@ where
     } else {
         None
     };
+    */
 
     // process this last so as not to move the cur_node_idx forward
     // and without creating a snapshot for cur_node_idx for other patch types
     let mut matched_keyed_element_patches = vec![];
+    let mut remove_node_patches = vec![];
 
     for (old_idx, old_child) in old_element.children.iter().enumerate() {
         *cur_node_idx += 1;
@@ -379,6 +382,8 @@ where
                 key,
             ));
         } else {
+            remove_node_patches
+                .push(RemoveNode::new(old_child.tag(), *cur_node_idx).into());
             increment_node_idx_to_descendant_count(old_child, cur_node_idx);
         }
     }
@@ -388,6 +393,6 @@ where
     patches.extend(matched_keyed_element_patches);
     patches.extend(insert_children_patches);
     patches.extend(append_children_patches);
-    patches.extend(remove_children_patches);
+    patches.extend(remove_node_patches);
     patches
 }

@@ -60,10 +60,7 @@ fn remove_children() {
 
     let patches = diff_with_key(&old, &new, &"key");
 
-    assert_eq!(
-        patches,
-        vec![RemoveChildren::new(&"main", 0, vec![0]).into()]
-    );
+    assert_eq!(patches, vec![RemoveNode::new(Some(&"div"), 1).into()]);
 
     let mut old_clone = old.clone();
     apply_patches(&mut old_clone, &patches);
@@ -322,7 +319,7 @@ fn test_multiple_patch_keyed() {
         vec![
             ChangeText::new(9, "item3", "item3 with changes").into(),
             ChangeText::new(11, "3 items left", "2 items left").into(),
-            RemoveChildren::new(&"section", 3, vec![0]).into(),
+            RemoveNode::new(Some(&"article"), 4).into(),
         ]
     );
 
