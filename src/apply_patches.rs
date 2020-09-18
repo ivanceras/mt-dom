@@ -58,6 +58,9 @@ pub fn apply_patches<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
                     target_element.children.remove(*idx);
                 }
             }
+            Patch::RemoveNode(rn) => {
+                remove_node(root_node, rn.node_idx);
+            }
             Patch::ReplaceNode(rn) => {
                 let target_node = find_node(root_node, rn.node_idx)
                     .expect("must have a target node");
@@ -150,6 +153,79 @@ where
         })
     } else {
         None
+    }
+}
+
+fn remove_node<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
+    node: &'a mut Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+    node_idx: NodeIdx,
+) -> bool
+where
+    NS: fmt::Debug,
+    TAG: fmt::Debug,
+    ATT: fmt::Debug,
+    VAL: fmt::Debug,
+{
+    println!("to be removed node_idx: {}", node_idx);
+    remove_node_recursive(node, node_idx, &mut 0)
+}
+
+//remove node, if the child matches the cur_node_idx remove it
+fn remove_node_recursive<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
+    node: &'a mut Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+    node_idx: NodeIdx,
+    cur_node_idx: &mut usize,
+) -> bool
+where
+    NS: fmt::Debug,
+    TAG: fmt::Debug,
+    ATT: fmt::Debug,
+    VAL: fmt::Debug,
+{
+    if let Some(element) = node.as_element_mut() {
+        let mut this_cur_node_idx = *cur_node_idx;
+        let mut to_be_remove = None;
+        // look ahead for remove
+        for (idx, child) in element.children.iter().enumerate() {
+            this_cur_node_idx += 1;
+            println!(
+                "\tfinding node_idx: {}, this_cur_node_idx: {} cur_node_idx: {}",
+                node_idx, this_cur_node_idx, cur_node_idx
+            );
+            println!(
+                "\tINCREMENTED finding node_idx: {}, this_cur_node_idx: {}",
+                node_idx, this_cur_node_idx
+            );
+            if node_idx == this_cur_node_idx {
+                println!(
+                    "got something to be removed: {} child: {:?}",
+                    idx, child
+                );
+                to_be_remove = Some(idx);
+            } else {
+                crate::diff::increment_node_idx_to_descendant_count(
+                    child,
+                    &mut this_cur_node_idx,
+                );
+            }
+        }
+
+        if let Some(remove_idx) = to_be_remove {
+            let removed = element.children.remove(remove_idx);
+            println!("removed: {:?}", removed);
+            return true;
+        } else {
+            println!("to be removed is not found... trying out deeper..");
+            for (idx, child) in element.children.iter_mut().enumerate() {
+                *cur_node_idx += 1;
+                if remove_node_recursive(child, node_idx, cur_node_idx) {
+                    return true;
+                }
+            }
+            false
+        }
+    } else {
+        false
     }
 }
 

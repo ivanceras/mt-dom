@@ -9,6 +9,7 @@ use crate::{
         InsertChildren,
         RemoveAttributes,
         RemoveChildren,
+        RemoveNode,
         ReplaceNode,
     },
     Attribute,
@@ -50,7 +51,14 @@ where
 ///
 /// Note: This is not including the count of itself, since the node is being processed and the cur_node_idx is
 /// incremented in the loop together with its siblings
-fn increment_node_idx_to_descendant_count<NS, TAG, ATT, VAL, EVENT, MSG>(
+pub(crate) fn increment_node_idx_to_descendant_count<
+    NS,
+    TAG,
+    ATT,
+    VAL,
+    EVENT,
+    MSG,
+>(
     node: &Node<NS, TAG, ATT, VAL, EVENT, MSG>,
     cur_node_idx: &mut usize,
 ) {
@@ -243,18 +251,11 @@ where
     }
 
     if new_child_count < old_child_count {
-        patches.push(
-            RemoveChildren::new(
-                &old_element.tag,
-                this_cur_node_idx,
-                (new_child_count..old_child_count).collect::<Vec<usize>>(),
-            )
-            .into(),
-        );
-
         for old_child in old_element.get_children().iter().skip(new_child_count)
         {
             *cur_node_idx += 1;
+            patches
+                .push(RemoveNode::new(old_child.tag(), *cur_node_idx).into());
             increment_node_idx_to_descendant_count(old_child, cur_node_idx);
         }
     }

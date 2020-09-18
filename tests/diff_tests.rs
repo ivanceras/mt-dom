@@ -65,7 +65,7 @@ fn test_205() {
     assert_eq!(
         diff_with_key(&old, &new, &"key"),
         vec![
-            RemoveChildren::new(&"b", 1, vec![1]).into(),
+            RemoveNode::new(Some(&"i"), 3).into(),
             ReplaceNode::new(&"b", 4, &element("i", vec![], vec![])).into(),
         ],
     )

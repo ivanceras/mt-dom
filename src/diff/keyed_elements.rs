@@ -53,6 +53,18 @@ where
             {
                 Some((*node_idx, *node))
             } else {
+                log::warn!("key {:?} matched but skipping..", key);
+                log::warn!(
+                    "because node_idx: {} and last_matched_node_idx: {:?}",
+                    node_idx,
+                    last_matched_node_idx
+                );
+
+                eprintln!("key {:?} matched but skipping..", key);
+                eprintln!(
+                    "because node_idx: {} and last_matched_node_idx: {:?}",
+                    node_idx, last_matched_node_idx
+                );
                 None
             }
         } else {
@@ -198,6 +210,7 @@ where
     let mut last_matched_new_idx = None;
     // here, we need to processed both keyed element and non-keyed elements
     for (new_idx, (new_key, new_element)) in new_keyed_elements.iter() {
+        println!("new_idx: {}", new_idx);
         if let Some((old_idx, old_element)) = find_node_with_key(
             &old_keyed_elements,
             new_key,
@@ -209,8 +222,14 @@ where
             {
                 last_matched_old_idx = Some(old_idx);
                 last_matched_new_idx = Some(*new_idx);
+                println!(
+                    "found match old_idx: {}, new_idx: {}",
+                    old_idx, new_idx
+                );
                 matched_old_new_keyed
                     .insert((old_idx, *new_idx), (old_element, new_element));
+            } else {
+                log::warn!("matched new_key: {:?}, but skipping", new_key);
             }
         }
     }
@@ -370,6 +389,5 @@ where
     patches.extend(insert_children_patches);
     patches.extend(append_children_patches);
     patches.extend(remove_children_patches);
-    dbg!(&patches);
     patches
 }

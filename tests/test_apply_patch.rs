@@ -222,11 +222,12 @@ fn test_multiple_patch_non_keyed() {
             ChangeText::new(5, "item1", "item2").into(),
             ChangeText::new(7, "item2", "item3 with changes").into(),
             ChangeText::new(11, "3 items left", "2 items left").into(),
-            RemoveChildren::new(&"section", 3, vec![2]).into(),
+            RemoveNode::new(Some(&"article"), 8).into(),
         ]
     );
 
     let mut old_clone = old.clone();
+    dbg!(&update1);
     apply_patches(&mut old_clone, &patch);
     assert_eq!(&old_clone, &update1);
 }
