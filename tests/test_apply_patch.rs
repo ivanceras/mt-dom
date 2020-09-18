@@ -153,17 +153,18 @@ fn insert_children() {
 
     assert_eq!(
         patches,
-        vec![InsertChildren::new(
-            &"main",
-            0,
-            0,
-            vec![&element("div", vec![attr("key", "2")], vec![])]
+        vec![InsertNode::new(
+            Some(&"main"),
+            1,
+            &element("div", vec![attr("key", "2")], vec![])
         )
         .into()]
     );
 
     let mut old_clone = old.clone();
     apply_patches(&mut old_clone, &patches);
+    dbg!(&old_clone);
+    dbg!(&new);
     assert_eq!(&old_clone, &new);
 }
 

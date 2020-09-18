@@ -6,7 +6,7 @@ use crate::{
         AddAttributes,
         AppendChildren,
         ChangeText,
-        InsertChildren,
+        InsertNode,
         RemoveAttributes,
         RemoveNode,
         ReplaceNode,

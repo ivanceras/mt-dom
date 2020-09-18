@@ -45,15 +45,10 @@ fn key_inserted_at_start() {
     let diff = diff_with_key(&old, &new, &"key");
     assert_eq!(
         diff,
-        vec![InsertChildren::new(
-            &"main",
-            0,
-            0,
-            vec![&element(
-                "div",
-                vec![attr("key", "XXX")],
-                vec![text("lineXXX")]
-            )]
+        vec![InsertNode::new(
+            Some(&"main"),
+            1,
+            &element("div", vec![attr("key", "XXX")], vec![text("lineXXX")])
         )
         .into()]
     );
@@ -98,15 +93,10 @@ fn key_inserted_at_middle() {
     let diff = diff_with_key(&old, &new, &"key");
     assert_eq!(
         diff,
-        vec![InsertChildren::new(
-            &"main",
-            0,
-            5,
-            vec![&element(
-                "div",
-                vec![attr("key", "XXX")],
-                vec![text("lineXXX")]
-            )]
+        vec![InsertNode::new(
+            Some(&"main"),
+            11,
+            &element("div", vec![attr("key", "XXX")], vec![text("lineXXX")])
         )
         .into()]
     );
@@ -159,15 +149,10 @@ fn wrapped_elements() {
     let diff = diff_with_key(&old, &new, &"key");
     assert_eq!(
         diff,
-        vec![InsertChildren::new(
-            &"main",
-            1,
-            5,
-            vec![&element(
-                "div",
-                vec![attr("key", "XXX")],
-                vec![text("lineXXX")]
-            )]
+        vec![InsertNode::new(
+            Some(&"main"),
+            12,
+            &element("div", vec![attr("key", "XXX")], vec![text("lineXXX")])
         )
         .into()]
     );
@@ -366,18 +351,17 @@ fn insert_one_line_at_start() {
             ChangeText::new(4, "1", "2").into(),
             ChangeText::new(9, "2", "3").into(),
             ChangeText::new(14, "3", "4").into(),
-            InsertChildren::new(
-                &"main",
-                1,
-                0,
-                vec![&element(
+            InsertNode::new(
+                Some(&"main"),
+                2,
+                &element(
                     "div",
                     vec![attr("key", "hashXXX")],
                     vec![
                         element("div", vec![], vec![text(1)]),
                         element("div", vec![], vec![text("XXX")]),
                     ],
-                )],
+                ),
             )
             .into()
         ]
@@ -482,28 +466,30 @@ fn insert_two_lines_at_start() {
             ChangeText::new(4, "1", "3").into(),
             ChangeText::new(9, "2", "4").into(),
             ChangeText::new(14, "2", "5").into(),
-            InsertChildren::new(
-                &"main",
-                1,
-                0,
-                vec![
-                    &element(
-                        "div",
-                        vec![attr("key", "hashXXX")],
-                        vec![
-                            element("div", vec![], vec![text(1)]),
-                            element("div", vec![], vec![text("XXX")]),
-                        ],
-                    ),
-                    &element(
-                        "div",
-                        vec![attr("key", "hashYYY")],
-                        vec![
-                            element("div", vec![], vec![text(2)]),
-                            element("div", vec![], vec![text("YYY")]),
-                        ],
-                    )
-                ],
+            InsertNode::new(
+                Some(&"main"),
+                2,
+                &element(
+                    "div",
+                    vec![attr("key", "hashXXX")],
+                    vec![
+                        element("div", vec![], vec![text(1)]),
+                        element("div", vec![], vec![text("XXX")]),
+                    ],
+                ),
+            )
+            .into(),
+            InsertNode::new(
+                Some(&"main"),
+                3,
+                &element(
+                    "div",
+                    vec![attr("key", "hashYYY")],
+                    vec![
+                        element("div", vec![], vec![text(2)]),
+                        element("div", vec![], vec![text("YYY")]),
+                    ],
+                )
             )
             .into(),
         ]

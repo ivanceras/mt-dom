@@ -2,7 +2,7 @@
 pub use add_attributes::AddAttributes;
 pub use append_children::AppendChildren;
 pub use change_text::ChangeText;
-pub use insert_children::InsertChildren;
+pub use insert_node::InsertNode;
 pub use remove_attributes::RemoveAttributes;
 pub use remove_node::RemoveNode;
 pub use replace_node::ReplaceNode;
@@ -11,7 +11,7 @@ use std::fmt;
 mod add_attributes;
 mod append_children;
 mod change_text;
-mod insert_children;
+mod insert_node;
 mod remove_attributes;
 mod remove_node;
 mod replace_node;
@@ -60,7 +60,7 @@ pub enum Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG> {
     /// Insert a vector of child nodes to the current node being patch.
     /// The usize is the index of of the children of the node to be
     /// patch to insert to. The new children will be inserted before this usize
-    InsertChildren(InsertChildren<'a, NS, TAG, ATT, VAL, EVENT, MSG>),
+    InsertNode(InsertNode<'a, NS, TAG, ATT, VAL, EVENT, MSG>),
     /// Append a vector of child nodes to a parent node id.
     AppendChildren(AppendChildren<'a, NS, TAG, ATT, VAL, EVENT, MSG>),
     /// remove node
@@ -86,7 +86,7 @@ impl<'a, NS, TAG, ATT, VAL, EVENT, MSG>
     /// depth first with the root node in the tree having index 0.
     pub fn node_idx(&self) -> NodeIdx {
         match self {
-            Patch::InsertChildren(ic) => ic.node_idx,
+            Patch::InsertNode(ic) => ic.node_idx,
             Patch::AppendChildren(ac) => ac.node_idx,
             Patch::RemoveNode(rn) => rn.node_idx,
             Patch::ReplaceNode(rn) => rn.node_idx,
@@ -99,7 +99,7 @@ impl<'a, NS, TAG, ATT, VAL, EVENT, MSG>
     /// return the tag of this patch
     pub fn tag(&self) -> Option<&TAG> {
         match self {
-            Patch::InsertChildren(ic) => Some(ic.tag),
+            Patch::InsertNode(ic) => ic.tag,
             Patch::AppendChildren(ac) => Some(ac.tag),
             Patch::RemoveNode(rn) => rn.tag,
             Patch::ReplaceNode(rn) => Some(rn.tag),
@@ -118,7 +118,7 @@ impl<'a, NS, TAG, ATT, VAL, EVENT, MSG>
             Patch::ChangeText(..) => 3,
             Patch::ReplaceNode(..) => 4,
             Patch::AppendChildren(..) => 5,
-            Patch::InsertChildren(..) => 6,
+            Patch::InsertNode(..) => 6,
             Patch::RemoveNode(..) => 7,
         }
     }
@@ -134,7 +134,7 @@ where
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Patch::InsertChildren(ic) => ic.fmt(f),
+            Patch::InsertNode(ic) => ic.fmt(f),
             Patch::AppendChildren(ac) => ac.fmt(f),
             Patch::RemoveNode(rn) => rn.fmt(f),
             Patch::ReplaceNode(rn) => rn.fmt(f),
@@ -154,11 +154,11 @@ impl<'a, NS, TAG, ATT, VAL, EVENT, MSG> From<ChangeText<'a>>
 }
 
 impl<'a, NS, TAG, ATT, VAL, EVENT, MSG>
-    From<InsertChildren<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
+    From<InsertNode<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
     for Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>
 {
-    fn from(ic: InsertChildren<'a, NS, TAG, ATT, VAL, EVENT, MSG>) -> Self {
-        Patch::InsertChildren(ic)
+    fn from(ic: InsertNode<'a, NS, TAG, ATT, VAL, EVENT, MSG>) -> Self {
+        Patch::InsertNode(ic)
     }
 }
 

@@ -5,11 +5,9 @@ use std::fmt;
 /// Append a vector of child nodes to a parent node id.
 #[derive(PartialEq)]
 pub struct AppendChildren<'a, NS, TAG, ATT, VAL, EVENT, MSG> {
-    /// node tag
-    /// use for verifying that the we are patching the correct node which
-    /// should match the same tag
+    /// the tag of the node we are appending the children into
     pub tag: &'a TAG,
-    /// index of the node we are going to patch
+    /// index of the node we are going to append the children into
     pub node_idx: NodeIdx,
     /// children nodes to be appended
     pub children: Vec<&'a Node<NS, TAG, ATT, VAL, EVENT, MSG>>,

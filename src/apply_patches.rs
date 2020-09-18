@@ -10,7 +10,7 @@ use std::{
 };
 
 /// had to find the node each time, since rust does not allow multiple mutable borrows
-/// ISSUE: once a destructive patch such as RemoveChildren, InsertChildren, ReplaceNode is applied
+/// ISSUE: once a destructive patch such as RemoveChildren, InsertNode, ReplaceNode is applied
 /// the Nodeidx is not synch with the root_node anymore.
 ///
 /// To minimize this issue, destructive patches is applied last.
@@ -36,18 +36,8 @@ pub fn apply_patches<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
                     target_node.as_element_mut().expect("expecting an element");
                 target_element.children.extend(children);
             }
-            Patch::InsertChildren(ic) => {
-                let target_node = find_node(root_node, ic.node_idx)
-                    .expect("must have found the target node");
-                let children: Vec<Node<NS, TAG, ATT, VAL, EVENT, MSG>> =
-                    ic.children.iter().map(|c| *c).map(|c| c.clone()).collect();
-                let target_element =
-                    target_node.as_element_mut().expect("must be an element");
-
-                // insert element starting from the last
-                for child in children.into_iter().rev() {
-                    target_element.children.insert(ic.target_index, child);
-                }
+            Patch::InsertNode(ic) => {
+                insert_node(root_node, ic.node_idx, ic.node);
             }
             Patch::RemoveNode(rn) => {
                 remove_node(root_node, rn.node_idx);
@@ -161,7 +151,9 @@ where
     remove_node_recursive(node, node_idx, &mut 0)
 }
 
-//remove node, if the child matches the cur_node_idx remove it
+/// remove node, if the child matches the cur_node_idx remove it
+/// Note: it is processed this way since we need a reference to the parent
+/// node to remove the target node_idx
 fn remove_node_recursive<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
     node: &'a mut Node<NS, TAG, ATT, VAL, EVENT, MSG>,
     node_idx: NodeIdx,
@@ -179,19 +171,7 @@ where
         // look ahead for remove
         for (idx, child) in element.children.iter().enumerate() {
             this_cur_node_idx += 1;
-            println!(
-                "\tfinding node_idx: {}, this_cur_node_idx: {} cur_node_idx: {}",
-                node_idx, this_cur_node_idx, cur_node_idx
-            );
-            println!(
-                "\tINCREMENTED finding node_idx: {}, this_cur_node_idx: {}",
-                node_idx, this_cur_node_idx
-            );
             if node_idx == this_cur_node_idx {
-                println!(
-                    "got something to be removed: {} child: {:?}",
-                    idx, child
-                );
                 to_be_remove = Some(idx);
             } else {
                 crate::diff::increment_node_idx_to_descendant_count(
@@ -203,13 +183,76 @@ where
 
         if let Some(remove_idx) = to_be_remove {
             let removed = element.children.remove(remove_idx);
-            println!("removed: {:?}", removed);
             return true;
         } else {
-            println!("to be removed is not found... trying out deeper..");
             for (idx, child) in element.children.iter_mut().enumerate() {
                 *cur_node_idx += 1;
                 if remove_node_recursive(child, node_idx, cur_node_idx) {
+                    return true;
+                }
+            }
+            false
+        }
+    } else {
+        false
+    }
+}
+
+fn insert_node<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
+    node: &'a mut Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+    node_idx: NodeIdx,
+    for_insert: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+) -> bool
+where
+    NS: fmt::Debug + Clone,
+    TAG: fmt::Debug + Clone,
+    ATT: fmt::Debug + Clone,
+    VAL: fmt::Debug + Clone,
+{
+    insert_node_recursive(node, node_idx, for_insert, &mut 0)
+}
+
+fn insert_node_recursive<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
+    node: &'a mut Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+    node_idx: NodeIdx,
+    for_insert: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+    cur_node_idx: &mut usize,
+) -> bool
+where
+    NS: fmt::Debug + Clone,
+    TAG: fmt::Debug + Clone,
+    ATT: fmt::Debug + Clone,
+    VAL: fmt::Debug + Clone,
+{
+    if let Some(element) = node.as_element_mut() {
+        let mut this_cur_node_idx = *cur_node_idx;
+        let mut target_insert_idx = None;
+        for (i, child) in element.children.iter().enumerate() {
+            this_cur_node_idx += 1;
+            if node_idx == this_cur_node_idx {
+                target_insert_idx = Some(i);
+            } else {
+                crate::diff::increment_node_idx_to_descendant_count(
+                    child,
+                    &mut this_cur_node_idx,
+                );
+            }
+        }
+        if let Some(target_insert_idx) = target_insert_idx {
+            println!("inserted node here at {}", target_insert_idx);
+            element
+                .children
+                .insert(target_insert_idx, for_insert.clone());
+            return true;
+        } else {
+            for child in element.children.iter_mut() {
+                *cur_node_idx += 1;
+                if insert_node_recursive(
+                    child,
+                    node_idx,
+                    for_insert,
+                    cur_node_idx,
+                ) {
                     return true;
                 }
             }

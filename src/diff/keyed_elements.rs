@@ -8,7 +8,7 @@ use crate::{
         AddAttributes,
         AppendChildren,
         ChangeText,
-        InsertChildren,
+        InsertNode,
         RemoveAttributes,
         RemoveNode,
         ReplaceNode,
@@ -302,68 +302,65 @@ where
         Vec<&'a Node<NS, TAG, ATT, VAL, EVENT, MSG>>,
     > = BTreeMap::new();
 
-    unmatched_new_child_pass2
+    let unmatched_new_child_idx = unmatched_new_child_pass2
         .iter()
         .filter(|(new_idx, _)| *new_idx <= old_element_max_index)
-        .for_each(|(new_idx, new_child)| {
-            if *new_idx > 0 {
-                if let Some(existing_children) =
-                    grouped_insert_children.get_mut(&(new_idx - 1))
-                {
-                    existing_children.push(new_child);
-                } else {
-                    grouped_insert_children.insert(*new_idx, vec![new_child]);
-                }
-            } else {
-                grouped_insert_children.insert(*new_idx, vec![new_child]);
-            }
-        });
-
-    let insert_children_patches = grouped_insert_children
         .into_iter()
-        .map(|(new_idx, grouped_new_children)| {
-            InsertChildren::new(
-                &old_element.tag,
-                *cur_node_idx,
-                new_idx,
-                grouped_new_children,
-            )
-            .into()
-        })
+        .map(|(new_idx, new_child)| new_idx)
         .collect::<Vec<_>>();
 
-    let append_children_patches = unmatched_new_child
+    let mut insert_node_patches = vec![];
+    let mut new_child_cur_node_idx = *cur_node_idx;
+    for (new_idx, new_child) in new_element.children.iter().enumerate() {
+        new_child_cur_node_idx += 1;
+        if unmatched_new_child_idx.contains(&&new_idx) {
+            insert_node_patches.push(
+                InsertNode::new(
+                    Some(&old_element.tag),
+                    new_child_cur_node_idx,
+                    new_child,
+                )
+                .into(),
+            );
+        } else {
+            increment_node_idx_to_descendant_count(
+                new_child,
+                &mut new_child_cur_node_idx,
+            );
+        }
+    }
+
+    let unmatched_new_child_idx_excess = unmatched_new_child
         .iter()
         .filter(|(new_idx, _)| *new_idx > old_element_max_index)
-        .map(|(new_idx, new_child)| {
-            AppendChildren::new(
-                &old_element.tag,
-                *cur_node_idx,
-                vec![new_child],
-            )
-            .into()
-        })
+        .map(|(new_idx, _)| new_idx)
         .collect::<Vec<_>>();
+
+    let mut append_children_patches = vec![];
+    let mut new_child_excess_cur_node_idx = *cur_node_idx;
+    for (new_idx, new_child) in new_element.children.iter().enumerate() {
+        new_child_excess_cur_node_idx += 1;
+        if unmatched_new_child_idx_excess.contains(&&new_idx) {
+            append_children_patches.push(
+                AppendChildren::new(
+                    &old_element.tag,
+                    *cur_node_idx,
+                    vec![new_child],
+                )
+                .into(),
+            )
+        } else {
+            increment_node_idx_to_descendant_count(
+                new_child,
+                &mut new_child_excess_cur_node_idx,
+            );
+        }
+    }
 
     let for_removal_old_idx: Vec<usize> = unmatched_old_child_pass2
         .iter()
         .map(|(old_idx, _old_child)| *old_idx)
         .collect();
-
-    /*
-    let remove_children_patches = if !for_removal_old_idx.is_empty() {
-        Some(
-            RemoveChildren::new(
-                &old_element.tag,
-                *cur_node_idx,
-                for_removal_old_idx,
-            )
-            .into(),
-        )
-    } else {
-        None
-    };
-    */
 
     // process this last so as not to move the cur_node_idx forward
     // and without creating a snapshot for cur_node_idx for other patch types
@@ -387,11 +384,12 @@ where
             increment_node_idx_to_descendant_count(old_child, cur_node_idx);
         }
     }
+
     // patch order matters here
     // apply changes to the matched element first,
     // since it creates new changes to the child index nodes
     patches.extend(matched_keyed_element_patches);
-    patches.extend(insert_children_patches);
+    patches.extend(insert_node_patches);
     patches.extend(append_children_patches);
     patches.extend(remove_node_patches);
     patches
