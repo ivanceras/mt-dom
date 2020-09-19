@@ -6,7 +6,6 @@ use crate::{
         AddAttributes,
         AppendChildren,
         ChangeText,
-        InsertNode,
         RemoveAttributes,
         RemoveNode,
         ReplaceNode,
@@ -19,10 +18,7 @@ use crate::{
 use keyed_elements::diff_keyed_elements;
 use std::{
     cmp,
-    collections::BTreeMap,
     fmt,
-    hash::Hash,
-    iter::FromIterator,
     mem,
 };
 
@@ -209,12 +205,6 @@ where
     ATT: PartialEq + fmt::Debug,
     VAL: PartialEq + fmt::Debug,
 {
-    //log::trace!(
-    //    "entering diff_non_keyed_elements at cur_node_idx: {}",
-    //    cur_node_idx
-    //);
-    let this_cur_node_idx = *cur_node_idx;
-
     let mut patches = vec![];
     let attributes_patches =
         diff_attributes(old_element, new_element, cur_node_idx);

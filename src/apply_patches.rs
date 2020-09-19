@@ -1,13 +1,12 @@
+//! apply patches for verifying the patches are correct when current_dom will be equal to the
+//! target_dom when patches is applied.
+//!
 use crate::{
     Node,
     NodeIdx,
     Patch,
 };
-use std::{
-    collections::HashMap,
-    fmt,
-    iter::FromIterator,
-};
+use std::fmt;
 
 /// had to find the node each time, since rust does not allow multiple mutable borrows
 /// ISSUE: once a destructive patch such as RemoveChildren, InsertNode, ReplaceNode is applied
@@ -101,7 +100,7 @@ pub fn apply_patches<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
     }
 }
 
-pub fn find_node<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
+pub(crate) fn find_node<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
     node: &'a mut Node<NS, TAG, ATT, VAL, EVENT, MSG>,
     node_idx: NodeIdx,
 ) -> Option<&'a mut Node<NS, TAG, ATT, VAL, EVENT, MSG>>
@@ -182,10 +181,10 @@ where
         }
 
         if let Some(remove_idx) = to_be_remove {
-            let removed = element.children.remove(remove_idx);
-            return true;
+            element.children.remove(remove_idx);
+            true
         } else {
-            for (idx, child) in element.children.iter_mut().enumerate() {
+            for child in element.children.iter_mut() {
                 *cur_node_idx += 1;
                 if remove_node_recursive(child, node_idx, cur_node_idx) {
                     return true;
@@ -243,7 +242,7 @@ where
             element
                 .children
                 .insert(target_insert_idx, for_insert.clone());
-            return true;
+            true
         } else {
             for child in element.children.iter_mut() {
                 *cur_node_idx += 1;
@@ -272,7 +271,31 @@ mod test {
         Node<&'static str, &'static str, &'static str, &'static str, (), ()>;
 
     #[test]
-    fn test_find_node() {
+    fn test_find_node_simple() {
+        let mut old: MyNode = element(
+            "main",
+            vec![attr("class", "test4")],
+            vec![
+                element("header", vec![], vec![text("Items:")]),
+                element(
+                    "section",
+                    vec![attr("class", "todo")],
+                    vec![
+                        element("article", vec![], vec![text("item1")]),
+                        element("article", vec![], vec![text("item2")]),
+                        element("article", vec![], vec![text("item3")]),
+                    ],
+                ),
+                element("footer", vec![], vec![text("3 items left")]),
+            ],
+        );
+        let found = find_node(&mut old, 11);
+        dbg!(&found);
+        assert_eq!(found, Some(&mut text("3 items left")));
+    }
+
+    #[test]
+    fn test_find_node_numbered() {
         let mut old: MyNode = element(
             "elm0",
             vec![attr("node", "0")],

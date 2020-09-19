@@ -3,28 +3,19 @@ use super::{
     increment_node_idx_to_descendant_count,
 };
 use crate::{
-    node::attribute::group_attributes_per_name,
     patch::{
-        AddAttributes,
         AppendChildren,
-        ChangeText,
         InsertNode,
-        RemoveAttributes,
         RemoveNode,
-        ReplaceNode,
     },
-    Attribute,
     Element,
     Node,
     Patch,
 };
 use std::{
-    cmp,
     collections::BTreeMap,
     fmt,
-    hash::Hash,
     iter::FromIterator,
-    mem,
 };
 
 /// find the element and its node_idx which has this key
@@ -53,6 +44,7 @@ where
             {
                 Some((*node_idx, *node))
             } else {
+                /*
                 log::warn!("key {:?} matched but skipping..", key);
                 log::warn!(
                     "because node_idx: {} and last_matched_node_idx: {:?}",
@@ -65,6 +57,7 @@ where
                     "because node_idx: {} and last_matched_node_idx: {:?}",
                     node_idx, last_matched_node_idx
                 );
+                */
                 None
             }
         } else {
@@ -210,7 +203,6 @@ where
     let mut last_matched_new_idx = None;
     // here, we need to processed both keyed element and non-keyed elements
     for (new_idx, (new_key, new_element)) in new_keyed_elements.iter() {
-        println!("new_idx: {}", new_idx);
         if let Some((old_idx, old_element)) = find_node_with_key(
             &old_keyed_elements,
             new_key,
@@ -229,7 +221,6 @@ where
                 matched_old_new_keyed
                     .insert((old_idx, *new_idx), (old_element, new_element));
             } else {
-                log::warn!("matched new_key: {:?}, but skipping", new_key);
             }
         }
     }
@@ -278,7 +269,7 @@ where
     matched_old_new_keyed.extend(matched_old_new);
 
     // unmatched old and idx in pass 2
-    let (matched_old_idx_pass2, matched_new_idx_pass2) =
+    let (_matched_old_idx_pass2, matched_new_idx_pass2) =
         get_matched_old_new_idx(&matched_old_new_keyed);
 
     // this elements are for inserting, appending
@@ -287,30 +278,7 @@ where
         matched_new_idx_pass2,
     );
 
-    // this elements are for removal
-    let unmatched_old_child_pass2 = get_unmatched_children_node_idx(
-        old_element.get_children(),
-        matched_old_idx_pass2,
-    );
-
-    log::trace!("matched_old_new_keyed: {:#?}", matched_old_new_keyed);
-    log::trace!(
-        "unmatched_new_child_pass2: {:#?}",
-        &unmatched_new_child_pass2
-    );
-
     // group consecutive children to be inserted in one InsertChildren patch
-    let mut grouped_insert_children: BTreeMap<
-        usize,
-        Vec<&'a Node<NS, TAG, ATT, VAL, EVENT, MSG>>,
-    > = BTreeMap::new();
-
-    let unmatched_new_child_idx = unmatched_new_child_pass2
-        .iter()
-        .filter(|(new_idx, _)| *new_idx <= old_element_max_index)
-        .into_iter()
-        .map(|(new_idx, new_child)| new_idx)
-        .collect::<Vec<_>>();
 
     let unmatched_new_child_idx_excess = unmatched_new_child
         .iter()
@@ -352,19 +320,11 @@ where
         if let Some((new_idx, new_child)) =
             find_matched_new_child(&matched_old_new_keyed, old_idx)
         {
-            log::trace!(
-                "time to insert unmatched_new_child lesser than {} at {}",
-                new_idx,
-                cur_node_idx
-            );
-
             for (idx, unmatched) in unmatched_new_child_pass2
                 .iter()
-                .filter(|(idx, new)| *idx < new_idx)
+                .filter(|(idx, _)| *idx < new_idx)
             {
                 if !already_inserted.contains(idx) {
-                    log::trace!("to be inserted here.. {}", idx);
-                    println!("to be inserted: {}", idx);
                     insert_node_patches.push(
                         InsertNode::new(
                             Some(&old_element.tag),

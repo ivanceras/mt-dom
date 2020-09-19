@@ -231,30 +231,6 @@ fn test_multiple_patch_non_keyed() {
 }
 
 #[test]
-fn test_find_node() {
-    let mut old: MyNode = element(
-        "main",
-        vec![attr("class", "test4")],
-        vec![
-            element("header", vec![], vec![text("Items:")]),
-            element(
-                "section",
-                vec![attr("class", "todo")],
-                vec![
-                    element("article", vec![], vec![text("item1")]),
-                    element("article", vec![], vec![text("item2")]),
-                    element("article", vec![], vec![text("item3")]),
-                ],
-            ),
-            element("footer", vec![], vec![text("3 items left")]),
-        ],
-    );
-    let found = mt_dom::apply_patches::find_node(&mut old, 11);
-    dbg!(&found);
-    assert_eq!(found, Some(&mut text("3 items left")));
-}
-
-#[test]
 fn test_multiple_patch_keyed() {
     let old: MyNode = element(
         "main",
