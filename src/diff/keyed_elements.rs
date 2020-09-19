@@ -83,16 +83,16 @@ fn find_matched_new_child<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
         ),
     >,
     find_old_idx: usize,
-) -> Option<&'a Node<NS, TAG, ATT, VAL, EVENT, MSG>> {
-    matched_old_new_keyed
-        .iter()
-        .find_map(|((old_idx, _), (_, new_child))| {
+) -> Option<(usize, &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>)> {
+    matched_old_new_keyed.iter().find_map(
+        |((old_idx, new_idx), (_, new_child))| {
             if *old_idx == find_old_idx {
-                Some(*new_child)
+                Some((*new_idx, *new_child))
             } else {
                 None
             }
-        })
+        },
+    )
 }
 
 /// find the old_child which has this old_idx
@@ -251,9 +251,6 @@ where
 
     let old_element_max_index = old_element.children.len() - 1;
 
-    dbg!(&unmatched_new_child);
-    dbg!(&unmatched_old_child);
-
     // matched old and new element, not necessarily keyed
     let matched_old_new: BTreeMap<
         (usize, usize),
@@ -296,6 +293,12 @@ where
         matched_old_idx_pass2,
     );
 
+    log::trace!("matched_old_new_keyed: {:#?}", matched_old_new_keyed);
+    log::trace!(
+        "unmatched_new_child_pass2: {:#?}",
+        &unmatched_new_child_pass2
+    );
+
     // group consecutive children to be inserted in one InsertChildren patch
     let mut grouped_insert_children: BTreeMap<
         usize,
@@ -308,27 +311,6 @@ where
         .into_iter()
         .map(|(new_idx, new_child)| new_idx)
         .collect::<Vec<_>>();
-
-    let mut insert_node_patches = vec![];
-    let mut new_child_cur_node_idx = *cur_node_idx;
-    for (new_idx, new_child) in new_element.children.iter().enumerate() {
-        new_child_cur_node_idx += 1;
-        if unmatched_new_child_idx.contains(&&new_idx) {
-            insert_node_patches.push(
-                InsertNode::new(
-                    Some(&old_element.tag),
-                    new_child_cur_node_idx,
-                    new_child,
-                )
-                .into(),
-            );
-        } else {
-            increment_node_idx_to_descendant_count(
-                new_child,
-                &mut new_child_cur_node_idx,
-            );
-        }
-    }
 
     let unmatched_new_child_idx_excess = unmatched_new_child
         .iter()
@@ -357,21 +339,44 @@ where
         }
     }
 
-    let for_removal_old_idx: Vec<usize> = unmatched_old_child_pass2
-        .iter()
-        .map(|(old_idx, _old_child)| *old_idx)
-        .collect();
-
     // process this last so as not to move the cur_node_idx forward
     // and without creating a snapshot for cur_node_idx for other patch types
     let mut matched_keyed_element_patches = vec![];
     let mut remove_node_patches = vec![];
+    let mut insert_node_patches = vec![];
+
+    let mut already_inserted = vec![];
 
     for (old_idx, old_child) in old_element.children.iter().enumerate() {
         *cur_node_idx += 1;
-        if let Some(new_child) =
+        if let Some((new_idx, new_child)) =
             find_matched_new_child(&matched_old_new_keyed, old_idx)
         {
+            log::trace!(
+                "time to insert unmatched_new_child lesser than {} at {}",
+                new_idx,
+                cur_node_idx
+            );
+
+            for (idx, unmatched) in unmatched_new_child_pass2
+                .iter()
+                .filter(|(idx, new)| *idx < new_idx)
+            {
+                if !already_inserted.contains(idx) {
+                    log::trace!("to be inserted here.. {}", idx);
+                    println!("to be inserted: {}", idx);
+                    insert_node_patches.push(
+                        InsertNode::new(
+                            Some(&old_element.tag),
+                            *cur_node_idx,
+                            unmatched,
+                        )
+                        .into(),
+                    );
+                    already_inserted.push(*idx);
+                }
+            }
+
             matched_keyed_element_patches.extend(diff_recursive(
                 old_child,
                 new_child,

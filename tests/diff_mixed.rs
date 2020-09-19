@@ -93,6 +93,7 @@ fn mixed_key_and_no_key_with_misordered_2_matched() {
     );
 
     let diff = diff_with_key(&old, &new, &"key");
+    dbg!(&diff);
 
     assert_eq!(
         diff,

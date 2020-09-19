@@ -481,7 +481,7 @@ fn insert_two_lines_at_start() {
             .into(),
             InsertNode::new(
                 Some(&"main"),
-                3,
+                2,
                 &element(
                     "div",
                     vec![attr("key", "hashYYY")],
