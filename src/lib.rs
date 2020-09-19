@@ -18,15 +18,31 @@
 //! mt-dom is not limited to be used in html base virtual-dom implementation, but can also be use
 //! for native UI elements.
 //!
+pub use apply_patches::apply_patches;
 pub use diff::diff_with_key;
-pub use diff::Patch;
-pub use node::attribute::{
-    attr, attr_ns, merge_attributes_of_same_name, on, AttValue, Callback,
+pub use node::{
+    attribute::{
+        attr,
+        attr_ns,
+        group_attributes_per_name,
+        merge_attributes_of_same_name,
+        on,
+        AttValue,
+        Callback,
+    },
+    element,
+    element_ns,
+    text,
+    Attribute,
+    Element,
+    Node,
 };
-pub use node::Attribute;
-pub use node::Element;
-pub use node::Node;
-pub use node::{element, element_ns, text};
+pub use patch::{
+    NodeIdx,
+    Patch,
+};
 
-mod diff;
+pub mod apply_patches;
+pub mod diff;
 mod node;
+pub mod patch;

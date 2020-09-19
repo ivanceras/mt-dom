@@ -319,8 +319,9 @@ pub fn merge_attributes_of_same_name<NS, ATT, VAL, EVENT, MSG>(
     attributes: &[&Attribute<NS, ATT, VAL, EVENT, MSG>],
 ) -> Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>
 where
-    ATT: PartialEq + Clone,
-    VAL: Clone,
+    NS: fmt::Debug,
+    ATT: PartialEq + Clone + fmt::Debug,
+    VAL: fmt::Debug + Clone,
 {
     let mut merged: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>> = vec![];
     for att in attributes {
@@ -344,7 +345,9 @@ pub fn group_attributes_per_name<'a, NS, ATT, VAL, EVENT, MSG>(
     attributes: &'a [Attribute<NS, ATT, VAL, EVENT, MSG>],
 ) -> Vec<(&'a ATT, Vec<&'a Attribute<NS, ATT, VAL, EVENT, MSG>>)>
 where
-    ATT: PartialEq,
+    NS: fmt::Debug,
+    ATT: PartialEq + fmt::Debug,
+    VAL: fmt::Debug,
 {
     let mut grouped: Vec<(&ATT, Vec<&Attribute<NS, ATT, VAL, EVENT, MSG>>)> =
         vec![];

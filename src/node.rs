@@ -19,7 +19,7 @@ mod element;
 /// virtual dom implementation
 /// VAL - is the type for the value of the attribute, this will be String, f64, or just another
 /// generics that suits the implementing library which used mt-dom for just dom-diffing purposes
-#[derive(Clone, PartialEq)]
+#[derive(PartialEq)]
 pub enum Node<NS, TAG, ATT, VAL, EVENT, MSG> {
     /// Element variant of a virtual node
     Element(Element<NS, TAG, ATT, VAL, EVENT, MSG>),
@@ -281,6 +281,22 @@ where
     }
 }
 
+impl<NS, TAG, ATT, VAL, EVENT, MSG> Clone
+    for Node<NS, TAG, ATT, VAL, EVENT, MSG>
+where
+    NS: Clone,
+    TAG: Clone,
+    ATT: Clone,
+    VAL: Clone,
+{
+    fn clone(&self) -> Self {
+        match self {
+            Node::Element(element) => Node::Element(element.clone()),
+            Node::Text(txt) => Node::Text(txt.clone()),
+        }
+    }
+}
+
 /// create a virtual node with tag, attrs and children
 #[inline]
 pub fn element<NS, TAG, ATT, VAL, EVENT, MSG>(
@@ -288,7 +304,7 @@ pub fn element<NS, TAG, ATT, VAL, EVENT, MSG>(
     attrs: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>,
     children: Vec<Node<NS, TAG, ATT, VAL, EVENT, MSG>>,
 ) -> Node<NS, TAG, ATT, VAL, EVENT, MSG> {
-    element_ns(None, tag, attrs, children)
+    element_ns(None, tag, attrs, children, false)
 }
 
 /// create a virtual node with namespace, tag, attrs and children
@@ -298,8 +314,9 @@ pub fn element_ns<NS, TAG, ATT, VAL, EVENT, MSG>(
     tag: TAG,
     attrs: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>,
     children: Vec<Node<NS, TAG, ATT, VAL, EVENT, MSG>>,
+    self_closing: bool,
 ) -> Node<NS, TAG, ATT, VAL, EVENT, MSG> {
-    Node::Element(Element::new(namespace, tag, attrs, children))
+    Node::Element(Element::new(namespace, tag, attrs, children, self_closing))
 }
 
 /// Create a textnode element

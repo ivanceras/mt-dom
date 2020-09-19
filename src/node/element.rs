@@ -1,6 +1,8 @@
-use crate::node::attribute::Callback;
-use crate::node::Attribute;
-use crate::node::Node;
+use crate::node::{
+    attribute::Callback,
+    Attribute,
+    Node,
+};
 use std::fmt;
 
 /// Represents an element of the virtual node
@@ -16,7 +18,7 @@ use std::fmt;
 ///
 /// The namespace is also needed in attributes where namespace are necessary such as `xlink:href`
 /// where the namespace `xlink` is needed in order for the linked element in an svg image to work.
-#[derive(Clone, PartialEq, Default)]
+#[derive(PartialEq, Default)]
 pub struct Element<NS, TAG, ATT, VAL, EVENT, MSG> {
     /// namespace of this element,
     /// svg elements requires namespace to render correcly in the browser
@@ -27,6 +29,8 @@ pub struct Element<NS, TAG, ATT, VAL, EVENT, MSG> {
     pub attrs: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>,
     /// children elements of this element
     pub children: Vec<Node<NS, TAG, ATT, VAL, EVENT, MSG>>,
+    /// is the element has a self closing tag
+    pub self_closing: bool,
 }
 
 impl<NS, TAG, ATT, VAL, EVENT, MSG> Element<NS, TAG, ATT, VAL, EVENT, MSG> {
@@ -36,14 +40,17 @@ impl<NS, TAG, ATT, VAL, EVENT, MSG> Element<NS, TAG, ATT, VAL, EVENT, MSG> {
         tag: TAG,
         attrs: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>,
         children: Vec<Node<NS, TAG, ATT, VAL, EVENT, MSG>>,
+        self_closing: bool,
     ) -> Self {
         Element {
             namespace,
             tag,
             attrs,
             children,
+            self_closing,
         }
     }
+
     /// add attributes to this element
     pub fn add_attributes(
         &mut self,
@@ -193,6 +200,7 @@ where
                 .into_iter()
                 .map(|child| child.map_callback(cb.clone()))
                 .collect(),
+            self_closing: self.self_closing,
         }
     }
 }
@@ -216,8 +224,28 @@ where
             .field("tag", &self.tag)
             .field("attrs", &self.attrs)
             .field("children", &self.children)
+            .field("self_closing", &self.self_closing)
             .finish()?;
 
         Ok(())
+    }
+}
+
+impl<NS, TAG, ATT, VAL, EVENT, MSG> Clone
+    for Element<NS, TAG, ATT, VAL, EVENT, MSG>
+where
+    NS: Clone,
+    TAG: Clone,
+    ATT: Clone,
+    VAL: Clone,
+{
+    fn clone(&self) -> Self {
+        Element {
+            namespace: self.namespace.clone(),
+            tag: self.tag.clone(),
+            attrs: self.attrs.clone(),
+            children: self.children.clone(),
+            self_closing: self.self_closing,
+        }
     }
 }

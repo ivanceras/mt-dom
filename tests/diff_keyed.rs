@@ -1,4 +1,8 @@
-use mt_dom::*;
+use mt_dom::{
+    diff::*,
+    patch::*,
+    *,
+};
 
 pub type MyNode =
     Node<&'static str, &'static str, &'static str, &'static str, (), ()>;
@@ -39,7 +43,28 @@ fn key_1_removed_at_start() {
     );
 
     let diff = diff_with_key(&old, &new, &"key");
-    assert_eq!(diff, vec![Patch::RemoveChildren(&"main", 0, vec![0])]);
+    assert_eq!(diff, vec![RemoveNode::new(Some(&"div"), 1).into()]);
+}
+
+#[test]
+fn non_unique_keys_matched_at_old() {
+    let old: MyNode = element(
+        "main",
+        vec![attr("class", "container")],
+        vec![
+            element("div", vec![attr("key", "2")], vec![]),
+            element("div", vec![attr("key", "2")], vec![]),
+        ],
+    );
+
+    let new: MyNode = element(
+        "main",
+        vec![attr("class", "container")],
+        vec![element("div", vec![attr("key", "2")], vec![])],
+    );
+
+    let diff = diff_with_key(&old, &new, &"key");
+    assert_eq!(diff, vec![RemoveNode::new(Some(&"div"), 2).into()]);
 }
 
 #[test]
@@ -60,7 +85,7 @@ fn key_2_removed_at_the_end() {
     );
 
     let diff = diff_with_key(&old, &new, &"key");
-    assert_eq!(diff, vec![Patch::RemoveChildren(&"main", 0, vec![1])]);
+    assert_eq!(diff, vec![RemoveNode::new(Some(&"div"), 2).into()]);
 }
 
 #[test]
@@ -85,7 +110,119 @@ fn key_2_removed_at_the_middle() {
     );
 
     let diff = diff_with_key(&old, &new, &"key");
-    assert_eq!(diff, vec![Patch::RemoveChildren(&"main", 0, vec![1])]);
+    assert_eq!(diff, vec![RemoveNode::new(Some(&"div"), 2).into()]);
+}
+
+#[test]
+fn there_are_2_exact_same_keys_in_the_old() {
+    let old: MyNode = element(
+        "main",
+        vec![attr("class", "container")],
+        vec![
+            element("div", vec![attr("key", "1")], vec![text(0)]),
+            element("div", vec![attr("key", "1")], vec![text(1)]),
+            element("div", vec![attr("key", "3")], vec![text(2)]),
+        ],
+    );
+
+    let new: MyNode = element(
+        "main",
+        vec![attr("class", "container")],
+        vec![
+            element("div", vec![attr("key", "1")], vec![text(1)]),
+            element("div", vec![attr("key", "3")], vec![text(2)]),
+        ],
+    );
+
+    let diff = diff_with_key(&old, &new, &"key");
+
+    dbg!(&diff);
+
+    assert_eq!(
+        diff,
+        vec![
+            ChangeText::new(2, "0", "1").into(),
+            RemoveNode::new(Some(&"div"), 3).into()
+        ]
+    );
+}
+
+#[test]
+fn there_are_2_exact_same_keys_in_the_new() {
+    let old: MyNode = element(
+        "main",
+        vec![attr("class", "container")],
+        vec![
+            element("div", vec![attr("key", "1")], vec![text(0)]),
+            element("div", vec![attr("key", "3")], vec![text(2)]),
+        ],
+    );
+
+    let new: MyNode = element(
+        "main",
+        vec![attr("class", "container")],
+        vec![
+            element("div", vec![attr("key", "1")], vec![text(1)]),
+            element("div", vec![attr("key", "1")], vec![text(1)]),
+            element("div", vec![attr("key", "3")], vec![text(2)]),
+        ],
+    );
+
+    let diff = diff_with_key(&old, &new, &"key");
+    assert_eq!(
+        diff,
+        vec![
+            ChangeText::new(2, "0", "1").into(),
+            InsertNode::new(
+                Some(&"main"),
+                3,
+                &element("div", vec![attr("key", "1")], vec![text(1)])
+            )
+            .into(),
+        ]
+    );
+}
+
+#[test]
+fn there_are_2_exact_same_keys_in_both_old_and_new() {
+    let old: MyNode = element(
+        "main",
+        vec![attr("class", "container")],
+        vec![
+            element("div", vec![attr("key", "1")], vec![text(0)]), //matched 1
+            element("div", vec![attr("key", "3")], vec![text(1)]),
+            element("div", vec![attr("key", "3")], vec![text(2)]),
+        ],
+    );
+
+    let new: MyNode = element(
+        "main",
+        vec![attr("class", "container")],
+        vec![
+            element("div", vec![attr("key", "1")], vec![text(1)]), //matched 1
+            element("div", vec![attr("key", "1")], vec![text(2)]),
+            element("div", vec![attr("key", "3")], vec![text(3)]),
+        ],
+    );
+
+    let diff = diff_with_key(&old, &new, &"key");
+
+    dbg!(&diff);
+
+    assert_eq!(
+        diff,
+        vec![
+            ChangeText::new(2, "0", "1").into(),
+            ChangeText::new(4, "1", "3").into(),
+            InsertNode::new(
+                Some(&"main"),
+                3,
+                &element("div", vec![attr("key", "1")], vec![text(2)])
+            )
+            .into(),
+            RemoveNode::new(Some(&"div"), 5).into(),
+        ]
+    );
 }
 
 #[test]
@@ -106,14 +243,16 @@ fn key_2_inserted_at_start() {
     );
 
     let diff = diff_with_key(&old, &new, &"key");
+    dbg!(&diff);
+
     assert_eq!(
         diff,
-        vec![Patch::InsertChildren(
-            &"main",
-            0,
-            0,
-            vec![&element("div", vec![attr("key", "2")], vec![])]
-        )]
+        vec![InsertNode::new(
+            Some(&"main"),
+            1,
+            &element("div", vec![attr("key", "2")], vec![])
+        )
+        .into()]
     );
 }
 
@@ -137,11 +276,12 @@ fn key_2_inserted_at_the_end() {
     let diff = diff_with_key(&old, &new, &"key");
     assert_eq!(
         diff,
-        vec![Patch::AppendChildren(
+        vec![AppendChildren::new(
             &"main",
             0,
             vec![&element("div", vec![attr("key", "2")], vec![])]
-        )]
+        )
+        .into()]
     );
 }
 
@@ -167,14 +307,17 @@ fn key_2_inserted_in_the_middle() {
     );
 
     let diff = diff_with_key(&old, &new, &"key");
+
+    dbg!(&diff);
+
     assert_eq!(
         diff,
-        vec![Patch::InsertChildren(
-            &"main",
-            0,
-            1,
-            vec![&element("div", vec![attr("key", "2")], vec![])]
-        )]
+        vec![InsertNode::new(
+            Some(&"main"),
+            2,
+            &element("div", vec![attr("key", "2")], vec![])
+        )
+        .into()]
     );
 }
 
@@ -203,8 +346,13 @@ fn key1_removed_at_start_then_key2_has_additional_attributes() {
     assert_eq!(
         diff,
         vec![
-            Patch::AddAttributes(&"div", 2, vec![&attr("class", "some-class")]),
-            Patch::RemoveChildren(&"main", 0, vec![0]),
+            AddAttributes::new(
+                &"div",
+                2,
+                vec![&attr("class", "some-class").into()]
+            )
+            .into(),
+            RemoveNode::new(Some(&"div"), 1).into(),
         ]
     );
 }
@@ -242,8 +390,13 @@ fn deep_nested_key1_removed_at_start_then_key2_has_additional_attributes() {
     assert_eq!(
         diff,
         vec![
-            Patch::AddAttributes(&"div", 3, vec![&attr("class", "some-class")]),
-            Patch::RemoveChildren(&"article", 1, vec![0]),
+            AddAttributes::new(
+                &"div",
+                3,
+                vec![&attr("class", "some-class").into()]
+            )
+            .into(),
+            RemoveNode::new(Some(&"div"), 2).into(),
         ]
     );
 }
@@ -283,8 +436,14 @@ fn deep_nested_more_children_key0_and_key1_removed_at_start_then_key2_has_additi
     assert_eq!(
         diff,
         vec![
-            Patch::AddAttributes(&"div", 4, vec![&attr("class", "some-class")]),
-            Patch::RemoveChildren(&"article", 1, vec![0, 1]),
+            AddAttributes::new(
+                &"div",
+                4,
+                vec![&attr("class", "some-class").into()]
+            )
+            .into(),
+            RemoveNode::new(Some(&"div"), 2).into(),
+            RemoveNode::new(Some(&"div"), 3).into(),
         ]
     );
 }
@@ -345,10 +504,17 @@ fn deep_nested_keyed_with_non_keyed_children() {
     assert_eq!(
         diff,
         vec![
-            Patch::AddAttributes(&"div", 4, vec![&attr("class", "some-class")]),
-            Patch::ChangeText(6, "paragraph1, with added content"),
-            Patch::ChangeText(8, "Click here to continue"),
-            Patch::RemoveChildren(&"article", 1, vec![0, 1]),
+            AddAttributes::new(
+                &"div",
+                4,
+                vec![&attr("class", "some-class").into()]
+            )
+            .into(),
+            ChangeText::new(6, "paragraph1", "paragraph1, with added content")
+                .into(),
+            ChangeText::new(8, "Click here", "Click here to continue").into(),
+            RemoveNode::new(Some(&"div"), 2).into(),
+            RemoveNode::new(Some(&"div"), 3).into(),
         ]
     );
 }
@@ -391,8 +557,8 @@ fn text_changed_in_keyed_elements() {
     assert_eq!(
         patch,
         vec![
-            Patch::ChangeText(7, "item3 with changes"),
-            Patch::RemoveChildren(&"section", 1, vec![0])
+            ChangeText::new(7, "item3", "item3 with changes").into(),
+            RemoveNode::new(Some(&"article"), 2).into()
         ]
     );
 }
@@ -457,9 +623,9 @@ fn text_changed_in_mixed_keyed_and_non_keyed_elements() {
     assert_eq!(
         patch,
         vec![
-            Patch::ChangeText(7, "item3 with changes"),
-            Patch::RemoveChildren(&"section", 1, vec![0]),
-            Patch::ChangeText(9, "2 items left"),
+            ChangeText::new(7, "item3", "item3 with changes").into(),
+            RemoveNode::new(Some(&"article"), 2).into(),
+            ChangeText::new(9, "3 items left", "2 items left").into(),
         ]
     );
 }
@@ -527,9 +693,9 @@ fn test12() {
     assert_eq!(
         patch,
         vec![
-            Patch::ChangeText(9, "item3 with changes"),
-            Patch::RemoveChildren(&"section", 3, vec![0]),
-            Patch::ChangeText(11, "2 items left"),
+            ChangeText::new(9, "item3", "item3 with changes").into(),
+            RemoveNode::new(Some(&"article"), 4).into(),
+            ChangeText::new(11, "3 items left", "2 items left").into(),
         ]
     );
 }

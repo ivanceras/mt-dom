@@ -1,5 +1,8 @@
 #![deny(warnings)]
-use mt_dom::*;
+use mt_dom::{
+    patch::*,
+    *,
+};
 
 pub type MyNode =
     Node<&'static str, &'static str, &'static str, &'static str, (), ()>;
@@ -10,7 +13,7 @@ fn test_replace_node() {
     let new = element("span", vec![], vec![]);
 
     let diff = diff_with_key(&old, &new, &"key");
-    assert_eq!(diff, vec![Patch::Replace(&"div", 0, &new)],);
+    assert_eq!(diff, vec![ReplaceNode::new(&"div", 0, &new).into()],);
 }
 
 #[test]
@@ -22,7 +25,12 @@ fn test_replace_node_in_child() {
     let diff = diff_with_key(&old, &new, &"key");
     assert_eq!(
         diff,
-        vec![Patch::Replace(&"div", 1, &element("span", vec![], vec![]))],
+        vec![ReplaceNode::new(
+            &"div",
+            1,
+            &element("span", vec![], vec![]).into()
+        )
+        .into()],
         "Should replace the first node"
     );
 }
@@ -57,8 +65,8 @@ fn test_205() {
     assert_eq!(
         diff_with_key(&old, &new, &"key"),
         vec![
-            Patch::RemoveChildren(&"b", 1, vec![1]),
-            Patch::Replace(&"b", 4, &element("i", vec![], vec![])),
+            RemoveNode::new(Some(&"i"), 3).into(),
+            ReplaceNode::new(&"b", 4, &element("i", vec![], vec![])).into(),
         ],
     )
 }
@@ -116,11 +124,12 @@ fn test_class_changed() {
     let diff = diff_with_key(&old, &new, &"key");
     assert_eq!(
         diff,
-        vec![Patch::AddAttributes(
+        vec![AddAttributes::new(
             &"div",
             0,
             vec![&attr("class", "some-class2")]
-        )]
+        )
+        .into()]
     )
 }
 
@@ -139,7 +148,10 @@ fn text_node_changed() {
     );
 
     let diff = diff_with_key(&old, &new, &"key");
-    assert_eq!(diff, vec![Patch::ChangeText(1, "text2")])
+    assert_eq!(
+        diff,
+        vec![Patch::ChangeText(ChangeText::new(1, "text1", "text2"))]
+    )
 }
 
 #[test]
@@ -155,7 +167,7 @@ fn test_class_will_not_be_merged_on_different_calls() {
     let diff = diff_with_key(&old, &new, &"key");
     assert_ne!(
         diff,
-        vec![Patch::AddAttributes(
+        vec![AddAttributes::new(
             &"div",
             0,
             vec![&Attribute::with_multiple_values(
@@ -163,7 +175,8 @@ fn test_class_will_not_be_merged_on_different_calls() {
                 "class",
                 vec!["class1", "class2"]
             )]
-        )]
+        )
+        .into()]
     )
 }
 
@@ -180,11 +193,12 @@ fn test_class_removed() {
     let diff = diff_with_key(&old, &new, &"key");
     assert_eq!(
         diff,
-        vec![Patch::RemoveAttributes(
+        vec![RemoveAttributes::new(
             &"div",
             0,
             vec![&attr("class", "some-class")]
-        )]
+        )
+        .into()]
     )
 }
 
@@ -211,13 +225,33 @@ fn test_multiple_calls_to_style() {
     let diff = diff_with_key(&old, &new, &"key");
     assert_eq!(
         diff,
-        vec![Patch::AddAttributes(
+        vec![AddAttributes::new(
             &"div",
             0,
             vec![
                 &attr("style", "display:flex"),
                 &attr("style", "width:200px;height:200px"),
             ]
-        )]
+        )
+        .into()]
+    )
+}
+
+#[test]
+fn inner_html_func_calls() {
+    let old: MyNode = element("div", vec![], vec![]);
+
+    let new: MyNode =
+        element("div", vec![attr("inner_html", "<h1>Hello</h2>")], vec![]);
+
+    let diff = diff_with_key(&old, &new, &"key");
+    assert_eq!(
+        diff,
+        vec![AddAttributes::new(
+            &"div",
+            0,
+            vec![&attr("inner_html", "<h1>Hello</h2>")]
+        )
+        .into()]
     )
 }
