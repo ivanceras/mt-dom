@@ -10,7 +10,7 @@ pub type MyNode =
 
 #[test]
 fn append_children() {
-    let mut old: MyNode = element(
+    let old: MyNode = element(
         "main",
         vec![attr("class", "container")],
         vec![element("div", vec![attr("key", "1")], vec![])],

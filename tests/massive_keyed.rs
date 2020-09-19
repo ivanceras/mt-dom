@@ -56,7 +56,7 @@ fn key_inserted_at_start() {
 
 #[test]
 fn key_inserted_at_middle() {
-    pretty_env_logger::try_init();
+    pretty_env_logger::try_init().ok();
     let old: MyNode = element(
         "main",
         vec![attr("class", "container")],
@@ -104,7 +104,7 @@ fn key_inserted_at_middle() {
 
 #[test]
 fn wrapped_elements() {
-    pretty_env_logger::try_init();
+    pretty_env_logger::try_init().ok();
     let old: MyNode = element(
         "article",
         vec![],
@@ -160,7 +160,7 @@ fn wrapped_elements() {
 
 #[test]
 fn text_changed() {
-    pretty_env_logger::try_init();
+    pretty_env_logger::try_init().ok();
     let old: MyNode = element(
         "article",
         vec![],
@@ -214,7 +214,7 @@ fn text_changed() {
 
 #[test]
 fn text_changed_non_keyed() {
-    pretty_env_logger::try_init();
+    pretty_env_logger::try_init().ok();
     let old: MyNode = element(
         "article",
         vec![],
@@ -264,7 +264,7 @@ fn text_changed_non_keyed() {
 
 #[test]
 fn insert_one_line_at_start() {
-    pretty_env_logger::try_init();
+    pretty_env_logger::try_init().ok();
     let old: MyNode = element(
         "article",
         vec![],
@@ -370,7 +370,7 @@ fn insert_one_line_at_start() {
 
 #[test]
 fn insert_two_lines_at_start() {
-    pretty_env_logger::try_init();
+    pretty_env_logger::try_init().ok();
     let old: MyNode = element(
         "article",
         vec![],
