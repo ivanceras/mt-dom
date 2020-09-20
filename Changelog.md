@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.5.2
+- Fix bug on attributes not diffed in keyed_elements
+
 ## 0.5.1
 - Fix bug on AppendChildren node_idx
 
