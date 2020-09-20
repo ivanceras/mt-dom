@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.0
+- Overhaul the algorithmn for the diffing keyed elements.
+- Change InsertChildren into InsertNode
+- Change RemoveChildren into RemoveNode
+- Add apply_patches for mt-dom for verifying the patch produces the target vdom
+- Add Debug contraint for NS,ATT and VAL for easier debugging
+- Add a self closing flag in Element
+- Improve the diffing algorithm for keyed elements to accomodate included elements that are not keyed
+- Add with-measure feature to see what's happenning inside the code
+
 ## 0.4.1
 - Add utility `node_count` function to count the number of nodes from the node tree
 - Add a function `add_children_ref_mut` to `Node` for node to add a children using a mutable reference to self
