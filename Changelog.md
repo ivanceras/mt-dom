@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.5.1
+- Fix bug on AppendChildren node_idx
+
 ## 0.5.0
 - Overhaul the algorithmn for the diffing keyed elements.
 - Change InsertChildren into InsertNode
