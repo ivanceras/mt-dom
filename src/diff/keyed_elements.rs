@@ -275,7 +275,7 @@ where
     // keeps track of new_idx that is part of the InsertNode
     let mut already_inserted = vec![];
 
-    let mut new_child_excess_cur_node_idx = *cur_node_idx;
+    let new_child_excess_cur_node_idx = *cur_node_idx;
 
     for (old_idx, old_child) in old_element.children.iter().enumerate() {
         *cur_node_idx += 1;
@@ -315,30 +315,18 @@ where
 
     // the node that are to be appended are nodes
     // that are not matched, and not already part of the InsertNode
-    let unmatched_new_child_idx_excess = unmatched_new_child_pass2
+    let append_children_patches = unmatched_new_child_pass2
         .iter()
         .filter(|(new_idx, _)| !already_inserted.contains(&new_idx))
-        .map(|(new_idx, _)| new_idx)
-        .collect::<Vec<_>>();
-
-    let mut append_children_patches = vec![];
-    for (new_idx, new_child) in new_element.children.iter().enumerate() {
-        if unmatched_new_child_idx_excess.contains(&&new_idx) {
-            append_children_patches.push(
-                AppendChildren::new(
-                    &old_element.tag,
-                    new_child_excess_cur_node_idx,
-                    vec![new_child],
-                )
-                .into(),
+        .map(|(_, new_child)| {
+            AppendChildren::new(
+                &old_element.tag,
+                new_child_excess_cur_node_idx,
+                vec![new_child],
             )
-        } else {
-            increment_node_idx_to_descendant_count(
-                new_child,
-                &mut new_child_excess_cur_node_idx,
-            );
-        }
-    }
+            .into()
+        })
+        .collect::<Vec<_>>();
 
     // patch order matters here
     // apply changes to the matched element first,
