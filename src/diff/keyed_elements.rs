@@ -1,4 +1,5 @@
 use super::{
+    diff_attributes,
     diff_recursive,
     increment_node_idx_to_descendant_count,
 };
@@ -143,6 +144,9 @@ where
     VAL: PartialEq + fmt::Debug,
 {
     let mut patches = vec![];
+
+    let attributes_patches =
+        diff_attributes(old_element, new_element, cur_node_idx);
     // create a map for both the old and new element
     // we can not use VAL as the key, since it is not Hash
     let old_keyed_elements: BTreeMap<
@@ -331,6 +335,7 @@ where
     // patch order matters here
     // apply changes to the matched element first,
     // since it creates new changes to the child index nodes
+    patches.extend(attributes_patches);
     patches.extend(matched_keyed_element_patches);
     patches.extend(insert_node_patches);
     patches.extend(append_children_patches);

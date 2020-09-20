@@ -276,6 +276,7 @@ where
         group_attributes_per_name(new_element.get_attributes());
     let old_attributes_grouped =
         group_attributes_per_name(old_element.get_attributes());
+
     // for all new elements that doesn't exist in the old elements
     // or the values differ
     // add it to the AddAttribute patches
