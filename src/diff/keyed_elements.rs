@@ -131,17 +131,22 @@ fn get_unmatched_children_node_idx<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
 ///     - inserted if the child node_idx <= old elements children
 ///     - appended if the child node_idx is > old elements children
 ///
-pub fn diff_keyed_elements<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG>(
+pub fn diff_keyed_elements<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG, SKIP>(
     old_element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
     new_element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
     key: &ATT,
     cur_node_idx: &'b mut usize,
+    skip: &SKIP,
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
 where
     NS: PartialEq + fmt::Debug,
     TAG: PartialEq + fmt::Debug,
     ATT: PartialEq + fmt::Debug,
     VAL: PartialEq + fmt::Debug,
+    SKIP: Fn(
+        &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+        &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+    ) -> bool,
 {
     let mut patches = vec![];
 
@@ -309,6 +314,7 @@ where
                 new_child,
                 cur_node_idx,
                 key,
+                skip,
             ));
         } else {
             remove_node_patches

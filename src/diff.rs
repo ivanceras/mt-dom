@@ -25,12 +25,9 @@ use std::{
 mod keyed_elements;
 
 /// calculate the difference of 2 nodes
-/// the supplied key will be taken into account
-/// that if the 2 keys differ, the element will be replaced without having to traverse the children
-/// nodes
 pub fn diff_with_key<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
-    old: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
-    new: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+    old_node: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+    new_node: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
     key: &ATT,
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
 where
@@ -39,13 +36,37 @@ where
     NS: PartialEq + fmt::Debug,
     VAL: PartialEq + fmt::Debug,
 {
-    diff_recursive(old, new, &mut 0, key)
+    diff_recursive(old_node, new_node, &mut 0, key, &|_old, _new| false)
+}
+
+/// calculate the difference of 2 nodes
+/// if the skip function evaluates to true diffinf of
+/// the node will be skipped entirely
+pub fn diff_with_key_and_skip<'a, NS, TAG, ATT, VAL, EVENT, MSG, SKIP>(
+    old_node: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+    new_node: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+    key: &ATT,
+    skip: &SKIP,
+) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
+where
+    TAG: PartialEq + fmt::Debug,
+    ATT: PartialEq + fmt::Debug,
+    NS: PartialEq + fmt::Debug,
+    VAL: PartialEq + fmt::Debug,
+    SKIP: Fn(
+        &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+        &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+    ) -> bool,
+{
+    diff_recursive(old_node, new_node, &mut 0, key, skip)
 }
 
 /// increment the cur_node_idx based on how many descendant it contains.
 ///
 /// Note: This is not including the count of itself, since the node is being processed and the cur_node_idx is
 /// incremented in the loop together with its siblings
+/// TODO: this can be optimize by adding the children count
+/// and then descending into element node that has children only
 pub(crate) fn increment_node_idx_to_descendant_count<
     NS,
     TAG,
@@ -99,24 +120,35 @@ where
     }
 }
 
-fn diff_recursive<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG>(
-    old: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
-    new: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+fn diff_recursive<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG, SKIP>(
+    old_node: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+    new_node: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
     cur_node_idx: &'b mut usize,
     key: &ATT,
+    skip: &SKIP,
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
 where
     NS: PartialEq + fmt::Debug,
     TAG: PartialEq + fmt::Debug,
     ATT: PartialEq + fmt::Debug,
     VAL: PartialEq + fmt::Debug,
+    SKIP: Fn(
+        &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+        &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+    ) -> bool,
 {
-    //log::trace!("entering diff_recursive at cur_node_idx: {}", cur_node_idx);
+    // skip diffing if the function evaluates to true
+    if skip(old_node, new_node) {
+        increment_node_idx_to_descendant_count(old_node, cur_node_idx);
+        return vec![];
+    }
     let mut patches = vec![];
     // Different enum variants, replace!
-    let mut replace = mem::discriminant(old) != mem::discriminant(new);
+    let mut replace =
+        mem::discriminant(old_node) != mem::discriminant(new_node);
 
-    if let (Node::Element(old_element), Node::Element(new_element)) = (old, new)
+    if let (Node::Element(old_element), Node::Element(new_element)) =
+        (old_node, new_node)
     {
         // Replace if there are different element tags
         if old_element.tag != new_element.tag {
@@ -126,16 +158,17 @@ where
 
     // Handle replacing of a node
     if replace {
-        //log::trace!("replacing {:?} with {:?}", old, new);
-        patches.push(ReplaceNode::new(old.tag(), *cur_node_idx, &new).into());
-        increment_node_idx_to_descendant_count(old, cur_node_idx);
+        patches.push(
+            ReplaceNode::new(old_node.tag(), *cur_node_idx, &new_node).into(),
+        );
+        increment_node_idx_to_descendant_count(old_node, cur_node_idx);
         return patches;
     }
 
     // The following comparison can only contain identical variants, other
     // cases have already been handled above by comparing variant
     // discriminants.
-    match (old, new) {
+    match (old_node, new_node) {
         // We're comparing two text nodes
         (Node::Text(old_text), Node::Text(new_text)) => {
             if old_text != new_text {
@@ -154,6 +187,7 @@ where
                     new_element,
                     key,
                     cur_node_idx,
+                    skip,
                 );
                 patches.extend(keyed_patches);
             } else {
@@ -162,6 +196,7 @@ where
                     new_element,
                     key,
                     cur_node_idx,
+                    skip,
                 );
                 patches.extend(non_keyed_patches);
             }
@@ -187,17 +222,22 @@ where
 ///  it will be all appended in the old_element.
 ///
 ///
-fn diff_non_keyed_elements<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG>(
+fn diff_non_keyed_elements<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG, SKIP>(
     old_element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
     new_element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
     key: &ATT,
     cur_node_idx: &'b mut usize,
+    skip: &SKIP,
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
 where
     NS: PartialEq + fmt::Debug,
     TAG: PartialEq + fmt::Debug,
     ATT: PartialEq + fmt::Debug,
     VAL: PartialEq + fmt::Debug,
+    SKIP: Fn(
+        &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+        &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+    ) -> bool,
 {
     let mut patches = vec![];
     let attributes_patches =
@@ -207,7 +247,7 @@ where
     let old_child_count = old_element.children.len();
     let new_child_count = new_element.children.len();
 
-    // If there are more new child than old child, we make a patch to append the excess element
+    // If there are more new child than old_node child, we make a patch to append the excess element
     // starting from old_child_count to the last item of the new_elements
     if new_child_count > old_child_count {
         let append_patch: Vec<&'a Node<NS, TAG, ATT, VAL, EVENT, MSG>> =
@@ -223,13 +263,15 @@ where
     for index in 0..min_count {
         *cur_node_idx += 1;
 
-        let old_child =
-            &old_element.children.get(index).expect("No old child node");
+        let old_child = &old_element
+            .children
+            .get(index)
+            .expect("No old_node child node");
         let new_child =
             &new_element.children.get(index).expect("No new chold node");
 
         let more_patches =
-            diff_recursive(old_child, new_child, cur_node_idx, key);
+            diff_recursive(old_child, new_child, cur_node_idx, key, skip);
         patches.extend(more_patches);
     }
 
@@ -246,7 +288,7 @@ where
     patches
 }
 
-/// diff the attributes of old element to the new element at this cur_node_idx
+/// diff the attributes of old_node element to the new element at this cur_node_idx
 ///
 /// Note: The performance bottlenecks
 ///     - allocating new vec

@@ -12,3 +12,4 @@
     - For RemoveChildren, the NodeIdx will be the actual NodeIdx of the node to be removed
 - [X] Deprecate RemoveChildren with RemoveNode
 - [X] Deprecate InsertChildren with InsertNode
+- [ ] Add skip mechanism to skip diffing nodes marked with this.
