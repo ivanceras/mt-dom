@@ -102,7 +102,7 @@ impl<'a, NS, TAG, ATT, VAL, EVENT, MSG>
             Patch::InsertNode(ic) => ic.tag,
             Patch::AppendChildren(ac) => Some(ac.tag),
             Patch::RemoveNode(rn) => rn.tag,
-            Patch::ReplaceNode(rn) => Some(rn.tag),
+            Patch::ReplaceNode(rn) => rn.tag,
             Patch::AddAttributes(at) => Some(at.tag),
             Patch::RemoveAttributes(rt) => Some(rt.tag),
             Patch::ChangeText(_) => None,

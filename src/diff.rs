@@ -126,14 +126,8 @@ where
 
     // Handle replacing of a node
     if replace {
-        patches.push(
-            ReplaceNode::new(
-                old.tag().expect("must have a tag"),
-                *cur_node_idx,
-                &new,
-            )
-            .into(),
-        );
+        //log::trace!("replacing {:?} with {:?}", old, new);
+        patches.push(ReplaceNode::new(old.tag(), *cur_node_idx, &new).into());
         increment_node_idx_to_descendant_count(old, cur_node_idx);
         return patches;
     }

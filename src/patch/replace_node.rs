@@ -7,7 +7,8 @@ use std::fmt;
 #[derive(PartialEq)]
 pub struct ReplaceNode<'a, NS, TAG, ATT, VAL, EVENT, MSG> {
     /// the tag of the node we are going to replace
-    pub tag: &'a TAG,
+    /// can replace text node, and text node doesn't have tags
+    pub tag: Option<&'a TAG>,
     /// the index of the node we are going to replace
     pub node_idx: NodeIdx,
     /// the node that will replace the target node
@@ -19,7 +20,7 @@ impl<'a, NS, TAG, ATT, VAL, EVENT, MSG>
 {
     /// create a new ReplaceNode patch
     pub fn new(
-        tag: &'a TAG,
+        tag: Option<&'a TAG>,
         node_idx: NodeIdx,
         replacement: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
     ) -> Self {

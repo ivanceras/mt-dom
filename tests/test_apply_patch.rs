@@ -73,7 +73,10 @@ fn test_replace_node() {
     let new = element("span", vec![], vec![]);
 
     let patches = diff_with_key(&old, &new, &"key");
-    assert_eq!(patches, vec![ReplaceNode::new(&"div", 0, &new).into()],);
+    assert_eq!(
+        patches,
+        vec![ReplaceNode::new(Some(&"div"), 0, &new).into()],
+    );
 
     let mut old_clone = old.clone();
     apply_patches(&mut old_clone, &patches);
