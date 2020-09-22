@@ -308,7 +308,6 @@ pub fn element<NS, TAG, ATT, VAL, EVENT, MSG>(
 }
 
 /// create a virtual node with namespace, tag, attrs and children
-#[inline]
 pub fn element_ns<NS, TAG, ATT, VAL, EVENT, MSG>(
     namespace: Option<NS>,
     tag: TAG,
@@ -320,7 +319,6 @@ pub fn element_ns<NS, TAG, ATT, VAL, EVENT, MSG>(
 }
 
 /// Create a textnode element
-#[inline]
 pub fn text<S, NS, TAG, ATT, VAL, EVENT, MSG>(
     s: S,
 ) -> Node<NS, TAG, ATT, VAL, EVENT, MSG>
