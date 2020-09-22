@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.5.3
+- Fix ReplaceNode tag to be optional, for replacing text node
+
 ## 0.5.2
 - Fix bug on attributes not diffed in keyed_elements
 
