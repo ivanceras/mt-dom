@@ -12,4 +12,14 @@
     - For RemoveChildren, the NodeIdx will be the actual NodeIdx of the node to be removed
 - [X] Deprecate RemoveChildren with RemoveNode
 - [X] Deprecate InsertChildren with InsertNode
-- [ ] Add skip mechanism to skip diffing nodes marked with this.
+- [X] Add skip mechanism to skip diffing nodes marked with this.
+- [ ] Make the Node::Text variant to be a struct.
+    - This is pre-requisite for adding additional fields such as real dom link
+- [ ] Add a field `link` for Element and TextNode which points
+    to the actual dom when it is created. This will be used directly for patching
+    instead of using the `NodeIdx` traversal in patches which has a 0(n) complexity
+    and take 40ms to update in a dom tree with 2k nodes.
+- [ ] Make the `key` a closure like `skip`.
+- [ ] Move `Callback` into sauron.
+- [ ] Move algorithmns to sauron such as `map_msg` since it handles the Callback
+    - which is supposed to be in sauron
