@@ -19,6 +19,7 @@
     to the actual dom when it is created. This will be used directly for patching
     instead of using the `NodeIdx` traversal in patches which has a 0(n) complexity
     and take 40ms to update in a dom tree with 2k nodes.
+     - [ ] Patch will now contain the real dom Node, so applying will not have to search for it.
 - [ ] Make the `key` a closure like `skip`.
 - [ ] Move `Callback` into sauron.
 - [ ] Move algorithmns to sauron such as `map_msg` since it handles the Callback
