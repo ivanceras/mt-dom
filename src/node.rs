@@ -24,7 +24,28 @@ pub enum Node<NS, TAG, ATT, VAL, EVENT, MSG> {
     /// Element variant of a virtual node
     Element(Element<NS, TAG, ATT, VAL, EVENT, MSG>),
     /// Text variant of a virtual node
-    Text(String),
+    Text(Text),
+}
+
+/// Text node
+#[derive(PartialEq, Default, Debug, Clone)]
+pub struct Text {
+    /// text node value
+    pub text: String,
+}
+
+impl Text {
+    /// create a new text node
+    pub fn new(txt: impl ToString) -> Self {
+        Text {
+            text: txt.to_string(),
+        }
+    }
+
+    /// set the text node value
+    pub fn set_text(&mut self, txt: impl ToString) {
+        self.text = txt.to_string();
+    }
 }
 
 impl<NS, TAG, ATT, VAL, EVENT, MSG> Node<NS, TAG, ATT, VAL, EVENT, MSG> {
@@ -136,7 +157,7 @@ impl<NS, TAG, ATT, VAL, EVENT, MSG> Node<NS, TAG, ATT, VAL, EVENT, MSG> {
     /// returns the text content if it is a text node
     pub fn text(&self) -> Option<&str> {
         match self {
-            Node::Text(t) => Some(&t),
+            Node::Text(t) => Some(&t.text),
             Node::Element(_) => None,
         }
     }
@@ -326,5 +347,5 @@ where
     S: ToString,
     ATT: Clone,
 {
-    Node::Text(s.to_string())
+    Node::Text(Text::new(s))
 }

@@ -91,7 +91,7 @@ pub fn apply_patches<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
                     find_node(root_node, ct.node_idx).expect("must find node");
                 dbg!(&target_node);
                 if let Node::Text(old_txt) = target_node {
-                    *old_txt = ct.new.to_string();
+                    old_txt.set_text(&ct.new.text);
                 } else {
                     unreachable!("expecting a text node");
                 }

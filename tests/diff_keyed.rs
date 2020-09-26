@@ -141,7 +141,7 @@ fn there_are_2_exact_same_keys_in_the_old() {
     assert_eq!(
         diff,
         vec![
-            ChangeText::new(2, "0", "1").into(),
+            ChangeText::new(2, &Text::new("0"), &Text::new("1")).into(),
             RemoveNode::new(Some(&"div"), 3).into()
         ]
     );
@@ -172,7 +172,7 @@ fn there_are_2_exact_same_keys_in_the_new() {
     assert_eq!(
         diff,
         vec![
-            ChangeText::new(2, "0", "1").into(),
+            ChangeText::new(2, &Text::new("0"), &Text::new("1")).into(),
             InsertNode::new(
                 Some(&"main"),
                 3,
@@ -212,8 +212,8 @@ fn there_are_2_exact_same_keys_in_both_old_and_new() {
     assert_eq!(
         diff,
         vec![
-            ChangeText::new(2, "0", "1").into(),
-            ChangeText::new(4, "1", "3").into(),
+            ChangeText::new(2, &Text::new("0"), &Text::new("1")).into(),
+            ChangeText::new(4, &Text::new("1"), &Text::new("3")).into(),
             InsertNode::new(
                 Some(&"main"),
                 3,
@@ -510,9 +510,18 @@ fn deep_nested_keyed_with_non_keyed_children() {
                 vec![&attr("class", "some-class").into()]
             )
             .into(),
-            ChangeText::new(6, "paragraph1", "paragraph1, with added content")
-                .into(),
-            ChangeText::new(8, "Click here", "Click here to continue").into(),
+            ChangeText::new(
+                6,
+                &Text::new("paragraph1"),
+                &Text::new("paragraph1, with added content")
+            )
+            .into(),
+            ChangeText::new(
+                8,
+                &Text::new("Click here"),
+                &Text::new("Click here to continue")
+            )
+            .into(),
             RemoveNode::new(Some(&"div"), 2).into(),
             RemoveNode::new(Some(&"div"), 3).into(),
         ]
@@ -557,7 +566,12 @@ fn text_changed_in_keyed_elements() {
     assert_eq!(
         patch,
         vec![
-            ChangeText::new(7, "item3", "item3 with changes").into(),
+            ChangeText::new(
+                7,
+                &Text::new("item3"),
+                &Text::new("item3 with changes")
+            )
+            .into(),
             RemoveNode::new(Some(&"article"), 2).into()
         ]
     );
@@ -623,9 +637,19 @@ fn text_changed_in_mixed_keyed_and_non_keyed_elements() {
     assert_eq!(
         patch,
         vec![
-            ChangeText::new(7, "item3", "item3 with changes").into(),
+            ChangeText::new(
+                7,
+                &Text::new("item3"),
+                &Text::new("item3 with changes")
+            )
+            .into(),
             RemoveNode::new(Some(&"article"), 2).into(),
-            ChangeText::new(9, "3 items left", "2 items left").into(),
+            ChangeText::new(
+                9,
+                &Text::new("3 items left"),
+                &Text::new("2 items left")
+            )
+            .into(),
         ]
     );
 }
@@ -693,9 +717,19 @@ fn test12() {
     assert_eq!(
         patch,
         vec![
-            ChangeText::new(9, "item3", "item3 with changes").into(),
+            ChangeText::new(
+                9,
+                &Text::new("item3"),
+                &Text::new("item3 with changes")
+            )
+            .into(),
             RemoveNode::new(Some(&"article"), 4).into(),
-            ChangeText::new(11, "3 items left", "2 items left").into(),
+            ChangeText::new(
+                11,
+                &Text::new("3 items left"),
+                &Text::new("2 items left")
+            )
+            .into(),
         ]
     );
 }

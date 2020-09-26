@@ -208,7 +208,12 @@ fn text_changed() {
     let diff = diff_with_key(&old, &new, &"key");
     assert_eq!(
         diff,
-        vec![ChangeText::new(15, "line7", "line7_changed").into()]
+        vec![ChangeText::new(
+            15,
+            &Text::new("line7"),
+            &Text::new("line7_changed")
+        )
+        .into()]
     );
 }
 
@@ -258,7 +263,12 @@ fn text_changed_non_keyed() {
     let diff = diff_with_key(&old, &new, &"key");
     assert_eq!(
         diff,
-        vec![ChangeText::new(15, "line7", "line7_changed").into()]
+        vec![ChangeText::new(
+            15,
+            &Text::new("line7"),
+            &Text::new("line7_changed")
+        )
+        .into()]
     );
 }
 
@@ -348,9 +358,9 @@ fn insert_one_line_at_start() {
     assert_eq!(
         diff,
         vec![
-            ChangeText::new(4, "1", "2").into(),
-            ChangeText::new(9, "2", "3").into(),
-            ChangeText::new(14, "3", "4").into(),
+            ChangeText::new(4, &Text::new("1"), &Text::new("2")).into(),
+            ChangeText::new(9, &Text::new("2"), &Text::new("3")).into(),
+            ChangeText::new(14, &Text::new("3"), &Text::new("4")).into(),
             InsertNode::new(
                 Some(&"main"),
                 2,
@@ -463,9 +473,9 @@ fn insert_two_lines_at_start() {
     assert_eq!(
         diff,
         vec![
-            ChangeText::new(4, "1", "3").into(),
-            ChangeText::new(9, "2", "4").into(),
-            ChangeText::new(14, "2", "5").into(),
+            ChangeText::new(4, &Text::new("1"), &Text::new("3")).into(),
+            ChangeText::new(9, &Text::new("2"), &Text::new("4")).into(),
+            ChangeText::new(14, &Text::new("2"), &Text::new("5")).into(),
             InsertNode::new(
                 Some(&"main"),
                 2,

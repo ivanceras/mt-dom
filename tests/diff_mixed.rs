@@ -62,8 +62,8 @@ fn mixed_key_and_no_key_with_2_matched() {
     assert_eq!(
         diff,
         vec![
-            ChangeText::new(4, "2", "1").into(),
-            ChangeText::new(6, "2", "3").into()
+            ChangeText::new(4, &Text::new("2"), &Text::new("1")).into(),
+            ChangeText::new(6, &Text::new("2"), &Text::new("3")).into()
         ]
     );
 }

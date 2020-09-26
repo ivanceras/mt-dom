@@ -53,8 +53,6 @@ pub type NodeIdx = usize;
 /// ```
 ///
 ///
-// TODO: create a struct for the contents of each variants
-// since they are getting larger
 #[derive(PartialEq)]
 pub enum Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG> {
     /// Insert a vector of child nodes to the current node being patch.

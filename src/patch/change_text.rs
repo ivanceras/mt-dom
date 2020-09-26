@@ -1,4 +1,5 @@
 use super::NodeIdx;
+use crate::node::Text;
 
 /// The patch is changing the text content of a text node
 #[derive(Debug, PartialEq)]
@@ -9,19 +10,14 @@ pub struct ChangeText<'a> {
     /// the old text is not really needed for applying the patch.
     /// but it is useful for debugging purposed, that we are changing the intended target text by
     /// visual inspection
-    pub old: &'a str,
+    pub old: &'a Text,
     /// the neew text patch
-    pub new: &'a str,
+    pub new: &'a Text,
 }
 
 impl<'a> ChangeText<'a> {
     /// create a new change text patch
-    pub fn new(node_idx: NodeIdx, old: &'a str, new: &'a str) -> Self {
+    pub fn new(node_idx: NodeIdx, old: &'a Text, new: &'a Text) -> Self {
         ChangeText { node_idx, old, new }
-    }
-
-    /// return the replacement text for the patch
-    pub fn get_new(&self) -> &'a str {
-        self.new
     }
 }

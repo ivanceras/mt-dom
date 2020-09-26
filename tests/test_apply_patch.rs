@@ -100,7 +100,11 @@ fn change_text() {
     let patches = diff_with_key(&old, &new, &"key");
     assert_eq!(
         patches,
-        vec![Patch::ChangeText(ChangeText::new(1, "text1", "text2"))]
+        vec![Patch::ChangeText(ChangeText::new(
+            1,
+            &Text::new("text1"),
+            &Text::new("text2")
+        ))]
     );
 
     let mut old_clone = old.clone();
@@ -220,9 +224,19 @@ fn test_multiple_patch_non_keyed() {
     assert_eq!(
         patch,
         vec![
-            ChangeText::new(5, "item1", "item2").into(),
-            ChangeText::new(7, "item2", "item3 with changes").into(),
-            ChangeText::new(11, "3 items left", "2 items left").into(),
+            ChangeText::new(5, &Text::new("item1"), &Text::new("item2")).into(),
+            ChangeText::new(
+                7,
+                &Text::new("item2"),
+                &Text::new("item3 with changes")
+            )
+            .into(),
+            ChangeText::new(
+                11,
+                &Text::new("3 items left"),
+                &Text::new("2 items left")
+            )
+            .into(),
             RemoveNode::new(Some(&"article"), 8).into(),
         ]
     );
@@ -297,8 +311,18 @@ fn test_multiple_patch_keyed() {
     assert_eq!(
         patch,
         vec![
-            ChangeText::new(9, "item3", "item3 with changes").into(),
-            ChangeText::new(11, "3 items left", "2 items left").into(),
+            ChangeText::new(
+                9,
+                &Text::new("item3"),
+                &Text::new("item3 with changes")
+            )
+            .into(),
+            ChangeText::new(
+                11,
+                &Text::new("3 items left"),
+                &Text::new("2 items left")
+            )
+            .into(),
             RemoveNode::new(Some(&"article"), 4).into(),
         ]
     );

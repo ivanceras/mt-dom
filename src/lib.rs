@@ -36,6 +36,7 @@ pub use node::{
     Attribute,
     Element,
     Node,
+    Text,
 };
 pub use patch::{
     NodeIdx,
