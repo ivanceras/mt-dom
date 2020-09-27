@@ -48,6 +48,7 @@ where
         f.debug_struct("ReplaceNode")
             .field("tag", &self.tag)
             .field("node_idx", &self.node_idx)
+            .field("new_node_idx", &self.new_node_idx)
             .field("replacement", &self.replacement)
             .finish()
     }

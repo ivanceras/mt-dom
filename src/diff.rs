@@ -67,14 +67,7 @@ where
 /// incremented in the loop together with its siblings
 /// TODO: this can be optimize by adding the children count
 /// and then descending into element node that has children only
-pub(crate) fn increment_node_idx_to_descendant_count<
-    NS,
-    TAG,
-    ATT,
-    VAL,
-    EVENT,
-    MSG,
->(
+pub fn increment_node_idx_to_descendant_count<NS, TAG, ATT, VAL, EVENT, MSG>(
     node: &Node<NS, TAG, ATT, VAL, EVENT, MSG>,
     cur_node_idx: &mut usize,
 ) {
@@ -141,7 +134,6 @@ where
     // skip diffing if the function evaluates to true
     if skip(old_node, new_node) {
         increment_node_idx_to_descendant_count(old_node, cur_node_idx);
-        increment_node_idx_to_descendant_count(new_node, new_node_idx);
         return vec![];
     }
     let mut patches = vec![];
@@ -170,7 +162,6 @@ where
             .into(),
         );
         increment_node_idx_to_descendant_count(old_node, cur_node_idx);
-        increment_node_idx_to_descendant_count(new_node, new_node_idx);
         return patches;
     }
 

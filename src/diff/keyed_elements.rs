@@ -288,12 +288,6 @@ where
         get_matched_old_new_idx(&matched_old_new_keyed);
 
     // this elements are for inserting, appending
-    /*
-    let unmatched_new_child_pass2 = get_unmatched_children_node_idx(
-        new_element.get_children(),
-        matched_new_idx_pass2,
-    );
-    */
     let mut unmatched_new_child_pass2: Vec<(
         usize,
         NodeIdx,
@@ -320,7 +314,7 @@ where
 
     for (old_idx, old_child) in old_element.children.iter().enumerate() {
         *cur_node_idx += 1;
-        if let Some((new_idx, (_new_child_node_idx, new_child))) =
+        if let Some((new_idx, (new_child_node_idx, new_child))) =
             find_matched_new_child(&matched_old_new_keyed, old_idx)
         {
             // insert unmatched new_child that is less than the matched new_idx
@@ -342,11 +336,13 @@ where
                 }
             }
 
+            let mut this_new_child_node_idx = new_child_node_idx;
+
             matched_keyed_element_patches.extend(diff_recursive(
                 old_child,
                 new_child,
                 cur_node_idx,
-                &mut 0,
+                &mut this_new_child_node_idx,
                 key,
                 skip,
             ));
