@@ -48,6 +48,7 @@ fn key_inserted_at_start() {
         vec![InsertNode::new(
             Some(&"main"),
             1,
+            1,
             &element("div", vec![attr("key", "XXX")], vec![text("lineXXX")])
         )
         .into()]
@@ -95,6 +96,7 @@ fn key_inserted_at_middle() {
         diff,
         vec![InsertNode::new(
             Some(&"main"),
+            11,
             11,
             &element("div", vec![attr("key", "XXX")], vec![text("lineXXX")])
         )
@@ -151,6 +153,7 @@ fn wrapped_elements() {
         diff,
         vec![InsertNode::new(
             Some(&"main"),
+            12,
             12,
             &element("div", vec![attr("key", "XXX")], vec![text("lineXXX")])
         )
@@ -364,6 +367,7 @@ fn insert_one_line_at_start() {
             InsertNode::new(
                 Some(&"main"),
                 2,
+                2,
                 &element(
                     "div",
                     vec![attr("key", "hashXXX")],
@@ -468,7 +472,7 @@ fn insert_two_lines_at_start() {
     );
 
     let diff = diff_with_key(&old, &new, &"key");
-    println!("{:#?}", diff);
+    dbg!(&diff);
 
     assert_eq!(
         diff,
@@ -478,6 +482,7 @@ fn insert_two_lines_at_start() {
             ChangeText::new(14, &Text::new("2"), &Text::new("5")).into(),
             InsertNode::new(
                 Some(&"main"),
+                2,
                 2,
                 &element(
                     "div",
@@ -492,6 +497,7 @@ fn insert_two_lines_at_start() {
             InsertNode::new(
                 Some(&"main"),
                 2,
+                7,
                 &element(
                     "div",
                     vec![attr("key", "hashYYY")],

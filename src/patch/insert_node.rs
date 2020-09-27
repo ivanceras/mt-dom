@@ -9,6 +9,10 @@ pub struct InsertNode<'a, NS, TAG, ATT, VAL, EVENT, MSG> {
     pub tag: Option<&'a TAG>,
     /// the target node_idx of which our node will be inserted before it.
     pub node_idx: NodeIdx,
+    /// the new node_idx of this newly inserted node.
+    /// this will be inserted into a fast lookup of NodeIdx to get
+    /// the referenced node faster than having to traverse it.
+    pub new_node_idx: NodeIdx,
     /// the node to be inserted
     pub node: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
 }
@@ -19,11 +23,13 @@ impl<'a, NS, TAG, ATT, VAL, EVENT, MSG>
     pub fn new(
         tag: Option<&'a TAG>,
         node_idx: NodeIdx,
+        new_node_idx: NodeIdx,
         node: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
     ) -> Self {
         InsertNode {
             tag,
             node_idx,
+            new_node_idx,
             node,
         }
     }
@@ -40,6 +46,7 @@ where
         f.debug_struct("InsertNode")
             .field("tag", &self.tag)
             .field("node_idx", &self.node_idx)
+            .field("new_node_idx", &self.new_node_idx)
             .field("node", &self.node)
             .finish()
     }

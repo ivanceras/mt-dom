@@ -169,12 +169,16 @@ fn there_are_2_exact_same_keys_in_the_new() {
     );
 
     let diff = diff_with_key(&old, &new, &"key");
+
+    dbg!(&diff);
+
     assert_eq!(
         diff,
         vec![
             ChangeText::new(2, &Text::new("0"), &Text::new("1")).into(),
             InsertNode::new(
                 Some(&"main"),
+                3,
                 3,
                 &element("div", vec![attr("key", "1")], vec![text(1)])
             )
@@ -217,6 +221,7 @@ fn there_are_2_exact_same_keys_in_both_old_and_new() {
             InsertNode::new(
                 Some(&"main"),
                 3,
+                3,
                 &element("div", vec![attr("key", "1")], vec![text(2)])
             )
             .into(),
@@ -250,6 +255,7 @@ fn key_2_inserted_at_start() {
         vec![InsertNode::new(
             Some(&"main"),
             1,
+            1,
             &element("div", vec![attr("key", "2")], vec![])
         )
         .into()]
@@ -274,11 +280,15 @@ fn key_2_inserted_at_the_end() {
     );
 
     let diff = diff_with_key(&old, &new, &"key");
+
+    dbg!(&diff);
+
     assert_eq!(
         diff,
         vec![AppendChildren::new(
             &"main",
             0,
+            2,
             vec![&element("div", vec![attr("key", "2")], vec![])]
         )
         .into()]
@@ -314,6 +324,7 @@ fn key_2_inserted_in_the_middle() {
         diff,
         vec![InsertNode::new(
             Some(&"main"),
+            2,
             2,
             &element("div", vec![attr("key", "2")], vec![])
         )

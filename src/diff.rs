@@ -36,7 +36,7 @@ where
     NS: PartialEq + fmt::Debug,
     VAL: PartialEq + fmt::Debug,
 {
-    diff_recursive(old_node, new_node, &mut 0, key, &|_old, _new| false)
+    diff_recursive(old_node, new_node, &mut 0, &mut 0, key, &|_old, _new| false)
 }
 
 /// calculate the difference of 2 nodes
@@ -58,7 +58,7 @@ where
         &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
     ) -> bool,
 {
-    diff_recursive(old_node, new_node, &mut 0, key, skip)
+    diff_recursive(old_node, new_node, &mut 0, &mut 0, key, skip)
 }
 
 /// increment the cur_node_idx based on how many descendant it contains.
@@ -124,6 +124,7 @@ fn diff_recursive<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG, SKIP>(
     old_node: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
     new_node: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
     cur_node_idx: &'b mut usize,
+    new_node_idx: &'b mut usize,
     key: &ATT,
     skip: &SKIP,
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
@@ -140,6 +141,7 @@ where
     // skip diffing if the function evaluates to true
     if skip(old_node, new_node) {
         increment_node_idx_to_descendant_count(old_node, cur_node_idx);
+        increment_node_idx_to_descendant_count(new_node, new_node_idx);
         return vec![];
     }
     let mut patches = vec![];
@@ -159,9 +161,16 @@ where
     // Handle replacing of a node
     if replace {
         patches.push(
-            ReplaceNode::new(old_node.tag(), *cur_node_idx, &new_node).into(),
+            ReplaceNode::new(
+                old_node.tag(),
+                *cur_node_idx,
+                *new_node_idx,
+                &new_node,
+            )
+            .into(),
         );
         increment_node_idx_to_descendant_count(old_node, cur_node_idx);
+        increment_node_idx_to_descendant_count(new_node, new_node_idx);
         return patches;
     }
 
@@ -187,6 +196,7 @@ where
                     new_element,
                     key,
                     cur_node_idx,
+                    new_node_idx,
                     skip,
                 );
                 patches.extend(keyed_patches);
@@ -196,6 +206,7 @@ where
                     new_element,
                     key,
                     cur_node_idx,
+                    new_node_idx,
                     skip,
                 );
                 patches.extend(non_keyed_patches);
@@ -227,6 +238,7 @@ fn diff_non_keyed_elements<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG, SKIP>(
     new_element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
     key: &ATT,
     cur_node_idx: &'b mut usize,
+    new_node_idx: &'b mut usize,
     skip: &SKIP,
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
 where
@@ -254,14 +266,20 @@ where
             new_element.children[old_child_count..].iter().collect();
 
         patches.push(
-            AppendChildren::new(&old_element.tag, *cur_node_idx, append_patch)
-                .into(),
+            AppendChildren::new(
+                &old_element.tag,
+                *cur_node_idx,
+                *new_node_idx,
+                append_patch,
+            )
+            .into(),
         )
     }
 
     let min_count = cmp::min(old_child_count, new_child_count);
     for index in 0..min_count {
         *cur_node_idx += 1;
+        *new_node_idx += 1;
 
         let old_child = &old_element
             .children
@@ -270,9 +288,16 @@ where
         let new_child =
             &new_element.children.get(index).expect("No new chold node");
 
-        let more_patches =
-            diff_recursive(old_child, new_child, cur_node_idx, key, skip);
+        let more_patches = diff_recursive(
+            old_child,
+            new_child,
+            cur_node_idx,
+            new_node_idx,
+            key,
+            skip,
+        );
         patches.extend(more_patches);
+        increment_node_idx_to_descendant_count(new_child, new_node_idx);
     }
 
     if new_child_count < old_child_count {

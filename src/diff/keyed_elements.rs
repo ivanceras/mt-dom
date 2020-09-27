@@ -11,6 +11,7 @@ use crate::{
     },
     Element,
     Node,
+    NodeIdx,
     Patch,
 };
 use std::{
@@ -59,11 +60,11 @@ fn find_matched_new_child<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
         (usize, usize),
         (
             &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
-            &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+            (NodeIdx, &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>),
         ),
     >,
     find_old_idx: usize,
-) -> Option<(usize, &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>)> {
+) -> Option<(usize, (NodeIdx, &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>))> {
     matched_old_new_keyed.iter().find_map(
         |((old_idx, new_idx), (_, new_child))| {
             if *old_idx == find_old_idx {
@@ -95,7 +96,7 @@ fn get_matched_old_new_idx<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
         (usize, usize),
         (
             &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
-            &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+            (NodeIdx, &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>),
         ),
     >,
 ) -> (Vec<usize>, Vec<usize>) {
@@ -136,6 +137,7 @@ pub fn diff_keyed_elements<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG, SKIP>(
     new_element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
     key: &ATT,
     cur_node_idx: &'b mut usize,
+    new_element_node_idx: &'b mut usize,
     skip: &SKIP,
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
 where
@@ -169,21 +171,30 @@ where
         ),
     );
 
-    // a map for new_keyed elements for quick lookup matching to the old_keyed_elements
-    let new_keyed_elements: BTreeMap<
+    let mut node_idx_new_elements: BTreeMap<
+        NodeIdx,
+        &Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+    > = BTreeMap::new();
+
+    for new_child in new_element.get_children().iter() {
+        *new_element_node_idx += 1;
+        node_idx_new_elements.insert(*new_element_node_idx, new_child);
+        increment_node_idx_to_descendant_count(new_child, new_element_node_idx);
+    }
+
+    let mut new_keyed_elements: BTreeMap<
         usize,
-        (Vec<&VAL>, &Node<NS, TAG, ATT, VAL, EVENT, MSG>),
-    > = BTreeMap::from_iter(
-        new_element.get_children().iter().enumerate().filter_map(
-            |(new_idx, new_child)| {
-                if let Some(new_key) = new_child.get_attribute_value(key) {
-                    Some((new_idx, (new_key, new_child)))
-                } else {
-                    None
-                }
-            },
-        ),
-    );
+        (Vec<&VAL>, (NodeIdx, &Node<NS, TAG, ATT, VAL, EVENT, MSG>)),
+    > = BTreeMap::new();
+
+    for (new_idx, (new_node_idx, new_child)) in
+        node_idx_new_elements.iter().enumerate()
+    {
+        if let Some(new_key) = new_child.get_attribute_value(key) {
+            new_keyed_elements
+                .insert(new_idx, (new_key, (*new_node_idx, new_child)));
+        }
+    }
 
     // compiles that matched old and new with
     // with their (old_idx, new_idx) as key and the value is (old_element, new_element)
@@ -191,7 +202,7 @@ where
         (usize, usize),
         (
             &Node<NS, TAG, ATT, VAL, EVENT, MSG>,
-            &Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+            (NodeIdx, &Node<NS, TAG, ATT, VAL, EVENT, MSG>),
         ),
     > = BTreeMap::new();
 
@@ -212,7 +223,7 @@ where
                 last_matched_old_idx = Some(old_idx);
                 last_matched_new_idx = Some(*new_idx);
                 matched_old_new_keyed
-                    .insert((old_idx, *new_idx), (old_element, new_element));
+                    .insert((old_idx, *new_idx), (old_element, *new_element));
             } else {
                 // we don't matched already passed elements
             }
@@ -223,10 +234,17 @@ where
     let (matched_old_idx, matched_new_idx) =
         get_matched_old_new_idx(&matched_old_new_keyed);
     // these are the new children that didn't matched in the keyed elements pass
-    let unmatched_new_child = get_unmatched_children_node_idx(
-        new_element.get_children(),
-        matched_new_idx,
-    );
+    let mut unmatched_new_child: Vec<(
+        usize,
+        (NodeIdx, &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>),
+    )> = vec![];
+    for (idx, (node_idx, new_element)) in
+        node_idx_new_elements.iter().enumerate()
+    {
+        if !matched_new_idx.contains(&idx) {
+            unmatched_new_child.push((idx, (*node_idx, new_element)));
+        }
+    }
 
     // thse are the old children that didn't matched in the keyed elements pass
     let unmatched_old_child = get_unmatched_children_node_idx(
@@ -239,7 +257,7 @@ where
         (usize, usize),
         (
             &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
-            &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+            (NodeIdx, &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>),
         ),
     > = BTreeMap::from_iter(
         // try to match unmatched new child from the unmatched old child
@@ -270,10 +288,24 @@ where
         get_matched_old_new_idx(&matched_old_new_keyed);
 
     // this elements are for inserting, appending
+    /*
     let unmatched_new_child_pass2 = get_unmatched_children_node_idx(
         new_element.get_children(),
         matched_new_idx_pass2,
     );
+    */
+    let mut unmatched_new_child_pass2: Vec<(
+        usize,
+        NodeIdx,
+        &Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+    )> = vec![];
+    for (idx, (new_node_idx, new_child)) in
+        node_idx_new_elements.iter().enumerate()
+    {
+        if !matched_new_idx_pass2.contains(&idx) {
+            unmatched_new_child_pass2.push((idx, *new_node_idx, new_child));
+        }
+    }
 
     // process this last so as not to move the cur_node_idx forward
     // and without creating a snapshot for cur_node_idx for other patch types
@@ -288,19 +320,20 @@ where
 
     for (old_idx, old_child) in old_element.children.iter().enumerate() {
         *cur_node_idx += 1;
-        if let Some((new_idx, new_child)) =
+        if let Some((new_idx, (_new_child_node_idx, new_child))) =
             find_matched_new_child(&matched_old_new_keyed, old_idx)
         {
             // insert unmatched new_child that is less than the matched new_idx
-            for (idx, unmatched) in unmatched_new_child_pass2
+            for (idx, new_node_idx, unmatched) in unmatched_new_child_pass2
                 .iter()
-                .filter(|(idx, _)| *idx < new_idx)
+                .filter(|(idx, _, _)| *idx < new_idx)
             {
                 if !already_inserted.contains(idx) {
                     insert_node_patches.push(
                         InsertNode::new(
                             Some(&old_element.tag),
                             *cur_node_idx,
+                            *new_node_idx,
                             unmatched,
                         )
                         .into(),
@@ -313,6 +346,7 @@ where
                 old_child,
                 new_child,
                 cur_node_idx,
+                &mut 0,
                 key,
                 skip,
             ));
@@ -327,11 +361,12 @@ where
     // that are not matched, and not already part of the InsertNode
     let append_children_patches = unmatched_new_child_pass2
         .iter()
-        .filter(|(new_idx, _)| !already_inserted.contains(&new_idx))
-        .map(|(_, new_child)| {
+        .filter(|(new_idx, _, _)| !already_inserted.contains(&new_idx))
+        .map(|(_new_idx, new_node_idx, new_child)| {
             AppendChildren::new(
                 &old_element.tag,
                 new_child_excess_cur_node_idx,
+                *new_node_idx,
                 vec![new_child],
             )
             .into()

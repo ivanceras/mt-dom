@@ -20,7 +20,13 @@
     instead of using the `NodeIdx` traversal in patches which has a 0(n) complexity
     and take 40ms to update in a dom tree with 2k nodes.
      - [ ] Patch will now contain the real dom Node, so applying will not have to search for it.
+        - Issue: can not link the real dom, since it requires a mutable reference to the patches
+        which will have numerous mutable references which is impossible to do.
 - [ ] Make the `key` a closure like `skip`.
 - [ ] Move `Callback` into sauron.
 - [ ] Move algorithmns to sauron such as `map_msg` since it handles the Callback
     - which is supposed to be in sauron
+
+## Optimization
+- Create a data structure which has old_element and its node_idx and the new_element with its node_idx
+ that way, referencing to a node with the node_idx is very straigh forward way to diff.

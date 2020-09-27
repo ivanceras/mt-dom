@@ -101,6 +101,7 @@ fn mixed_key_and_no_key_with_misordered_2_matched() {
             InsertNode::new(
                 Some(&"main"),
                 1,
+                1,
                 &element("div", vec![], vec![text(1)]),
             )
             .into(),

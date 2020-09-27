@@ -32,6 +32,7 @@ fn append_children() {
         vec![AppendChildren::new(
             &"main",
             0,
+            2,
             vec![&element("div", vec![attr("key", "2")], vec![])]
         )
         .into()]
@@ -75,7 +76,7 @@ fn test_replace_node() {
     let patches = diff_with_key(&old, &new, &"key");
     assert_eq!(
         patches,
-        vec![ReplaceNode::new(Some(&"div"), 0, &new).into()],
+        vec![ReplaceNode::new(Some(&"div"), 0, 0, &new).into()],
     );
 
     let mut old_clone = old.clone();
@@ -162,6 +163,7 @@ fn insert_children() {
         patches,
         vec![InsertNode::new(
             Some(&"main"),
+            1,
             1,
             &element("div", vec![attr("key", "2")], vec![])
         )

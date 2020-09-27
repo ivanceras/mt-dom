@@ -13,7 +13,10 @@ fn test_replace_node() {
     let new = element("span", vec![], vec![]);
 
     let diff = diff_with_key(&old, &new, &"key");
-    assert_eq!(diff, vec![ReplaceNode::new(Some(&"div"), 0, &new).into()],);
+    assert_eq!(
+        diff,
+        vec![ReplaceNode::new(Some(&"div"), 0, 0, &new).into()],
+    );
 }
 
 #[test]
@@ -22,7 +25,7 @@ fn test_replace_text_node() {
     let new = element("span", vec![], vec![]);
 
     let diff = diff_with_key(&old, &new, &"key");
-    assert_eq!(diff, vec![ReplaceNode::new(None, 0, &new).into()],);
+    assert_eq!(diff, vec![ReplaceNode::new(None, 0, 0, &new).into()],);
 }
 
 #[test]
@@ -36,6 +39,7 @@ fn test_replace_node_in_child() {
         diff,
         vec![ReplaceNode::new(
             Some(&"div"),
+            1,
             1,
             &element("span", vec![], vec![]).into()
         )
@@ -75,7 +79,7 @@ fn test_205() {
         diff_with_key(&old, &new, &"key"),
         vec![
             RemoveNode::new(Some(&"i"), 3).into(),
-            ReplaceNode::new(Some(&"b"), 4, &element("i", vec![], vec![]))
+            ReplaceNode::new(Some(&"b"), 4, 4, &element("i", vec![], vec![]))
                 .into(),
         ],
     )
