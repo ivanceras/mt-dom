@@ -167,8 +167,8 @@ fn text_node_changed() {
         diff,
         vec![Patch::ChangeText(ChangeText::new(
             1,
-            1,
             &Text::new("text1"),
+            1,
             &Text::new("text2")
         ))]
     )

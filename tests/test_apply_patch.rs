@@ -102,8 +102,8 @@ fn change_text() {
         patches,
         vec![Patch::ChangeText(ChangeText::new(
             1,
-            1,
             &Text::new("text1"),
+            1,
             &Text::new("text2")
         ))]
     );
@@ -227,19 +227,19 @@ fn test_multiple_patch_non_keyed() {
     assert_eq!(
         patch,
         vec![
-            ChangeText::new(5, 5, &Text::new("item1"), &Text::new("item2"))
+            ChangeText::new(5, &Text::new("item1"), 5, &Text::new("item2"))
                 .into(),
             ChangeText::new(
                 7,
-                7,
                 &Text::new("item2"),
+                7,
                 &Text::new("item3 with changes")
             )
             .into(),
             ChangeText::new(
                 11,
-                9,
                 &Text::new("3 items left"),
+                9,
                 &Text::new("2 items left")
             )
             .into(),
@@ -319,15 +319,15 @@ fn test_multiple_patch_keyed() {
         vec![
             ChangeText::new(
                 9,
-                7,
                 &Text::new("item3"),
+                7,
                 &Text::new("item3 with changes")
             )
             .into(),
             ChangeText::new(
                 11,
-                9,
                 &Text::new("3 items left"),
+                9,
                 &Text::new("2 items left")
             )
             .into(),

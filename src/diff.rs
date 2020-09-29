@@ -176,8 +176,8 @@ where
             if old_text != new_text {
                 let ct = ChangeText::new(
                     *cur_node_idx,
-                    *new_node_idx,
                     old_text,
+                    *new_node_idx,
                     new_text,
                 );
                 patches.push(Patch::ChangeText(ct));

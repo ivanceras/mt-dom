@@ -141,7 +141,7 @@ fn there_are_2_exact_same_keys_in_the_old() {
     assert_eq!(
         diff,
         vec![
-            ChangeText::new(2, 2, &Text::new("0"), &Text::new("1")).into(),
+            ChangeText::new(2, &Text::new("0"), 2, &Text::new("1")).into(),
             RemoveNode::new(Some(&"div"), 3).into()
         ]
     );
@@ -175,7 +175,7 @@ fn there_are_2_exact_same_keys_in_the_new() {
     assert_eq!(
         diff,
         vec![
-            ChangeText::new(2, 2, &Text::new("0"), &Text::new("1")).into(),
+            ChangeText::new(2, &Text::new("0"), 2, &Text::new("1")).into(),
             InsertNode::new(
                 Some(&"main"),
                 3,
@@ -216,8 +216,8 @@ fn there_are_2_exact_same_keys_in_both_old_and_new() {
     assert_eq!(
         diff,
         vec![
-            ChangeText::new(2, 2, &Text::new("0"), &Text::new("1")).into(),
-            ChangeText::new(4, 6, &Text::new("1"), &Text::new("3")).into(),
+            ChangeText::new(2, &Text::new("0"), 2, &Text::new("1")).into(),
+            ChangeText::new(4, &Text::new("1"), 6, &Text::new("3")).into(),
             InsertNode::new(
                 Some(&"main"),
                 3,
@@ -527,15 +527,15 @@ fn deep_nested_keyed_with_non_keyed_children() {
             .into(),
             ChangeText::new(
                 6,
-                4,
                 &Text::new("paragraph1"),
+                4,
                 &Text::new("paragraph1, with added content")
             )
             .into(),
             ChangeText::new(
                 8,
-                6,
                 &Text::new("Click here"),
+                6,
                 &Text::new("Click here to continue")
             )
             .into(),
@@ -585,8 +585,8 @@ fn text_changed_in_keyed_elements() {
         vec![
             ChangeText::new(
                 7,
-                5,
                 &Text::new("item3"),
+                5,
                 &Text::new("item3 with changes")
             )
             .into(),
@@ -657,16 +657,16 @@ fn text_changed_in_mixed_keyed_and_non_keyed_elements() {
         vec![
             ChangeText::new(
                 7,
-                5,
                 &Text::new("item3"),
+                5,
                 &Text::new("item3 with changes")
             )
             .into(),
             RemoveNode::new(Some(&"article"), 2).into(),
             ChangeText::new(
                 9,
-                7,
                 &Text::new("3 items left"),
+                7,
                 &Text::new("2 items left")
             )
             .into(),
@@ -739,16 +739,16 @@ fn test12() {
         vec![
             ChangeText::new(
                 9,
-                7,
                 &Text::new("item3"),
+                7,
                 &Text::new("item3 with changes")
             )
             .into(),
             RemoveNode::new(Some(&"article"), 4).into(),
             ChangeText::new(
                 11,
-                9,
                 &Text::new("3 items left"),
+                9,
                 &Text::new("2 items left")
             )
             .into(),

@@ -21,14 +21,14 @@ impl<'a> ChangeText<'a> {
     /// create a new change text patch
     pub fn new(
         node_idx: NodeIdx,
-        new_node_idx: NodeIdx,
         old: &'a Text,
+        new_node_idx: NodeIdx,
         new: &'a Text,
     ) -> Self {
         ChangeText {
             node_idx,
-            new_node_idx,
             old,
+            new_node_idx,
             new,
         }
     }
