@@ -279,3 +279,65 @@ fn inner_html_func_calls() {
         .into()]
     )
 }
+
+#[test]
+fn test_append() {
+    let old: MyNode = element(
+        "div",
+        vec![attr("id", "some-id"), attr("class", "some-class")],
+        vec![element("div", vec![], vec![text(1)])],
+    );
+
+    let new: MyNode = element(
+        "div",
+        vec![attr("id", "some-id"), attr("class", "some-class")],
+        vec![
+            element("div", vec![], vec![text(1)]),
+            element("div", vec![], vec![text(2)]),
+        ],
+    );
+
+    let diff = diff_with_key(&old, &new, &"key");
+    assert_eq!(
+        diff,
+        vec![AppendChildren::new(
+            &"div",
+            0,
+            vec![(3, &element("div", vec![], vec![text(2)]))],
+        )
+        .into()]
+    )
+}
+
+#[test]
+fn test_append_more() {
+    let old: MyNode = element(
+        "div",
+        vec![attr("id", "some-id"), attr("class", "some-class")],
+        vec![element("div", vec![], vec![text(1)])],
+    );
+
+    let new: MyNode = element(
+        "div",
+        vec![attr("id", "some-id"), attr("class", "some-class")],
+        vec![
+            element("div", vec![], vec![text(1)]),
+            element("div", vec![], vec![text(2)]),
+            element("div", vec![], vec![text(3)]),
+        ],
+    );
+
+    let diff = diff_with_key(&old, &new, &"key");
+    assert_eq!(
+        diff,
+        vec![AppendChildren::new(
+            &"div",
+            0,
+            vec![
+                (3, &element("div", vec![], vec![text(2)])),
+                (5, &element("div", vec![], vec![text(3)]))
+            ],
+        )
+        .into()]
+    )
+}
