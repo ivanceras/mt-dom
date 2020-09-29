@@ -11,6 +11,8 @@ pub struct RemoveAttributes<'a, NS, TAG, ATT, VAL, EVENT, MSG> {
     /// index of the node we are going to patch
     /// relative to the application root node
     pub node_idx: NodeIdx,
+    /// the new node_idx of the node we are removing attributes from
+    pub new_node_idx: NodeIdx,
     /// attributes that are to be removed from this target node
     pub attrs: Vec<&'a Attribute<NS, ATT, VAL, EVENT, MSG>>,
 }
@@ -24,11 +26,13 @@ impl<'a, NS, TAG, ATT, VAL, EVENT, MSG>
     pub fn new(
         tag: &'a TAG,
         node_idx: NodeIdx,
+        new_node_idx: NodeIdx,
         attrs: Vec<&'a Attribute<NS, ATT, VAL, EVENT, MSG>>,
     ) -> Self {
         RemoveAttributes {
             tag,
             node_idx,
+            new_node_idx,
             attrs,
         }
     }
@@ -46,6 +50,7 @@ where
         f.debug_struct("RemoveAttributes")
             .field("tag", &self.tag)
             .field("node_idx", &self.node_idx)
+            .field("new_node_idx", &self.new_node_idx)
             .field("attrs", &self.attrs)
             .finish()
     }

@@ -134,6 +134,7 @@ where
     // skip diffing if the function evaluates to true
     if skip(old_node, new_node) {
         increment_node_idx_to_descendant_count(old_node, cur_node_idx);
+        increment_node_idx_to_descendant_count(new_node, new_node_idx);
         return vec![];
     }
     let mut patches = vec![];
@@ -162,6 +163,7 @@ where
             .into(),
         );
         increment_node_idx_to_descendant_count(old_node, cur_node_idx);
+        increment_node_idx_to_descendant_count(new_node, new_node_idx);
         return patches;
     }
 
@@ -172,7 +174,12 @@ where
         // We're comparing two text nodes
         (Node::Text(old_text), Node::Text(new_text)) => {
             if old_text != new_text {
-                let ct = ChangeText::new(*cur_node_idx, old_text, new_text);
+                let ct = ChangeText::new(
+                    *cur_node_idx,
+                    *new_node_idx,
+                    old_text,
+                    new_text,
+                );
                 patches.push(Patch::ChangeText(ct));
             }
         }
@@ -242,30 +249,14 @@ where
         &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
     ) -> bool,
 {
+    let this_cur_node_idx = *cur_node_idx;
     let mut patches = vec![];
     let attributes_patches =
-        diff_attributes(old_element, new_element, cur_node_idx);
+        diff_attributes(old_element, new_element, cur_node_idx, new_node_idx);
     patches.extend(attributes_patches);
 
     let old_child_count = old_element.children.len();
     let new_child_count = new_element.children.len();
-
-    // If there are more new child than old_node child, we make a patch to append the excess element
-    // starting from old_child_count to the last item of the new_elements
-    if new_child_count > old_child_count {
-        let append_patch: Vec<&'a Node<NS, TAG, ATT, VAL, EVENT, MSG>> =
-            new_element.children[old_child_count..].iter().collect();
-
-        patches.push(
-            AppendChildren::new(
-                &old_element.tag,
-                *cur_node_idx,
-                *new_node_idx,
-                append_patch,
-            )
-            .into(),
-        )
-    }
 
     let min_count = cmp::min(old_child_count, new_child_count);
     for index in 0..min_count {
@@ -288,7 +279,31 @@ where
             skip,
         );
         patches.extend(more_patches);
-        increment_node_idx_to_descendant_count(new_child, new_node_idx);
+        //increment_node_idx_to_descendant_count(new_child, new_node_idx);
+    }
+
+    // If there are more new child than old_node child, we make a patch to append the excess element
+    // starting from old_child_count to the last item of the new_elements
+    if new_child_count > old_child_count {
+        let mut append_patch: Vec<(
+            usize,
+            &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+        )> = vec![];
+
+        for append_child in new_element.children.iter().skip(old_child_count) {
+            *new_node_idx += 1;
+            append_patch.push((*new_node_idx, append_child));
+            increment_node_idx_to_descendant_count(append_child, new_node_idx);
+        }
+
+        patches.push(
+            AppendChildren::new(
+                &old_element.tag,
+                this_cur_node_idx,
+                append_patch,
+            )
+            .into(),
+        )
     }
 
     if new_child_count < old_child_count {
@@ -313,6 +328,7 @@ fn diff_attributes<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG>(
     old_element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
     new_element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
     cur_node_idx: &'b mut usize,
+    new_node_idx: &'b mut usize,
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
 where
     NS: PartialEq + fmt::Debug,
@@ -375,8 +391,13 @@ where
 
     if !add_attributes.is_empty() {
         patches.push(
-            AddAttributes::new(&old_element.tag, *cur_node_idx, add_attributes)
-                .into(),
+            AddAttributes::new(
+                &old_element.tag,
+                *cur_node_idx,
+                *new_node_idx,
+                add_attributes,
+            )
+            .into(),
         );
     }
     if !remove_attributes.is_empty() {
@@ -384,6 +405,7 @@ where
             RemoveAttributes::new(
                 &old_element.tag,
                 *cur_node_idx,
+                *new_node_idx,
                 remove_attributes,
             )
             .into(),

@@ -12,6 +12,8 @@ pub struct AddAttributes<'a, NS, TAG, ATT, VAL, EVENT, MSG> {
     pub tag: &'a TAG,
     /// index of the node we are going to patch
     pub node_idx: NodeIdx,
+    /// new node_idx of the node we are adding an attribute to
+    pub new_node_idx: NodeIdx,
     /// the attributes to be patched into the target node
     pub attrs: Vec<&'a Attribute<NS, ATT, VAL, EVENT, MSG>>,
 }
@@ -25,11 +27,13 @@ impl<'a, NS, TAG, ATT, VAL, EVENT, MSG>
     pub fn new(
         tag: &'a TAG,
         node_idx: NodeIdx,
+        new_node_idx: NodeIdx,
         attrs: Vec<&'a Attribute<NS, ATT, VAL, EVENT, MSG>>,
     ) -> Self {
         AddAttributes {
             tag,
             node_idx,
+            new_node_idx,
             attrs,
         }
     }
@@ -47,6 +51,7 @@ where
         f.debug_struct("AddAttributes")
             .field("tag", &self.tag)
             .field("node_idx", &self.node_idx)
+            .field("new_node_idx", &self.new_node_idx)
             .field("attrs", &self.attrs)
             .finish()
     }

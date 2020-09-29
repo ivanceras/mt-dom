@@ -29,8 +29,12 @@ pub fn apply_patches<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
             Patch::AppendChildren(ac) => {
                 let target_node = find_node(root_node, ac.node_idx)
                     .expect("must have found the target node");
-                let children: Vec<Node<NS, TAG, ATT, VAL, EVENT, MSG>> =
-                    ac.children.iter().map(|c| *c).map(|c| c.clone()).collect();
+                let children: Vec<Node<NS, TAG, ATT, VAL, EVENT, MSG>> = ac
+                    .children
+                    .iter()
+                    .map(|(_idx, c)| *c)
+                    .map(|c| c.clone())
+                    .collect();
                 let target_element =
                     target_node.as_element_mut().expect("expecting an element");
                 target_element.children.extend(children);

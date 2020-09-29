@@ -141,7 +141,7 @@ fn there_are_2_exact_same_keys_in_the_old() {
     assert_eq!(
         diff,
         vec![
-            ChangeText::new(2, &Text::new("0"), &Text::new("1")).into(),
+            ChangeText::new(2, 2, &Text::new("0"), &Text::new("1")).into(),
             RemoveNode::new(Some(&"div"), 3).into()
         ]
     );
@@ -175,7 +175,7 @@ fn there_are_2_exact_same_keys_in_the_new() {
     assert_eq!(
         diff,
         vec![
-            ChangeText::new(2, &Text::new("0"), &Text::new("1")).into(),
+            ChangeText::new(2, 2, &Text::new("0"), &Text::new("1")).into(),
             InsertNode::new(
                 Some(&"main"),
                 3,
@@ -216,8 +216,8 @@ fn there_are_2_exact_same_keys_in_both_old_and_new() {
     assert_eq!(
         diff,
         vec![
-            ChangeText::new(2, &Text::new("0"), &Text::new("1")).into(),
-            ChangeText::new(4, &Text::new("1"), &Text::new("3")).into(),
+            ChangeText::new(2, 2, &Text::new("0"), &Text::new("1")).into(),
+            ChangeText::new(4, 6, &Text::new("1"), &Text::new("3")).into(),
             InsertNode::new(
                 Some(&"main"),
                 3,
@@ -288,8 +288,7 @@ fn key_2_inserted_at_the_end() {
         vec![AppendChildren::new(
             &"main",
             0,
-            2,
-            vec![&element("div", vec![attr("key", "2")], vec![])]
+            vec![(2, &element("div", vec![attr("key", "2")], vec![]))]
         )
         .into()]
     );
@@ -354,12 +353,14 @@ fn key1_removed_at_start_then_key2_has_additional_attributes() {
     );
 
     let diff = diff_with_key(&old, &new, &"key");
+    // we add attrubytes at NodeIdx 2, and this will become a NodeIdx 1
     assert_eq!(
         diff,
         vec![
             AddAttributes::new(
                 &"div",
                 2,
+                1,
                 vec![&attr("class", "some-class").into()]
             )
             .into(),
@@ -404,6 +405,7 @@ fn deep_nested_key1_removed_at_start_then_key2_has_additional_attributes() {
             AddAttributes::new(
                 &"div",
                 3,
+                2,
                 vec![&attr("class", "some-class").into()]
             )
             .into(),
@@ -450,6 +452,7 @@ fn deep_nested_more_children_key0_and_key1_removed_at_start_then_key2_has_additi
             AddAttributes::new(
                 &"div",
                 4,
+                2,
                 vec![&attr("class", "some-class").into()]
             )
             .into(),
@@ -518,17 +521,20 @@ fn deep_nested_keyed_with_non_keyed_children() {
             AddAttributes::new(
                 &"div",
                 4,
+                2,
                 vec![&attr("class", "some-class").into()]
             )
             .into(),
             ChangeText::new(
                 6,
+                4,
                 &Text::new("paragraph1"),
                 &Text::new("paragraph1, with added content")
             )
             .into(),
             ChangeText::new(
                 8,
+                6,
                 &Text::new("Click here"),
                 &Text::new("Click here to continue")
             )
@@ -579,6 +585,7 @@ fn text_changed_in_keyed_elements() {
         vec![
             ChangeText::new(
                 7,
+                5,
                 &Text::new("item3"),
                 &Text::new("item3 with changes")
             )
@@ -650,6 +657,7 @@ fn text_changed_in_mixed_keyed_and_non_keyed_elements() {
         vec![
             ChangeText::new(
                 7,
+                5,
                 &Text::new("item3"),
                 &Text::new("item3 with changes")
             )
@@ -657,6 +665,7 @@ fn text_changed_in_mixed_keyed_and_non_keyed_elements() {
             RemoveNode::new(Some(&"article"), 2).into(),
             ChangeText::new(
                 9,
+                7,
                 &Text::new("3 items left"),
                 &Text::new("2 items left")
             )
@@ -730,6 +739,7 @@ fn test12() {
         vec![
             ChangeText::new(
                 9,
+                7,
                 &Text::new("item3"),
                 &Text::new("item3 with changes")
             )
@@ -737,6 +747,7 @@ fn test12() {
             RemoveNode::new(Some(&"article"), 4).into(),
             ChangeText::new(
                 11,
+                9,
                 &Text::new("3 items left"),
                 &Text::new("2 items left")
             )

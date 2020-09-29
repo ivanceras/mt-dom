@@ -79,7 +79,7 @@ fn test_205() {
         diff_with_key(&old, &new, &"key"),
         vec![
             RemoveNode::new(Some(&"i"), 3).into(),
-            ReplaceNode::new(Some(&"b"), 4, 4, &element("i", vec![], vec![]))
+            ReplaceNode::new(Some(&"b"), 4, 3, &element("i", vec![], vec![]))
                 .into(),
         ],
     )
@@ -141,6 +141,7 @@ fn test_class_changed() {
         vec![AddAttributes::new(
             &"div",
             0,
+            0,
             vec![&attr("class", "some-class2")]
         )
         .into()]
@@ -166,6 +167,7 @@ fn text_node_changed() {
         diff,
         vec![Patch::ChangeText(ChangeText::new(
             1,
+            1,
             &Text::new("text1"),
             &Text::new("text2")
         ))]
@@ -187,6 +189,7 @@ fn test_class_will_not_be_merged_on_different_calls() {
         diff,
         vec![AddAttributes::new(
             &"div",
+            0,
             0,
             vec![&Attribute::with_multiple_values(
                 None,
@@ -213,6 +216,7 @@ fn test_class_removed() {
         diff,
         vec![RemoveAttributes::new(
             &"div",
+            0,
             0,
             vec![&attr("class", "some-class")]
         )
@@ -246,6 +250,7 @@ fn test_multiple_calls_to_style() {
         vec![AddAttributes::new(
             &"div",
             0,
+            0,
             vec![
                 &attr("style", "display:flex"),
                 &attr("style", "width:200px;height:200px"),
@@ -267,6 +272,7 @@ fn inner_html_func_calls() {
         diff,
         vec![AddAttributes::new(
             &"div",
+            0,
             0,
             vec![&attr("inner_html", "<h1>Hello</h2>")]
         )

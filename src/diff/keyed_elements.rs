@@ -152,8 +152,12 @@ where
 {
     let mut patches = vec![];
 
-    let attributes_patches =
-        diff_attributes(old_element, new_element, cur_node_idx);
+    let attributes_patches = diff_attributes(
+        old_element,
+        new_element,
+        cur_node_idx,
+        new_element_node_idx,
+    );
     // create a map for both the old and new element
     // we can not use VAL as the key, since it is not Hash
     let old_keyed_elements: BTreeMap<
@@ -355,6 +359,7 @@ where
 
     // the node that are to be appended are nodes
     // that are not matched, and not already part of the InsertNode
+    /*
     let append_children_patches = unmatched_new_child_pass2
         .iter()
         .filter(|(new_idx, _, _)| !already_inserted.contains(&new_idx))
@@ -362,12 +367,27 @@ where
             AppendChildren::new(
                 &old_element.tag,
                 new_child_excess_cur_node_idx,
-                *new_node_idx,
-                vec![new_child],
+                vec![(*new_node_idx, new_child)],
             )
             .into()
         })
         .collect::<Vec<_>>();
+    */
+
+    let mut append_children_patches = vec![];
+
+    for (new_idx, new_node_idx, new_child) in unmatched_new_child_pass2.iter() {
+        if !already_inserted.contains(&new_idx) {
+            append_children_patches.push(
+                AppendChildren::new(
+                    &old_element.tag,
+                    new_child_excess_cur_node_idx,
+                    vec![(*new_node_idx, new_child)],
+                )
+                .into(),
+            );
+        }
+    }
 
     // patch order matters here
     // apply changes to the matched element first,

@@ -9,10 +9,8 @@ pub struct AppendChildren<'a, NS, TAG, ATT, VAL, EVENT, MSG> {
     pub tag: &'a TAG,
     /// index of the node we are going to append the children into
     pub node_idx: NodeIdx,
-    /// the new node idx of the node
-    pub new_node_idx: NodeIdx,
-    /// children nodes to be appended
-    pub children: Vec<&'a Node<NS, TAG, ATT, VAL, EVENT, MSG>>,
+    /// children nodes to be appended and their corresponding new_node_idx
+    pub children: Vec<(NodeIdx, &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>)>,
 }
 
 impl<'a, NS, TAG, ATT, VAL, EVENT, MSG>
@@ -22,13 +20,11 @@ impl<'a, NS, TAG, ATT, VAL, EVENT, MSG>
     pub fn new(
         tag: &'a TAG,
         node_idx: NodeIdx,
-        new_node_idx: NodeIdx,
-        children: Vec<&'a Node<NS, TAG, ATT, VAL, EVENT, MSG>>,
+        children: Vec<(NodeIdx, &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>)>,
     ) -> Self {
         AppendChildren {
             tag,
             node_idx,
-            new_node_idx,
             children,
         }
     }
@@ -46,7 +42,6 @@ where
         f.debug_struct("AppendChildren")
             .field("tag", &self.tag)
             .field("node_idx", &self.node_idx)
-            .field("new_node_idx", &self.new_node_idx)
             .field("children", &self.children)
             .finish()
     }

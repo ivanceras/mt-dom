@@ -32,8 +32,7 @@ fn append_children() {
         vec![AppendChildren::new(
             &"main",
             0,
-            2,
-            vec![&element("div", vec![attr("key", "2")], vec![])]
+            vec![(2, &element("div", vec![attr("key", "2")], vec![]))]
         )
         .into()]
     );
@@ -103,6 +102,7 @@ fn change_text() {
         patches,
         vec![Patch::ChangeText(ChangeText::new(
             1,
+            1,
             &Text::new("text1"),
             &Text::new("text2")
         ))]
@@ -128,6 +128,7 @@ fn remove_attributes() {
         patches,
         vec![RemoveAttributes::new(
             &"div",
+            0,
             0,
             vec![&attr("class", "some-class")]
         )
@@ -226,8 +227,10 @@ fn test_multiple_patch_non_keyed() {
     assert_eq!(
         patch,
         vec![
-            ChangeText::new(5, &Text::new("item1"), &Text::new("item2")).into(),
+            ChangeText::new(5, 5, &Text::new("item1"), &Text::new("item2"))
+                .into(),
             ChangeText::new(
+                7,
                 7,
                 &Text::new("item2"),
                 &Text::new("item3 with changes")
@@ -235,6 +238,7 @@ fn test_multiple_patch_non_keyed() {
             .into(),
             ChangeText::new(
                 11,
+                9,
                 &Text::new("3 items left"),
                 &Text::new("2 items left")
             )
@@ -315,12 +319,14 @@ fn test_multiple_patch_keyed() {
         vec![
             ChangeText::new(
                 9,
+                7,
                 &Text::new("item3"),
                 &Text::new("item3 with changes")
             )
             .into(),
             ChangeText::new(
                 11,
+                9,
                 &Text::new("3 items left"),
                 &Text::new("2 items left")
             )
