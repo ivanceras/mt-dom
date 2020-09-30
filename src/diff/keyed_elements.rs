@@ -359,21 +359,6 @@ where
 
     // the node that are to be appended are nodes
     // that are not matched, and not already part of the InsertNode
-    /*
-    let append_children_patches = unmatched_new_child_pass2
-        .iter()
-        .filter(|(new_idx, _, _)| !already_inserted.contains(&new_idx))
-        .map(|(_new_idx, new_node_idx, new_child)| {
-            AppendChildren::new(
-                &old_element.tag,
-                new_child_excess_cur_node_idx,
-                vec![(*new_node_idx, new_child)],
-            )
-            .into()
-        })
-        .collect::<Vec<_>>();
-    */
-
     let mut append_children_patches = vec![];
 
     for (new_idx, new_node_idx, new_child) in unmatched_new_child_pass2.iter() {
