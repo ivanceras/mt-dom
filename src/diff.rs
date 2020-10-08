@@ -36,17 +36,34 @@ where
     NS: PartialEq + fmt::Debug,
     VAL: PartialEq + fmt::Debug,
 {
-    diff_recursive(old_node, new_node, &mut 0, &mut 0, key, &|_old, _new| false)
+    diff_recursive(
+        old_node,
+        new_node,
+        &mut 0,
+        &mut 0,
+        key,
+        &|_old, _new| false,
+        &|_old, _new| false,
+    )
 }
 
 /// calculate the difference of 2 nodes
 /// if the skip function evaluates to true diffinf of
 /// the node will be skipped entirely
-pub fn diff_with_key_and_skip<'a, NS, TAG, ATT, VAL, EVENT, MSG, SKIP>(
+///
+/// The SKIP fn is passed to check whether the diffing of the old and new element should be
+/// skipped, and assumed no changes. This is for optimization where the developer is sure that
+/// the dom tree hasn't change.
+///
+/// REP fn stands for replace function which decides if the new element should
+/// just replace the old element without diffing
+///
+pub fn diff_with_functions<'a, NS, TAG, ATT, VAL, EVENT, MSG, SKIP, REP>(
     old_node: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
     new_node: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
     key: &ATT,
     skip: &SKIP,
+    rep: &REP,
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
 where
     TAG: PartialEq + fmt::Debug,
@@ -57,8 +74,12 @@ where
         &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
         &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
     ) -> bool,
+    REP: Fn(
+        &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+        &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+    ) -> bool,
 {
-    diff_recursive(old_node, new_node, &mut 0, &mut 0, key, skip)
+    diff_recursive(old_node, new_node, &mut 0, &mut 0, key, skip, rep)
 }
 
 /// increment the cur_node_idx based on how many descendant it contains.
@@ -113,13 +134,14 @@ where
     }
 }
 
-fn diff_recursive<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG, SKIP>(
+fn diff_recursive<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG, SKIP, REP>(
     old_node: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
     new_node: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
     cur_node_idx: &'b mut usize,
     new_node_idx: &'b mut usize,
     key: &ATT,
     skip: &SKIP,
+    rep: &REP,
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
 where
     NS: PartialEq + fmt::Debug,
@@ -130,12 +152,29 @@ where
         &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
         &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
     ) -> bool,
+    REP: Fn(
+        &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+        &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+    ) -> bool,
 {
     // skip diffing if the function evaluates to true
     if skip(old_node, new_node) {
         increment_node_idx_to_descendant_count(old_node, cur_node_idx);
         increment_node_idx_to_descendant_count(new_node, new_node_idx);
         return vec![];
+    }
+    // handle explicit replace if the REP fn evaluates to true
+    if rep(old_node, new_node) {
+        let replace_patch = ReplaceNode::new(
+            old_node.tag(),
+            *cur_node_idx,
+            *new_node_idx,
+            &new_node,
+        )
+        .into();
+        increment_node_idx_to_descendant_count(old_node, cur_node_idx);
+        increment_node_idx_to_descendant_count(new_node, new_node_idx);
+        return vec![replace_patch];
     }
     let mut patches = vec![];
     // Different enum variants, replace!
@@ -151,7 +190,7 @@ where
         }
     }
 
-    // Handle replacing of a node
+    // Handle implicit replace
     if replace {
         patches.push(
             ReplaceNode::new(
@@ -196,6 +235,7 @@ where
                     cur_node_idx,
                     new_node_idx,
                     skip,
+                    rep,
                 );
                 patches.extend(keyed_patches);
             } else {
@@ -206,6 +246,7 @@ where
                     cur_node_idx,
                     new_node_idx,
                     skip,
+                    rep,
                 );
                 patches.extend(non_keyed_patches);
             }
@@ -231,13 +272,14 @@ where
 ///  it will be all appended in the old_element.
 ///
 ///
-fn diff_non_keyed_elements<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG, SKIP>(
+fn diff_non_keyed_elements<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG, SKIP, REP>(
     old_element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
     new_element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
     key: &ATT,
     cur_node_idx: &'b mut usize,
     new_node_idx: &'b mut usize,
     skip: &SKIP,
+    rep: &REP,
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
 where
     NS: PartialEq + fmt::Debug,
@@ -245,6 +287,10 @@ where
     ATT: PartialEq + fmt::Debug,
     VAL: PartialEq + fmt::Debug,
     SKIP: Fn(
+        &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+        &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+    ) -> bool,
+    REP: Fn(
         &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
         &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
     ) -> bool,
@@ -277,6 +323,7 @@ where
             new_node_idx,
             key,
             skip,
+            rep,
         );
         patches.extend(more_patches);
         //increment_node_idx_to_descendant_count(new_child, new_node_idx);
