@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.0
+- Add a REP for explicitly replace the node when REP evaluates to true
+- Patch variant now contains NodeIdx for the new node inserted, appended, and the replacement node
+- Convert Text variant into a struct
+- Add skip function as an optimization feature for diffing old and new node
+
 ## 0.5.3
 - Fix ReplaceNode tag to be optional, for replacing text node
 

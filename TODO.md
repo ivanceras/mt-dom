@@ -13,7 +13,7 @@
 - [X] Deprecate RemoveChildren with RemoveNode
 - [X] Deprecate InsertChildren with InsertNode
 - [X] Add skip mechanism to skip diffing nodes marked with this.
-- [ ] Make the Node::Text variant to be a struct.
+- [X] Make the Node::Text variant to be a struct.
     - This is pre-requisite for adding additional fields such as real dom link
 - [ ] Add a field `link` for Element and TextNode which points
     to the actual dom when it is created. This will be used directly for patching
