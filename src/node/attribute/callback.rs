@@ -14,6 +14,16 @@ use std::{
 /// In effect callbacks attached to DOM events are limited
 /// to only passing an MSG to the program and not complex statements.
 ///
+/// Note: It would have been nice to have the inner value be
+/// `Rc<FnMut(EVENT) -> MSG> +'a`
+/// but there are a lot of issues that this becomes infeasible:
+///  1 - wasm_bindge::Closure requires that 'static references to the closure
+///  2 - Accessing `Rc::get_mut` requires that there is no other `Rc` or `Weak` references
+///     else where.
+///         - We could be iterating on the elements for recursively setting the attributes
+///             which is not allowed to have recursive mutable iteration
+///         - Attributes of the same name are merged therefore cloning the attributes, hence the
+///         callback is necessary.
 ///
 pub struct Callback<EVENT, MSG>(Rc<dyn Fn(EVENT) -> MSG>);
 
