@@ -755,3 +755,28 @@ fn test12() {
         ]
     );
 }
+
+#[test]
+fn remove_first() {
+    let old: MyNode = element(
+        "div",
+        vec![attr("id", "some-id"), attr("class", "some-class")],
+        vec![
+            element("div", vec![attr("key", "1")], vec![text(1)]),
+            element("div", vec![attr("key", "2")], vec![text(2)]),
+            element("div", vec![attr("key", "3")], vec![text(3)]),
+        ],
+    );
+
+    let new: MyNode = element(
+        "div",
+        vec![attr("id", "some-id"), attr("class", "some-class")],
+        vec![
+            element("div", vec![attr("key", "2")], vec![text(2)]),
+            element("div", vec![attr("key", "3")], vec![text(3)]),
+        ],
+    );
+
+    let diff = diff_with_key(&old, &new, &"key");
+    assert_eq!(diff, vec![RemoveNode::new(Some(&"div"), 1).into()])
+}
