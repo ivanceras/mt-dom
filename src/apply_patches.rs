@@ -1,16 +1,14 @@
 //! apply patches for verifying the patches are correct when current_dom will be equal to the
 //! target_dom when patches is applied.
 //!
-use crate::{
-    Node,
-    NodeIdx,
-    Patch,
-};
+use crate::{Node, NodeIdx, Patch};
 use std::fmt;
 
 /// had to find the node each time, since rust does not allow multiple mutable borrows
 /// ISSUE: once a destructive patch such as RemoveChildren, InsertNode, ReplaceNode is applied
 /// the Nodeidx is not synch with the root_node anymore.
+///
+/// TODO: zipper might be feasible to use here
 ///
 /// To minimize this issue, destructive patches is applied last.
 /// It doesn't elimiate the problem completely, and it will arise

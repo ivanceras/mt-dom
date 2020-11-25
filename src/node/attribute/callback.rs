@@ -1,8 +1,4 @@
-use std::{
-    convert::Into,
-    fmt,
-    rc::Rc,
-};
+use std::{convert::Into, fmt, rc::Rc};
 
 /// A generic sized representation of a function that can be
 /// attached to a Node. The callback will essentially be owned by the element
@@ -17,7 +13,7 @@ use std::{
 /// Note: It would have been nice to have the inner value be
 /// `Rc<FnMut(EVENT) -> MSG> +'a`
 /// but there are a lot of issues that this becomes infeasible:
-///  1 - wasm_bindge::Closure requires that 'static references to the closure
+///  1 - wasm_bindgen::Closure requires that 'static references to the closure
 ///  2 - Accessing `Rc::get_mut` requires that there is no other `Rc` or `Weak` references
 ///     else where.
 ///         - We could be iterating on the elements for recursively setting the attributes
@@ -100,6 +96,7 @@ impl<EVENT, MSG> PartialEq for Callback<EVENT, MSG> {
         // diffing algorthmn since all callbacks are effectively called with the closure.into()
         // which are essentially not the same Callback even when they are derived from the same
         // function.
+        // Also, no 2 closures are the same
         //Rc::ptr_eq(&self.0, &rhs.0)
     }
 }
