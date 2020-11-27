@@ -87,6 +87,10 @@ impl<EVENT, MSG> Clone for Callback<EVENT, MSG> {
 ///
 /// The reason this is manually implemented is, so that EVENT and MSG
 /// doesn't need to be PartialEq as it is part of the Callback objects and are not compared
+///
+/// Note: There is no 2 closures are equal, even if they are logically the same.
+/// We return true here so as to not make a diff for the callback attribute.
+/// Replacing the callback function for each view call is in-efficient.
 impl<EVENT, MSG> PartialEq for Callback<EVENT, MSG> {
     fn eq(&self, _rhs: &Self) -> bool {
         true
@@ -96,7 +100,7 @@ impl<EVENT, MSG> PartialEq for Callback<EVENT, MSG> {
         // diffing algorthmn since all callbacks are effectively called with the closure.into()
         // which are essentially not the same Callback even when they are derived from the same
         // function.
-        // Also, no 2 closures are the same
+        // Also, no 2 closures are the same.
         //Rc::ptr_eq(&self.0, &rhs.0)
     }
 }
