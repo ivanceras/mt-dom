@@ -1,8 +1,4 @@
-use mt_dom::{
-    diff::*,
-    patch::*,
-    *,
-};
+use mt_dom::{diff::*, patch::*, *};
 
 pub type MyNode =
     Node<&'static str, &'static str, &'static str, &'static str, (), ()>;
@@ -254,6 +250,35 @@ fn key_2_inserted_at_start() {
         diff,
         vec![InsertNode::new(
             Some(&"main"),
+            1,
+            1,
+            &element("div", vec![attr("key", "2")], vec![])
+        )
+        .into()]
+    );
+}
+
+#[test]
+fn keyed_element_not_reused() {
+    let old: MyNode = element(
+        "main",
+        vec![attr("class", "container")],
+        vec![element("div", vec![attr("key", "1")], vec![])],
+    );
+
+    let new: MyNode = element(
+        "main",
+        vec![attr("class", "container")],
+        vec![element("div", vec![attr("key", "2")], vec![])],
+    );
+
+    let diff = diff_with_key(&old, &new, &"key");
+    dbg!(&diff);
+
+    assert_eq!(
+        diff,
+        vec![ReplaceNode::new(
+            Some(&"div"),
             1,
             1,
             &element("div", vec![attr("key", "2")], vec![])

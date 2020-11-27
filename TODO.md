@@ -31,6 +31,7 @@
     - (Bad): which is supposed to be in sauron
     - (Good): It can be reused as is, in other crates such as `sauron-native`
 - [ ] Use zipper in the `apply_patches` code to traverse and parse the Node
+- [ ] Don't recycle keyed_elements, keyed_elements that isn't matched should be removed.
 
 ## Optimization
 - Create a data structure which has old_element and its node_idx and the new_element with its node_idx

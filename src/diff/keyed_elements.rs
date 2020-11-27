@@ -1,24 +1,11 @@
 use super::{
-    diff_attributes,
-    diff_recursive,
-    increment_node_idx_to_descendant_count,
+    diff_attributes, diff_recursive, increment_node_idx_to_descendant_count,
 };
 use crate::{
-    patch::{
-        AppendChildren,
-        InsertNode,
-        RemoveNode,
-    },
-    Element,
-    Node,
-    NodeIdx,
-    Patch,
+    patch::{AppendChildren, InsertNode, RemoveNode},
+    Element, Node, NodeIdx, Patch,
 };
-use std::{
-    collections::BTreeMap,
-    fmt,
-    iter::FromIterator,
-};
+use std::{collections::BTreeMap, fmt, iter::FromIterator};
 
 /// find the element and its node_idx which has this key
 /// and its node_idx not in `not_in`
@@ -219,6 +206,8 @@ where
     let mut last_matched_new_idx = None;
     // here, we need to processed both keyed element and non-keyed elements
     for (new_idx, (new_key, new_element)) in new_keyed_elements.iter() {
+        // find the old element which has a key value which is the same with the new element key
+        // `new_key`
         if let Some((old_idx, old_element)) = find_node_with_key(
             &old_keyed_elements,
             new_key,
@@ -242,11 +231,13 @@ where
     // unmatched old and idx in pass 1
     let (matched_old_idx, matched_new_idx) =
         get_matched_old_new_idx(&matched_old_new_keyed);
+
     // these are the new children that didn't matched in the keyed elements pass
     let mut unmatched_new_child: Vec<(
         usize,
         (NodeIdx, &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>),
     )> = vec![];
+
     for (idx, (node_idx, new_element)) in
         node_idx_new_elements.iter().enumerate()
     {
@@ -255,7 +246,7 @@ where
         }
     }
 
-    // thse are the old children that didn't matched in the keyed elements pass
+    // these are the old children that didn't matched in the keyed elements pass
     let unmatched_old_child = get_unmatched_children_node_idx(
         old_element.get_children(),
         matched_old_idx,

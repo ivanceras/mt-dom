@@ -3,24 +3,13 @@
 use crate::{
     node::attribute::group_attributes_per_name,
     patch::{
-        AddAttributes,
-        AppendChildren,
-        ChangeText,
-        RemoveAttributes,
-        RemoveNode,
-        ReplaceNode,
+        AddAttributes, AppendChildren, ChangeText, RemoveAttributes,
+        RemoveNode, ReplaceNode,
     },
-    Attribute,
-    Element,
-    Node,
-    Patch,
+    Attribute, Element, Node, Patch,
 };
 use keyed_elements::diff_keyed_elements;
-use std::{
-    cmp,
-    fmt,
-    mem,
-};
+use std::{cmp, fmt, mem};
 
 mod keyed_elements;
 
@@ -163,24 +152,30 @@ where
         increment_node_idx_to_descendant_count(new_node, new_node_idx);
         return vec![];
     }
-    // handle explicit replace if the REP fn evaluates to true
-    if rep(old_node, new_node) {
-        let replace_patch = ReplaceNode::new(
-            old_node.tag(),
-            *cur_node_idx,
-            *new_node_idx,
-            &new_node,
-        )
-        .into();
-        increment_node_idx_to_descendant_count(old_node, cur_node_idx);
-        increment_node_idx_to_descendant_count(new_node, new_node_idx);
-        return vec![replace_patch];
-    }
-    let mut patches = vec![];
-    // Different enum variants, replace!
+
     let mut replace =
         mem::discriminant(old_node) != mem::discriminant(new_node);
 
+    let mut patches = vec![];
+
+    // handle explicit replace if the REP fn evaluates to true
+    if rep(old_node, new_node) {
+        replace = true;
+    }
+
+    // replace if the old key does not match the new key
+    match (
+        old_node.get_attribute_value(&key),
+        new_node.get_attribute_value(&key),
+    ) {
+        (Some(old_key), Some(new_key)) => {
+            if old_key != new_key {
+                replace = true;
+            }
+        }
+        _ => (),
+    }
+    // Different enum variants, replace!
     if let (Node::Element(old_element), Node::Element(new_element)) =
         (old_node, new_node)
     {
@@ -228,6 +223,8 @@ where
             if is_any_children_keyed(old_element, key)
                 || is_any_children_keyed(new_element, key)
             {
+                // use diff_keyed_elements if the any of the old_element or new_element
+                // wer are comparing contains a key as an attribute
                 let keyed_patches = diff_keyed_elements(
                     old_element,
                     new_element,
