@@ -3,6 +3,7 @@
 //!
 use crate::{Node, NodeIdx, Patch};
 use std::fmt;
+use std::fmt::Debug;
 
 /// had to find the node each time, since rust does not allow multiple mutable borrows
 /// ISSUE: once a destructive patch such as RemoveChildren, InsertNode, ReplaceNode is applied
@@ -13,21 +14,22 @@ use std::fmt;
 /// To minimize this issue, destructive patches is applied last.
 /// It doesn't elimiate the problem completely, and it will arise
 /// when there are multiple destructive patch.
-pub fn apply_patches<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
-    root_node: &mut Node<NS, TAG, ATT, VAL, EVENT, MSG>,
-    patches: &[Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>],
+pub fn apply_patches<'a, NS, TAG, ATT, VAL, EVENT>(
+    root_node: &mut Node<NS, TAG, ATT, VAL, EVENT>,
+    patches: &[Patch<'a, NS, TAG, ATT, VAL, EVENT>],
 ) where
-    NS: Clone + fmt::Debug,
-    TAG: Clone + fmt::Debug,
-    ATT: Clone + fmt::Debug + PartialEq,
-    VAL: Clone + fmt::Debug,
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
 {
     for patch in patches {
         match patch {
             Patch::AppendChildren(ac) => {
                 let target_node = find_node(root_node, ac.node_idx)
                     .expect("must have found the target node");
-                let children: Vec<Node<NS, TAG, ATT, VAL, EVENT, MSG>> = ac
+                let children: Vec<Node<NS, TAG, ATT, VAL, EVENT>> = ac
                     .children
                     .iter()
                     .map(|(_idx, c)| *c)
@@ -102,29 +104,31 @@ pub fn apply_patches<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
     }
 }
 
-pub(crate) fn find_node<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
-    node: &'a mut Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+pub(crate) fn find_node<'a, NS, TAG, ATT, VAL, EVENT>(
+    node: &'a mut Node<NS, TAG, ATT, VAL, EVENT>,
     node_idx: NodeIdx,
-) -> Option<&'a mut Node<NS, TAG, ATT, VAL, EVENT, MSG>>
+) -> Option<&'a mut Node<NS, TAG, ATT, VAL, EVENT>>
 where
-    NS: fmt::Debug,
-    TAG: fmt::Debug,
-    ATT: fmt::Debug,
-    VAL: fmt::Debug,
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
 {
     find_node_recursive(node, node_idx, &mut 0)
 }
 
-fn find_node_recursive<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
-    node: &'a mut Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+fn find_node_recursive<'a, NS, TAG, ATT, VAL, EVENT>(
+    node: &'a mut Node<NS, TAG, ATT, VAL, EVENT>,
     node_idx: NodeIdx,
     cur_node_idx: &mut usize,
-) -> Option<&'a mut Node<NS, TAG, ATT, VAL, EVENT, MSG>>
+) -> Option<&'a mut Node<NS, TAG, ATT, VAL, EVENT>>
 where
-    NS: fmt::Debug,
-    TAG: fmt::Debug,
-    ATT: fmt::Debug,
-    VAL: fmt::Debug,
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
 {
     if node_idx == *cur_node_idx {
         Some(node)
@@ -138,15 +142,16 @@ where
     }
 }
 
-fn remove_node<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
-    node: &'a mut Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+fn remove_node<'a, NS, TAG, ATT, VAL, EVENT>(
+    node: &'a mut Node<NS, TAG, ATT, VAL, EVENT>,
     node_idx: NodeIdx,
 ) -> bool
 where
-    NS: fmt::Debug,
-    TAG: fmt::Debug,
-    ATT: fmt::Debug,
-    VAL: fmt::Debug,
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
 {
     println!("to be removed node_idx: {}", node_idx);
     remove_node_recursive(node, node_idx, &mut 0)
@@ -155,16 +160,17 @@ where
 /// remove node, if the child matches the cur_node_idx remove it
 /// Note: it is processed this way since we need a reference to the parent
 /// node to remove the target node_idx
-fn remove_node_recursive<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
-    node: &'a mut Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+fn remove_node_recursive<'a, NS, TAG, ATT, VAL, EVENT>(
+    node: &'a mut Node<NS, TAG, ATT, VAL, EVENT>,
     node_idx: NodeIdx,
     cur_node_idx: &mut usize,
 ) -> bool
 where
-    NS: fmt::Debug,
-    TAG: fmt::Debug,
-    ATT: fmt::Debug,
-    VAL: fmt::Debug,
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
 {
     if let Some(element) = node.as_element_mut() {
         let mut this_cur_node_idx = *cur_node_idx;
@@ -199,31 +205,33 @@ where
     }
 }
 
-fn insert_node<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
-    node: &'a mut Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+fn insert_node<'a, NS, TAG, ATT, VAL, EVENT>(
+    node: &'a mut Node<NS, TAG, ATT, VAL, EVENT>,
     node_idx: NodeIdx,
-    for_insert: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+    for_insert: &'a Node<NS, TAG, ATT, VAL, EVENT>,
 ) -> bool
 where
-    NS: fmt::Debug + Clone,
-    TAG: fmt::Debug + Clone,
-    ATT: fmt::Debug + Clone,
-    VAL: fmt::Debug + Clone,
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
 {
     insert_node_recursive(node, node_idx, for_insert, &mut 0)
 }
 
-fn insert_node_recursive<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
-    node: &'a mut Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+fn insert_node_recursive<'a, NS, TAG, ATT, VAL, EVENT>(
+    node: &'a mut Node<NS, TAG, ATT, VAL, EVENT>,
     node_idx: NodeIdx,
-    for_insert: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+    for_insert: &'a Node<NS, TAG, ATT, VAL, EVENT>,
     cur_node_idx: &mut usize,
 ) -> bool
 where
-    NS: fmt::Debug + Clone,
-    TAG: fmt::Debug + Clone,
-    ATT: fmt::Debug + Clone,
-    VAL: fmt::Debug + Clone,
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
 {
     if let Some(element) = node.as_element_mut() {
         let mut this_cur_node_idx = *cur_node_idx;
@@ -270,7 +278,7 @@ mod test {
     use crate::*;
 
     pub type MyNode =
-        Node<&'static str, &'static str, &'static str, &'static str, (), ()>;
+        Node<&'static str, &'static str, &'static str, &'static str, ()>;
 
     #[test]
     fn test_find_node_simple() {

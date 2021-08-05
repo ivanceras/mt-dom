@@ -1,11 +1,19 @@
 use super::NodeIdx;
 use crate::Node;
 use std::fmt;
+use std::fmt::Debug;
 
 /// Replace a node with another node. This typically happens when a node's tag changes.
 /// ex: <div> becomes <span>
-#[derive(PartialEq)]
-pub struct ReplaceNode<'a, NS, TAG, ATT, VAL, EVENT, MSG> {
+#[derive(Clone, Debug, PartialEq)]
+pub struct ReplaceNode<'a, NS, TAG, ATT, VAL, EVENT>
+where
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
+{
     /// the tag of the node we are going to replace
     /// can replace text node, and text node doesn't have tags
     pub tag: Option<&'a TAG>,
@@ -14,18 +22,23 @@ pub struct ReplaceNode<'a, NS, TAG, ATT, VAL, EVENT, MSG> {
     /// the node_idx of the replacement
     pub new_node_idx: NodeIdx,
     /// the node that will replace the target node
-    pub replacement: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+    pub replacement: &'a Node<NS, TAG, ATT, VAL, EVENT>,
 }
 
-impl<'a, NS, TAG, ATT, VAL, EVENT, MSG>
-    ReplaceNode<'a, NS, TAG, ATT, VAL, EVENT, MSG>
+impl<'a, NS, TAG, ATT, VAL, EVENT> ReplaceNode<'a, NS, TAG, ATT, VAL, EVENT>
+where
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
 {
     /// create a new ReplaceNode patch
     pub fn new(
         tag: Option<&'a TAG>,
         node_idx: NodeIdx,
         new_node_idx: NodeIdx,
-        replacement: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+        replacement: &'a Node<NS, TAG, ATT, VAL, EVENT>,
     ) -> Self {
         ReplaceNode {
             tag,
@@ -33,23 +46,5 @@ impl<'a, NS, TAG, ATT, VAL, EVENT, MSG>
             new_node_idx,
             replacement,
         }
-    }
-}
-
-impl<'a, NS, TAG, ATT, VAL, EVENT, MSG> fmt::Debug
-    for ReplaceNode<'a, NS, TAG, ATT, VAL, EVENT, MSG>
-where
-    NS: fmt::Debug,
-    TAG: fmt::Debug,
-    ATT: fmt::Debug,
-    VAL: fmt::Debug,
-{
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.debug_struct("ReplaceNode")
-            .field("tag", &self.tag)
-            .field("node_idx", &self.node_idx)
-            .field("new_node_idx", &self.new_node_idx)
-            .field("replacement", &self.replacement)
-            .finish()
     }
 }

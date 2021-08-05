@@ -1,48 +1,44 @@
 use super::NodeIdx;
 use crate::Node;
 use std::fmt;
+use std::fmt::Debug;
 
 /// Append a vector of child nodes to a parent node id.
-#[derive(PartialEq)]
-pub struct AppendChildren<'a, NS, TAG, ATT, VAL, EVENT, MSG> {
+#[derive(Clone, Debug, PartialEq)]
+pub struct AppendChildren<'a, NS, TAG, ATT, VAL, EVENT>
+where
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
+{
     /// the tag of the node we are appending the children into
     pub tag: &'a TAG,
     /// index of the node we are going to append the children into
     pub node_idx: NodeIdx,
     /// children nodes to be appended and their corresponding new_node_idx
-    pub children: Vec<(NodeIdx, &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>)>,
+    pub children: Vec<(NodeIdx, &'a Node<NS, TAG, ATT, VAL, EVENT>)>,
 }
 
-impl<'a, NS, TAG, ATT, VAL, EVENT, MSG>
-    AppendChildren<'a, NS, TAG, ATT, VAL, EVENT, MSG>
+impl<'a, NS, TAG, ATT, VAL, EVENT> AppendChildren<'a, NS, TAG, ATT, VAL, EVENT>
+where
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
 {
     /// create a new AppendChildren patch
     pub fn new(
         tag: &'a TAG,
         node_idx: NodeIdx,
-        children: Vec<(NodeIdx, &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>)>,
+        children: Vec<(NodeIdx, &'a Node<NS, TAG, ATT, VAL, EVENT>)>,
     ) -> Self {
         AppendChildren {
             tag,
             node_idx,
             children,
         }
-    }
-}
-
-impl<'a, NS, TAG, ATT, VAL, EVENT, MSG> fmt::Debug
-    for AppendChildren<'a, NS, TAG, ATT, VAL, EVENT, MSG>
-where
-    NS: fmt::Debug,
-    TAG: fmt::Debug,
-    ATT: fmt::Debug,
-    VAL: fmt::Debug,
-{
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.debug_struct("AppendChildren")
-            .field("tag", &self.tag)
-            .field("node_idx", &self.node_idx)
-            .field("children", &self.children)
-            .finish()
     }
 }

@@ -1,12 +1,7 @@
-use mt_dom::{
-    apply_patches,
-    diff::*,
-    patch::*,
-    *,
-};
+use mt_dom::{apply_patches, diff::*, patch::*, *};
 
 pub type MyNode =
-    Node<&'static str, &'static str, &'static str, &'static str, (), ()>;
+    Node<&'static str, &'static str, &'static str, &'static str, ()>;
 
 #[test]
 fn append_children() {

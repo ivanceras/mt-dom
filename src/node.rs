@@ -1,7 +1,7 @@
 pub use attribute::Attribute;
-use attribute::Callback;
 pub use element::Element;
 use std::fmt;
+use std::fmt::Debug;
 
 pub(crate) mod attribute;
 mod element;
@@ -19,10 +19,17 @@ mod element;
 /// virtual dom implementation
 /// VAL - is the type for the value of the attribute, this will be String, f64, or just another
 /// generics that suits the implementing library which used mt-dom for just dom-diffing purposes
-#[derive(PartialEq)]
-pub enum Node<NS, TAG, ATT, VAL, EVENT, MSG> {
+#[derive(Clone, Debug, PartialEq)]
+pub enum Node<NS, TAG, ATT, VAL, EVENT>
+where
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
+{
     /// Element variant of a virtual node
-    Element(Element<NS, TAG, ATT, VAL, EVENT, MSG>),
+    Element(Element<NS, TAG, ATT, VAL, EVENT>),
     /// Text variant of a virtual node
     Text(Text),
 }
@@ -48,7 +55,14 @@ impl Text {
     }
 }
 
-impl<NS, TAG, ATT, VAL, EVENT, MSG> Node<NS, TAG, ATT, VAL, EVENT, MSG> {
+impl<NS, TAG, ATT, VAL, EVENT> Node<NS, TAG, ATT, VAL, EVENT>
+where
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
+{
     /// returns true if this a text node
     pub fn is_text(&self) -> bool {
         match self {
@@ -59,9 +73,7 @@ impl<NS, TAG, ATT, VAL, EVENT, MSG> Node<NS, TAG, ATT, VAL, EVENT, MSG> {
 
     /// consume self and return the element if it is an element variant
     /// None if it is a text node
-    pub fn take_element(
-        self,
-    ) -> Option<Element<NS, TAG, ATT, VAL, EVENT, MSG>> {
+    pub fn take_element(self) -> Option<Element<NS, TAG, ATT, VAL, EVENT>> {
         match self {
             Node::Element(element) => Some(element),
             Node::Text(_) => None,
@@ -71,7 +83,7 @@ impl<NS, TAG, ATT, VAL, EVENT, MSG> Node<NS, TAG, ATT, VAL, EVENT, MSG> {
     /// Get a mutable reference to the element, if this node is an element node
     pub fn as_element_mut(
         &mut self,
-    ) -> Option<&mut Element<NS, TAG, ATT, VAL, EVENT, MSG>> {
+    ) -> Option<&mut Element<NS, TAG, ATT, VAL, EVENT>> {
         match *self {
             Node::Element(ref mut element) => Some(element),
             Node::Text(_) => None,
@@ -79,9 +91,7 @@ impl<NS, TAG, ATT, VAL, EVENT, MSG> Node<NS, TAG, ATT, VAL, EVENT, MSG> {
     }
 
     /// returns a reference to the element if this is an element node
-    pub fn as_element_ref(
-        &self,
-    ) -> Option<&Element<NS, TAG, ATT, VAL, EVENT, MSG>> {
+    pub fn as_element_ref(&self) -> Option<&Element<NS, TAG, ATT, VAL, EVENT>> {
         match *self {
             Node::Element(ref element) => Some(element),
             Node::Text(_) => None,
@@ -93,7 +103,7 @@ impl<NS, TAG, ATT, VAL, EVENT, MSG> Node<NS, TAG, ATT, VAL, EVENT, MSG> {
     /// This is used in building the nodes in a builder pattern
     pub fn add_children(
         mut self,
-        children: Vec<Node<NS, TAG, ATT, VAL, EVENT, MSG>>,
+        children: Vec<Node<NS, TAG, ATT, VAL, EVENT>>,
     ) -> Self {
         if let Some(element) = self.as_element_mut() {
             element.add_children(children);
@@ -104,7 +114,7 @@ impl<NS, TAG, ATT, VAL, EVENT, MSG> Node<NS, TAG, ATT, VAL, EVENT, MSG> {
     /// add children but not consume self
     pub fn add_children_ref_mut(
         &mut self,
-        children: Vec<Node<NS, TAG, ATT, VAL, EVENT, MSG>>,
+        children: Vec<Node<NS, TAG, ATT, VAL, EVENT>>,
     ) {
         if let Some(element) = self.as_element_mut() {
             element.add_children(children);
@@ -115,7 +125,7 @@ impl<NS, TAG, ATT, VAL, EVENT, MSG> Node<NS, TAG, ATT, VAL, EVENT, MSG> {
     /// this is used in view building
     pub fn add_attributes(
         mut self,
-        attributes: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>,
+        attributes: Vec<Attribute<NS, ATT, VAL, EVENT>>,
     ) -> Self {
         if let Some(elm) = self.as_element_mut() {
             elm.add_attributes(attributes);
@@ -126,7 +136,7 @@ impl<NS, TAG, ATT, VAL, EVENT, MSG> Node<NS, TAG, ATT, VAL, EVENT, MSG> {
     /// add attributes using a mutable reference to self
     pub fn add_attributes_ref_mut(
         &mut self,
-        attributes: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>,
+        attributes: Vec<Attribute<NS, ATT, VAL, EVENT>>,
     ) {
         if let Some(elm) = self.as_element_mut() {
             elm.add_attributes(attributes);
@@ -135,9 +145,7 @@ impl<NS, TAG, ATT, VAL, EVENT, MSG> Node<NS, TAG, ATT, VAL, EVENT, MSG> {
 
     /// get the attributes of this node
     /// returns None if it is a text node
-    pub fn get_attributes(
-        &self,
-    ) -> Option<&[Attribute<NS, ATT, VAL, EVENT, MSG>]> {
+    pub fn get_attributes(&self) -> Option<&[Attribute<NS, ATT, VAL, EVENT>]> {
         match *self {
             Node::Element(ref element) => Some(element.get_attributes()),
             Node::Text(_) => None,
@@ -164,9 +172,7 @@ impl<NS, TAG, ATT, VAL, EVENT, MSG> Node<NS, TAG, ATT, VAL, EVENT, MSG> {
 
     /// return the children of this node if it is an element
     /// returns None if it is a text node
-    pub fn get_children(
-        &self,
-    ) -> Option<&[Node<NS, TAG, ATT, VAL, EVENT, MSG>]> {
+    pub fn get_children(&self) -> Option<&[Node<NS, TAG, ATT, VAL, EVENT>]> {
         if let Some(element) = self.as_element_ref() {
             Some(element.get_children())
         } else {
@@ -178,7 +184,7 @@ impl<NS, TAG, ATT, VAL, EVENT, MSG> Node<NS, TAG, ATT, VAL, EVENT, MSG> {
     /// returns None if it is a text node
     pub fn children_mut(
         &mut self,
-    ) -> Option<&mut [Node<NS, TAG, ATT, VAL, EVENT, MSG>]> {
+    ) -> Option<&mut [Node<NS, TAG, ATT, VAL, EVENT>]> {
         if let Some(element) = self.as_element_mut() {
             Some(element.children_mut())
         } else {
@@ -204,21 +210,11 @@ impl<NS, TAG, ATT, VAL, EVENT, MSG> Node<NS, TAG, ATT, VAL, EVENT, MSG> {
             }
         }
     }
-}
 
-/// Note:
-/// using the #[derive(PartialEq)] needs EVENT and MSG to also be PartialEq.
-///
-/// The reason this is manually implemented is, so that EVENT and MSG
-/// doesn't need to be PartialEq as it is part of the Callback objects and are not compared
-impl<NS, TAG, ATT, VAL, EVENT, MSG> Node<NS, TAG, ATT, VAL, EVENT, MSG>
-where
-    ATT: PartialEq,
-{
     /// remove the existing attributes and set with the new value
     pub fn set_attributes_ref_mut(
         &mut self,
-        attributes: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>,
+        attributes: Vec<Attribute<NS, ATT, VAL, EVENT>>,
     ) {
         if let Some(elm) = self.as_element_mut() {
             elm.set_attributes(attributes);
@@ -228,7 +224,7 @@ where
     /// merge to existing attributes if the attribute name already exist
     pub fn merge_attributes(
         mut self,
-        attributes: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>,
+        attributes: Vec<Attribute<NS, ATT, VAL, EVENT>>,
     ) -> Self {
         if let Some(elm) = self.as_element_mut() {
             elm.merge_attributes(attributes);
@@ -246,106 +242,50 @@ where
     }
 }
 
-impl<NS, TAG, ATT, VAL, EVENT, MSG> Node<NS, TAG, ATT, VAL, EVENT, MSG>
-where
-    EVENT: 'static,
-    MSG: 'static,
-{
-    /// map the msg of callback of this element node
-    pub fn map_msg<F, MSG2>(
-        self,
-        func: F,
-    ) -> Node<NS, TAG, ATT, VAL, EVENT, MSG2>
-    where
-        F: Fn(MSG) -> MSG2 + 'static,
-        MSG2: 'static,
-    {
-        let cb = Callback::from(func);
-        self.map_callback(cb)
-    }
-
-    /// map the msg of callback of this element node
-    pub fn map_callback<MSG2>(
-        self,
-        cb: Callback<MSG, MSG2>,
-    ) -> Node<NS, TAG, ATT, VAL, EVENT, MSG2>
-    where
-        MSG2: 'static,
-    {
-        match self {
-            Node::Element(element) => Node::Element(element.map_callback(cb)),
-            Node::Text(text) => Node::Text(text),
-        }
-    }
-}
-
-/// Note:
-/// using the #[derive(Debug)] needs EVENT and MSG to also be Debug
-///
-/// The reason this is manually implemented is, so that EVENT and MSG
-/// doesn't need to be Debug as it is part of the Callback objects and are not shown.
-impl<NS, TAG, ATT, VAL, EVENT, MSG> fmt::Debug
-    for Node<NS, TAG, ATT, VAL, EVENT, MSG>
-where
-    NS: fmt::Debug,
-    TAG: fmt::Debug,
-    ATT: fmt::Debug,
-    VAL: fmt::Debug,
-{
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Node::Element(element) => {
-                f.debug_tuple("Element").field(element).finish()
-            }
-            Node::Text(txt) => f.debug_tuple("Text").field(txt).finish(),
-        }
-    }
-}
-
-impl<NS, TAG, ATT, VAL, EVENT, MSG> Clone
-    for Node<NS, TAG, ATT, VAL, EVENT, MSG>
-where
-    NS: Clone,
-    TAG: Clone,
-    ATT: Clone,
-    VAL: Clone,
-{
-    fn clone(&self) -> Self {
-        match self {
-            Node::Element(element) => Node::Element(element.clone()),
-            Node::Text(txt) => Node::Text(txt.clone()),
-        }
-    }
-}
-
 /// create a virtual node with tag, attrs and children
 #[inline]
-pub fn element<NS, TAG, ATT, VAL, EVENT, MSG>(
+pub fn element<NS, TAG, ATT, VAL, EVENT>(
     tag: TAG,
-    attrs: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>,
-    children: Vec<Node<NS, TAG, ATT, VAL, EVENT, MSG>>,
-) -> Node<NS, TAG, ATT, VAL, EVENT, MSG> {
+    attrs: Vec<Attribute<NS, ATT, VAL, EVENT>>,
+    children: Vec<Node<NS, TAG, ATT, VAL, EVENT>>,
+) -> Node<NS, TAG, ATT, VAL, EVENT>
+where
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
+{
     element_ns(None, tag, attrs, children, false)
 }
 
 /// create a virtual node with namespace, tag, attrs and children
-pub fn element_ns<NS, TAG, ATT, VAL, EVENT, MSG>(
+pub fn element_ns<NS, TAG, ATT, VAL, EVENT>(
     namespace: Option<NS>,
     tag: TAG,
-    attrs: Vec<Attribute<NS, ATT, VAL, EVENT, MSG>>,
-    children: Vec<Node<NS, TAG, ATT, VAL, EVENT, MSG>>,
+    attrs: Vec<Attribute<NS, ATT, VAL, EVENT>>,
+    children: Vec<Node<NS, TAG, ATT, VAL, EVENT>>,
     self_closing: bool,
-) -> Node<NS, TAG, ATT, VAL, EVENT, MSG> {
+) -> Node<NS, TAG, ATT, VAL, EVENT>
+where
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
+{
     Node::Element(Element::new(namespace, tag, attrs, children, self_closing))
 }
 
 /// Create a textnode element
-pub fn text<S, NS, TAG, ATT, VAL, EVENT, MSG>(
-    s: S,
-) -> Node<NS, TAG, ATT, VAL, EVENT, MSG>
+pub fn text<S, NS, TAG, ATT, VAL, EVENT>(s: S) -> Node<NS, TAG, ATT, VAL, EVENT>
 where
     S: ToString,
-    ATT: Clone,
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
 {
     Node::Text(Text::new(s))
 }
