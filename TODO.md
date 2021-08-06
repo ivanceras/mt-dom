@@ -22,16 +22,29 @@
      - [ ] Patch will now contain the real dom Node, so applying will not have to search for it.
         - Issue: can not link the real dom, since it requires a mutable reference to the patches
         which will have numerous mutable references which is impossible to do.
-- [ ] Make the `key` a closure like `skip`.
-- [ ] Move `Callback` into sauron.
-- [ ] Move algorithmns to sauron such as `map_msg` since it handles the Callback
+- [X] Make the `key` a closure like `skip`.
+- [X] Move `Callback` into sauron.
+- [X] Move algorithmns to sauron such as `map_msg` since it handles the Callback
 - [ ] Add a special field:
     - `prefer_replace(bool)` which opt to replace the node when a changes in attribute value is detected.
         - alos when a change in children.
     - (Bad): which is supposed to be in sauron
     - (Good): It can be reused as is, in other crates such as `sauron-native`
 - [ ] Use zipper in the `apply_patches` code to traverse and parse the Node
-- [ ] Don't recycle keyed_elements, keyed_elements that isn't matched should be removed.
+- [X] Don't recycle keyed_elements, keyed_elements that isn't matched should be removed.
+- [ ] Update `NodeIdx` into `TreePath`.
+        ```rust
+            struct TreePath{
+                // old index of this node before applying the patch
+                old_idx: usize,
+                // the resulting new index of this node after modification
+                new_idx: usize,
+                // an alternative path vector, where it specifies
+                // the first element is the index of the root node which is always 0
+                // the second element is the index of the child to traverse to and so on.
+                path: Vec<usize>,
+            }
+        ```
 
 ## Optimization
 - Create a data structure which has old_element and its node_idx and the new_element with its node_idx

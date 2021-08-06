@@ -106,6 +106,8 @@ where
     ) -> Self {
         if let Some(element) = self.as_element_mut() {
             element.add_children(children);
+        } else {
+            panic!("Can not add children to a text node");
         }
         self
     }
@@ -117,6 +119,8 @@ where
     ) {
         if let Some(element) = self.as_element_mut() {
             element.add_children(children);
+        } else {
+            panic!("Can not add children to a text node");
         }
     }
 
@@ -128,6 +132,8 @@ where
     ) -> Self {
         if let Some(elm) = self.as_element_mut() {
             elm.add_attributes(attributes);
+        } else {
+            panic!("Can not add attributes to a text node");
         }
         self
     }
@@ -139,6 +145,8 @@ where
     ) {
         if let Some(elm) = self.as_element_mut() {
             elm.add_attributes(attributes);
+        } else {
+            panic!("Can not add attributes to a text node");
         }
     }
 
@@ -179,6 +187,15 @@ where
         }
     }
 
+    /// Return the count of the children of this node
+    pub fn get_children_count(&self) -> usize {
+        if let Some(children) = self.get_children() {
+            children.len()
+        } else {
+            0
+        }
+    }
+
     /// return the children of this node if it is an element
     /// returns None if it is a text node
     pub fn children_mut(
@@ -188,6 +205,38 @@ where
             Some(element.children_mut())
         } else {
             None
+        }
+    }
+    /// Removes an child node  from this element and returns it.
+    ///
+    /// The removed child is replaced by the last child of the element's children.
+    ///
+    /// # Panics
+    /// Panics if this is a text node
+    ///
+    pub fn swap_remove_child(
+        &mut self,
+        index: usize,
+    ) -> Node<NS, TAG, ATT, VAL, EVENT> {
+        match self {
+            Node::Element(element) => element.swap_remove_child(index),
+            Node::Text(_) => panic!("text has no child"),
+        }
+    }
+
+    /// Swaps the 2 child node in this element
+    ///
+    /// # Arguments
+    /// * a - The index of the first child node
+    /// * b - The index of the second child node
+    ///
+    /// # Panics
+    /// Panics if both `a` and `b` are out of bounds
+    /// Panics if this is a text node
+    pub fn swap_children(&mut self, a: usize, b: usize) {
+        match self {
+            Node::Element(element) => element.swap_children(a, b),
+            Node::Text(_) => panic!("text has no child"),
         }
     }
 

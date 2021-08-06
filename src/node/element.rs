@@ -87,6 +87,33 @@ where
         &mut self.children
     }
 
+    /// Removes an child node  from this element and returns it.
+    ///
+    /// The removed child is replaced by the last child of the element's children.
+    ///
+    /// # Panics
+    /// Panics if index is out of bounds in children
+    ///
+    pub fn swap_remove_child(
+        &mut self,
+        index: usize,
+    ) -> Node<NS, TAG, ATT, VAL, EVENT> {
+        self.children.swap_remove(index)
+    }
+
+    /// Swaps the 2 child node in this element
+    ///
+    /// # Arguments
+    /// * a - The index of the first child node
+    /// * b - The index of the second child node
+    ///
+    /// # Panics
+    /// Panics if both `a` and `b` are out of bounds
+    ///
+    pub fn swap_children(&mut self, a: usize, b: usize) {
+        self.children.swap(a, b)
+    }
+
     /// consume self and return the children
     pub fn take_children(self) -> Vec<Node<NS, TAG, ATT, VAL, EVENT>> {
         self.children

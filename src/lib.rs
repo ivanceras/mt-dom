@@ -33,3 +33,4 @@ pub mod apply_patches;
 pub mod diff;
 mod node;
 pub mod patch;
+mod zipper;
