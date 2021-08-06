@@ -235,6 +235,56 @@ mod tests {
     }
 
     #[test]
+    fn should_find_node1() {
+        let node = sample_node();
+        let found = super::find_node_by_path(&node, &[0, 0]);
+        dbg!(&found);
+        let expected = element(
+            "div",
+            vec![attr("class", "[0,0]"), attr("id", "1")],
+            vec![
+                element(
+                    "div",
+                    vec![attr("class", "[0,0,0]"), attr("id", "2")],
+                    vec![],
+                ),
+                element(
+                    "div",
+                    vec![attr("class", "[0,0,1]"), attr("id", "3")],
+                    vec![],
+                ),
+            ],
+        );
+        assert_eq!(Some(&expected), found);
+    }
+
+    #[test]
+    fn should_find_node2() {
+        let node = sample_node();
+        let found = super::find_node_by_path(&node, &[0, 0, 0]);
+        dbg!(&found);
+        let expected = element(
+            "div",
+            vec![attr("class", "[0,0,0]"), attr("id", "2")],
+            vec![],
+        );
+        assert_eq!(Some(&expected), found);
+    }
+
+    #[test]
+    fn should_find_node3() {
+        let node = sample_node();
+        let found = super::find_node_by_path(&node, &[0, 0, 1]);
+        dbg!(&found);
+        let expected = element(
+            "div",
+            vec![attr("class", "[0,0,1]"), attr("id", "3")],
+            vec![],
+        );
+        assert_eq!(Some(&expected), found);
+    }
+
+    #[test]
     fn should_find_node4() {
         let node = sample_node();
         let node4 = super::find_node_by_path(&node, &[0, 1]);
@@ -261,6 +311,32 @@ mod tests {
             ],
         );
         assert_eq!(Some(&expected), node4);
+    }
+
+    #[test]
+    fn should_find_node5() {
+        let node = sample_node();
+        let node5 = super::find_node_by_path(&node, &[0, 1, 0]);
+        dbg!(&node5);
+        let expected = element(
+            "div",
+            vec![attr("class", "[0,1,0]"), attr("id", "5")],
+            vec![],
+        );
+        assert_eq!(Some(&expected), node5);
+    }
+
+    #[test]
+    fn should_find_node6() {
+        let node = sample_node();
+        let node6 = super::find_node_by_path(&node, &[0, 1, 1]);
+        dbg!(&node6);
+        let expected = element(
+            "div",
+            vec![attr("class", "[0,1,1]"), attr("id", "6")],
+            vec![],
+        );
+        assert_eq!(Some(&expected), node6);
     }
 
     #[test]
