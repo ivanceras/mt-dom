@@ -343,7 +343,6 @@ where
             rep,
         );
         patches.extend(more_patches);
-        //increment_node_idx_to_descendant_count(new_child, new_node_idx);
     }
 
     // If there are more new child than old_node child, we make a patch to append the excess element
