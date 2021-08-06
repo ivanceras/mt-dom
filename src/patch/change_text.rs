@@ -2,7 +2,7 @@ use super::NodeIdx;
 use crate::node::Text;
 
 /// The patch is changing the text content of a text node
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct ChangeText<'a> {
     /// node index of the text node to be patch
     /// relative to the root node of the application

@@ -2,10 +2,18 @@
 use super::NodeIdx;
 use crate::Attribute;
 use std::fmt;
+use std::fmt::Debug;
 
 /// Add attributes
-#[derive(PartialEq)]
-pub struct AddAttributes<'a, NS, TAG, ATT, VAL, EVENT, MSG> {
+#[derive(Clone, Debug, PartialEq)]
+pub struct AddAttributes<'a, NS, TAG, ATT, VAL, EVENT>
+where
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
+{
     /// node tag
     /// use for verifying that the we are patching the correct node which
     /// should match the same tag
@@ -15,11 +23,16 @@ pub struct AddAttributes<'a, NS, TAG, ATT, VAL, EVENT, MSG> {
     /// new node_idx of the node we are adding an attribute to
     pub new_node_idx: NodeIdx,
     /// the attributes to be patched into the target node
-    pub attrs: Vec<&'a Attribute<NS, ATT, VAL, EVENT, MSG>>,
+    pub attrs: Vec<&'a Attribute<NS, ATT, VAL, EVENT>>,
 }
 
-impl<'a, NS, TAG, ATT, VAL, EVENT, MSG>
-    AddAttributes<'a, NS, TAG, ATT, VAL, EVENT, MSG>
+impl<'a, NS, TAG, ATT, VAL, EVENT> AddAttributes<'a, NS, TAG, ATT, VAL, EVENT>
+where
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
 {
     /// Add attributes that the new node has that the old node does not
     /// Note: the attributes is not a reference since attributes of same
@@ -28,7 +41,7 @@ impl<'a, NS, TAG, ATT, VAL, EVENT, MSG>
         tag: &'a TAG,
         node_idx: NodeIdx,
         new_node_idx: NodeIdx,
-        attrs: Vec<&'a Attribute<NS, ATT, VAL, EVENT, MSG>>,
+        attrs: Vec<&'a Attribute<NS, ATT, VAL, EVENT>>,
     ) -> Self {
         AddAttributes {
             tag,
@@ -36,23 +49,5 @@ impl<'a, NS, TAG, ATT, VAL, EVENT, MSG>
             new_node_idx,
             attrs,
         }
-    }
-}
-
-impl<'a, NS, TAG, ATT, VAL, EVENT, MSG> fmt::Debug
-    for AddAttributes<'a, NS, TAG, ATT, VAL, EVENT, MSG>
-where
-    NS: fmt::Debug,
-    TAG: fmt::Debug,
-    ATT: fmt::Debug,
-    VAL: fmt::Debug,
-{
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.debug_struct("AddAttributes")
-            .field("tag", &self.tag)
-            .field("node_idx", &self.node_idx)
-            .field("new_node_idx", &self.new_node_idx)
-            .field("attrs", &self.attrs)
-            .finish()
     }
 }

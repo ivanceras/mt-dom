@@ -9,21 +9,23 @@ use crate::{
     Attribute, Element, Node, Patch,
 };
 use keyed_elements::diff_keyed_elements;
+use std::fmt::Debug;
 use std::{cmp, fmt, mem};
 
 mod keyed_elements;
 
 /// calculate the difference of 2 nodes
-pub fn diff_with_key<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
-    old_node: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
-    new_node: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+pub fn diff_with_key<'a, NS, TAG, ATT, VAL, EVENT>(
+    old_node: &'a Node<NS, TAG, ATT, VAL, EVENT>,
+    new_node: &'a Node<NS, TAG, ATT, VAL, EVENT>,
     key: &ATT,
-) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
+) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT>>
 where
-    TAG: PartialEq + fmt::Debug,
-    ATT: PartialEq + fmt::Debug,
-    NS: PartialEq + fmt::Debug,
-    VAL: PartialEq + fmt::Debug,
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
 {
     diff_recursive(
         old_node,
@@ -47,25 +49,27 @@ where
 /// REP fn stands for replace function which decides if the new element should
 /// just replace the old element without diffing
 ///
-pub fn diff_with_functions<'a, NS, TAG, ATT, VAL, EVENT, MSG, SKIP, REP>(
-    old_node: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
-    new_node: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+pub fn diff_with_functions<'a, NS, TAG, ATT, VAL, EVENT, SKIP, REP>(
+    old_node: &'a Node<NS, TAG, ATT, VAL, EVENT>,
+    new_node: &'a Node<NS, TAG, ATT, VAL, EVENT>,
     key: &ATT,
     skip: &SKIP,
     rep: &REP,
-) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
+) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT>>
 where
-    TAG: PartialEq + fmt::Debug,
-    ATT: PartialEq + fmt::Debug,
-    NS: PartialEq + fmt::Debug,
-    VAL: PartialEq + fmt::Debug,
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
+
     SKIP: Fn(
-        &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
-        &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+        &'a Node<NS, TAG, ATT, VAL, EVENT>,
+        &'a Node<NS, TAG, ATT, VAL, EVENT>,
     ) -> bool,
     REP: Fn(
-        &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
-        &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+        &'a Node<NS, TAG, ATT, VAL, EVENT>,
+        &'a Node<NS, TAG, ATT, VAL, EVENT>,
     ) -> bool,
 {
     diff_recursive(old_node, new_node, &mut 0, &mut 0, key, skip, rep)
@@ -77,10 +81,16 @@ where
 /// incremented in the loop together with its siblings
 /// TODO: this can be optimize by adding the children count
 /// and then descending into element node that has children only
-pub fn increment_node_idx_to_descendant_count<NS, TAG, ATT, VAL, EVENT, MSG>(
-    node: &Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+pub fn increment_node_idx_to_descendant_count<NS, TAG, ATT, VAL, EVENT>(
+    node: &Node<NS, TAG, ATT, VAL, EVENT>,
     cur_node_idx: &mut usize,
-) {
+) where
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
+{
     match node {
         Node::Element(element_node) => {
             for child in element_node.get_children().iter() {
@@ -95,12 +105,16 @@ pub fn increment_node_idx_to_descendant_count<NS, TAG, ATT, VAL, EVENT, MSG>(
 }
 
 /// returns true if any of the node children has key in their attributes
-fn is_any_children_keyed<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
-    element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
+fn is_any_children_keyed<'a, NS, TAG, ATT, VAL, EVENT>(
+    element: &'a Element<NS, TAG, ATT, VAL, EVENT>,
     key: &ATT,
 ) -> bool
 where
-    ATT: PartialEq,
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
 {
     element
         .get_children()
@@ -109,12 +123,16 @@ where
 }
 
 /// returns true any attributes of this node attribute has key in it
-fn is_keyed_node<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
-    node: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+fn is_keyed_node<'a, NS, TAG, ATT, VAL, EVENT>(
+    node: &'a Node<NS, TAG, ATT, VAL, EVENT>,
     key: &ATT,
 ) -> bool
 where
-    ATT: PartialEq,
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
 {
     if let Some(attributes) = node.get_attributes() {
         attributes.iter().any(|att| att.name == *key)
@@ -123,27 +141,28 @@ where
     }
 }
 
-fn diff_recursive<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG, SKIP, REP>(
-    old_node: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
-    new_node: &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+fn diff_recursive<'a, 'b, NS, TAG, ATT, VAL, EVENT, SKIP, REP>(
+    old_node: &'a Node<NS, TAG, ATT, VAL, EVENT>,
+    new_node: &'a Node<NS, TAG, ATT, VAL, EVENT>,
     cur_node_idx: &'b mut usize,
     new_node_idx: &'b mut usize,
     key: &ATT,
     skip: &SKIP,
     rep: &REP,
-) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
+) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT>>
 where
-    NS: PartialEq + fmt::Debug,
-    TAG: PartialEq + fmt::Debug,
-    ATT: PartialEq + fmt::Debug,
-    VAL: PartialEq + fmt::Debug,
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
     SKIP: Fn(
-        &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
-        &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+        &'a Node<NS, TAG, ATT, VAL, EVENT>,
+        &'a Node<NS, TAG, ATT, VAL, EVENT>,
     ) -> bool,
     REP: Fn(
-        &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
-        &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+        &'a Node<NS, TAG, ATT, VAL, EVENT>,
+        &'a Node<NS, TAG, ATT, VAL, EVENT>,
     ) -> bool,
 {
     // skip diffing if the function evaluates to true
@@ -269,27 +288,28 @@ where
 ///  it will be all appended in the old_element.
 ///
 ///
-fn diff_non_keyed_elements<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG, SKIP, REP>(
-    old_element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
-    new_element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
+fn diff_non_keyed_elements<'a, 'b, NS, TAG, ATT, VAL, EVENT, SKIP, REP>(
+    old_element: &'a Element<NS, TAG, ATT, VAL, EVENT>,
+    new_element: &'a Element<NS, TAG, ATT, VAL, EVENT>,
     key: &ATT,
     cur_node_idx: &'b mut usize,
     new_node_idx: &'b mut usize,
     skip: &SKIP,
     rep: &REP,
-) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
+) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT>>
 where
-    NS: PartialEq + fmt::Debug,
-    TAG: PartialEq + fmt::Debug,
-    ATT: PartialEq + fmt::Debug,
-    VAL: PartialEq + fmt::Debug,
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
     SKIP: Fn(
-        &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
-        &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+        &'a Node<NS, TAG, ATT, VAL, EVENT>,
+        &'a Node<NS, TAG, ATT, VAL, EVENT>,
     ) -> bool,
     REP: Fn(
-        &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
-        &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+        &'a Node<NS, TAG, ATT, VAL, EVENT>,
+        &'a Node<NS, TAG, ATT, VAL, EVENT>,
     ) -> bool,
 {
     let this_cur_node_idx = *cur_node_idx;
@@ -329,10 +349,8 @@ where
     // If there are more new child than old_node child, we make a patch to append the excess element
     // starting from old_child_count to the last item of the new_elements
     if new_child_count > old_child_count {
-        let mut append_patch: Vec<(
-            usize,
-            &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
-        )> = vec![];
+        let mut append_patch: Vec<(usize, &'a Node<NS, TAG, ATT, VAL, EVENT>)> =
+            vec![];
 
         for append_child in new_element.children.iter().skip(old_child_count) {
             *new_node_idx += 1;
@@ -368,21 +386,22 @@ where
 /// Note: The performance bottlenecks
 ///     - allocating new vec
 ///     - merging attributes of the same name
-fn diff_attributes<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG>(
-    old_element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
-    new_element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
+fn diff_attributes<'a, 'b, NS, TAG, ATT, VAL, EVENT>(
+    old_element: &'a Element<NS, TAG, ATT, VAL, EVENT>,
+    new_element: &'a Element<NS, TAG, ATT, VAL, EVENT>,
     cur_node_idx: &'b mut usize,
     new_node_idx: &'b mut usize,
-) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
+) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT>>
 where
-    NS: PartialEq + fmt::Debug,
-    ATT: PartialEq + fmt::Debug,
-    VAL: PartialEq + fmt::Debug,
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
 {
     let mut patches = vec![];
-    let mut add_attributes: Vec<&Attribute<NS, ATT, VAL, EVENT, MSG>> = vec![];
-    let mut remove_attributes: Vec<&Attribute<NS, ATT, VAL, EVENT, MSG>> =
-        vec![];
+    let mut add_attributes: Vec<&Attribute<NS, ATT, VAL, EVENT>> = vec![];
+    let mut remove_attributes: Vec<&Attribute<NS, ATT, VAL, EVENT>> = vec![];
 
     let new_attributes_grouped =
         group_attributes_per_name(new_element.get_attributes());

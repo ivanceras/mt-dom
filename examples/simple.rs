@@ -27,7 +27,7 @@ impl<'a> fmt::Debug for Value<'a> {
 
 fn main() {
     println!("simple..");
-    let elm1: Node<&'static str, &'static str, &'static str, Value, (), ()> =
+    let elm1: Node<&'static str, &'static str, &'static str, Value, ()> =
         element(
             "div",
             vec![
@@ -39,7 +39,7 @@ fn main() {
         );
     println!("elm1: {:#?}", elm1);
 
-    let elm2: Node<&'static str, &'static str, &'static str, Value, (), ()> =
+    let elm2: Node<&'static str, &'static str, &'static str, Value, ()> =
         element(
             "div",
             vec![

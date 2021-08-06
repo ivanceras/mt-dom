@@ -5,23 +5,25 @@ use crate::{
     patch::{AppendChildren, InsertNode, RemoveNode},
     Element, Node, NodeIdx, Patch,
 };
+use std::fmt::Debug;
 use std::{collections::BTreeMap, fmt, iter::FromIterator};
 
 /// find the element and its node_idx which has this key
 /// and its node_idx not in `not_in`
-fn find_node_with_key<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
+fn find_node_with_key<'a, NS, TAG, ATT, VAL, EVENT>(
     hay_stack: &BTreeMap<
         usize,
-        (Vec<&'a VAL>, &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>),
+        (Vec<&'a VAL>, &'a Node<NS, TAG, ATT, VAL, EVENT>),
     >,
     find_key: &Vec<&'a VAL>,
     last_matched_node_idx: Option<usize>,
-) -> Option<(usize, &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>)>
+) -> Option<(usize, &'a Node<NS, TAG, ATT, VAL, EVENT>)>
 where
-    NS: PartialEq + fmt::Debug,
-    TAG: PartialEq + fmt::Debug,
-    ATT: PartialEq + fmt::Debug,
-    VAL: PartialEq + fmt::Debug,
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
 {
     hay_stack.iter().find_map(|(node_idx, (key, node))| {
         // also check if it hasn't been already matched
@@ -42,16 +44,23 @@ where
 }
 
 /// find the new_child which matched this old_idx
-fn find_matched_new_child<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
+fn find_matched_new_child<'a, NS, TAG, ATT, VAL, EVENT>(
     matched_old_new_keyed: &BTreeMap<
         (usize, usize),
         (
-            &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
-            (NodeIdx, &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>),
+            &'a Node<NS, TAG, ATT, VAL, EVENT>,
+            (NodeIdx, &'a Node<NS, TAG, ATT, VAL, EVENT>),
         ),
     >,
     find_old_idx: usize,
-) -> Option<(usize, (NodeIdx, &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>))> {
+) -> Option<(usize, (NodeIdx, &'a Node<NS, TAG, ATT, VAL, EVENT>))>
+where
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
+{
     matched_old_new_keyed.iter().find_map(
         |((old_idx, new_idx), (_, new_child))| {
             if *old_idx == find_old_idx {
@@ -64,10 +73,17 @@ fn find_matched_new_child<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
 }
 
 /// find the old_child which has this old_idx
-fn find_child_node_with_idx<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
-    haystack: &Vec<(usize, &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>)>,
+fn find_child_node_with_idx<'a, NS, TAG, ATT, VAL, EVENT>(
+    haystack: &Vec<(usize, &'a Node<NS, TAG, ATT, VAL, EVENT>)>,
     node_idx: usize,
-) -> Option<(usize, &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>)> {
+) -> Option<(usize, &'a Node<NS, TAG, ATT, VAL, EVENT>)>
+where
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
+{
     haystack.iter().find_map(|(idx, node)| {
         if *idx == node_idx {
             Some((*idx, *node))
@@ -78,15 +94,22 @@ fn find_child_node_with_idx<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
 }
 
 /// return a the matched (Vec<old_idx>, Vec<new_idx>)
-fn get_matched_old_new_idx<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
+fn get_matched_old_new_idx<'a, NS, TAG, ATT, VAL, EVENT>(
     matched_old_new_keyed: &BTreeMap<
         (usize, usize),
         (
-            &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
-            (NodeIdx, &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>),
+            &'a Node<NS, TAG, ATT, VAL, EVENT>,
+            (NodeIdx, &'a Node<NS, TAG, ATT, VAL, EVENT>),
         ),
     >,
-) -> (Vec<usize>, Vec<usize>) {
+) -> (Vec<usize>, Vec<usize>)
+where
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
+{
     matched_old_new_keyed
         .iter()
         .map(|((old_idx, new_idx), _)| (old_idx, new_idx))
@@ -94,10 +117,17 @@ fn get_matched_old_new_idx<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
 }
 
 /// return the node_idx and node where it's node idx is not in the arg `matched_id`
-fn get_unmatched_children_node_idx<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
-    child_nodes: &'a [Node<NS, TAG, ATT, VAL, EVENT, MSG>],
+fn get_unmatched_children_node_idx<'a, NS, TAG, ATT, VAL, EVENT>(
+    child_nodes: &'a [Node<NS, TAG, ATT, VAL, EVENT>],
     matched_idx: Vec<usize>,
-) -> Vec<(usize, &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>)> {
+) -> Vec<(usize, &'a Node<NS, TAG, ATT, VAL, EVENT>)>
+where
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
+{
     child_nodes
         .iter()
         .enumerate()
@@ -119,27 +149,28 @@ fn get_unmatched_children_node_idx<'a, NS, TAG, ATT, VAL, EVENT, MSG>(
 ///     - inserted if the child node_idx <= old elements children
 ///     - appended if the child node_idx is > old elements children
 ///
-pub fn diff_keyed_elements<'a, 'b, NS, TAG, ATT, VAL, EVENT, MSG, SKIP, REP>(
-    old_element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
-    new_element: &'a Element<NS, TAG, ATT, VAL, EVENT, MSG>,
+pub fn diff_keyed_elements<'a, 'b, NS, TAG, ATT, VAL, EVENT, SKIP, REP>(
+    old_element: &'a Element<NS, TAG, ATT, VAL, EVENT>,
+    new_element: &'a Element<NS, TAG, ATT, VAL, EVENT>,
     key: &ATT,
     cur_node_idx: &'b mut usize,
     new_element_node_idx: &'b mut usize,
     skip: &SKIP,
     rep: &REP,
-) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
+) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT>>
 where
-    NS: PartialEq + fmt::Debug,
-    TAG: PartialEq + fmt::Debug,
-    ATT: PartialEq + fmt::Debug,
-    VAL: PartialEq + fmt::Debug,
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
     SKIP: Fn(
-        &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
-        &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+        &'a Node<NS, TAG, ATT, VAL, EVENT>,
+        &'a Node<NS, TAG, ATT, VAL, EVENT>,
     ) -> bool,
     REP: Fn(
-        &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
-        &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+        &'a Node<NS, TAG, ATT, VAL, EVENT>,
+        &'a Node<NS, TAG, ATT, VAL, EVENT>,
     ) -> bool,
 {
     let mut patches = vec![];
@@ -154,7 +185,7 @@ where
     // we can not use VAL as the key, since it is not Hash
     let old_keyed_elements: BTreeMap<
         usize,
-        (Vec<&VAL>, &Node<NS, TAG, ATT, VAL, EVENT, MSG>),
+        (Vec<&VAL>, &Node<NS, TAG, ATT, VAL, EVENT>),
     > = BTreeMap::from_iter(
         old_element.get_children().iter().enumerate().filter_map(
             |(old_idx, old_child)| {
@@ -169,7 +200,7 @@ where
 
     let mut node_idx_new_elements: BTreeMap<
         NodeIdx,
-        &Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+        &Node<NS, TAG, ATT, VAL, EVENT>,
     > = BTreeMap::new();
 
     for new_child in new_element.get_children().iter() {
@@ -180,7 +211,7 @@ where
 
     let mut new_keyed_elements: BTreeMap<
         usize,
-        (Vec<&VAL>, (NodeIdx, &Node<NS, TAG, ATT, VAL, EVENT, MSG>)),
+        (Vec<&VAL>, (NodeIdx, &Node<NS, TAG, ATT, VAL, EVENT>)),
     > = BTreeMap::new();
 
     for (new_idx, (new_node_idx, new_child)) in
@@ -197,8 +228,8 @@ where
     let mut matched_old_new_keyed: BTreeMap<
         (usize, usize),
         (
-            &Node<NS, TAG, ATT, VAL, EVENT, MSG>,
-            (NodeIdx, &Node<NS, TAG, ATT, VAL, EVENT, MSG>),
+            &Node<NS, TAG, ATT, VAL, EVENT>,
+            (NodeIdx, &Node<NS, TAG, ATT, VAL, EVENT>),
         ),
     > = BTreeMap::new();
 
@@ -235,7 +266,7 @@ where
     // these are the new children that didn't matched in the keyed elements pass
     let mut unmatched_new_child: Vec<(
         usize,
-        (NodeIdx, &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>),
+        (NodeIdx, &'a Node<NS, TAG, ATT, VAL, EVENT>),
     )> = vec![];
 
     for (idx, (node_idx, new_element)) in
@@ -256,8 +287,8 @@ where
     let matched_old_new: BTreeMap<
         (usize, usize),
         (
-            &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>,
-            (NodeIdx, &'a Node<NS, TAG, ATT, VAL, EVENT, MSG>),
+            &'a Node<NS, TAG, ATT, VAL, EVENT>,
+            (NodeIdx, &'a Node<NS, TAG, ATT, VAL, EVENT>),
         ),
     > = BTreeMap::from_iter(
         // try to match unmatched new child from the unmatched old child
@@ -291,7 +322,7 @@ where
     let mut unmatched_new_child_pass2: Vec<(
         usize,
         NodeIdx,
-        &Node<NS, TAG, ATT, VAL, EVENT, MSG>,
+        &Node<NS, TAG, ATT, VAL, EVENT>,
     )> = vec![];
     for (idx, (new_node_idx, new_child)) in
         node_idx_new_elements.iter().enumerate()

@@ -7,6 +7,7 @@ pub use remove_attributes::RemoveAttributes;
 pub use remove_node::RemoveNode;
 pub use replace_node::ReplaceNode;
 use std::fmt;
+use std::fmt::Debug;
 
 mod add_attributes;
 mod append_children;
@@ -53,31 +54,43 @@ pub type NodeIdx = usize;
 /// ```
 ///
 ///
-#[derive(PartialEq)]
-pub enum Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG> {
+#[derive(Clone, Debug, PartialEq)]
+pub enum Patch<'a, NS, TAG, ATT, VAL, EVENT>
+where
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
+{
     /// Insert a vector of child nodes to the current node being patch.
     /// The usize is the index of of the children of the node to be
     /// patch to insert to. The new children will be inserted before this usize
-    InsertNode(InsertNode<'a, NS, TAG, ATT, VAL, EVENT, MSG>),
+    InsertNode(InsertNode<'a, NS, TAG, ATT, VAL, EVENT>),
     /// Append a vector of child nodes to a parent node id.
-    AppendChildren(AppendChildren<'a, NS, TAG, ATT, VAL, EVENT, MSG>),
+    AppendChildren(AppendChildren<'a, NS, TAG, ATT, VAL, EVENT>),
     /// remove node
     RemoveNode(RemoveNode<'a, TAG>),
     /// ReplaceNode a node with another node. This typically happens when a node's tag changes.
     /// ex: <div> becomes <span>
-    ReplaceNode(ReplaceNode<'a, NS, TAG, ATT, VAL, EVENT, MSG>),
+    ReplaceNode(ReplaceNode<'a, NS, TAG, ATT, VAL, EVENT>),
     /// Add attributes that the new node has that the old node does not
     /// Note: the attributes is not a reference since attributes of same
     /// name are merged to produce a new unify attribute
-    AddAttributes(AddAttributes<'a, NS, TAG, ATT, VAL, EVENT, MSG>),
+    AddAttributes(AddAttributes<'a, NS, TAG, ATT, VAL, EVENT>),
     /// Remove attributes that the old node had that the new node doesn't
-    RemoveAttributes(RemoveAttributes<'a, NS, TAG, ATT, VAL, EVENT, MSG>),
+    RemoveAttributes(RemoveAttributes<'a, NS, TAG, ATT, VAL, EVENT>),
     /// Change the text of a Text node.
     ChangeText(ChangeText<'a>),
 }
 
-impl<'a, NS, TAG, ATT, VAL, EVENT, MSG>
-    Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>
+impl<'a, NS, TAG, ATT, VAL, EVENT> Patch<'a, NS, TAG, ATT, VAL, EVENT>
+where
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
 {
     /// Every Patch is meant to be applied to a specific node within the DOM. Get the
     /// index of the DOM node that this patch should apply to. DOM nodes are indexed
@@ -122,84 +135,105 @@ impl<'a, NS, TAG, ATT, VAL, EVENT, MSG>
     }
 }
 
-impl<'a, NS, TAG, ATT, VAL, EVENT, MSG> fmt::Debug
-    for Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>
+impl<'a, NS, TAG, ATT, VAL, EVENT> From<ChangeText<'a>>
+    for Patch<'a, NS, TAG, ATT, VAL, EVENT>
 where
-    NS: fmt::Debug,
-    TAG: fmt::Debug,
-    ATT: fmt::Debug,
-    VAL: fmt::Debug,
-{
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Patch::InsertNode(ic) => ic.fmt(f),
-            Patch::AppendChildren(ac) => ac.fmt(f),
-            Patch::RemoveNode(rn) => rn.fmt(f),
-            Patch::ReplaceNode(rn) => rn.fmt(f),
-            Patch::AddAttributes(at) => at.fmt(f),
-            Patch::RemoveAttributes(rt) => rt.fmt(f),
-            Patch::ChangeText(ct) => ct.fmt(f),
-        }
-    }
-}
-
-impl<'a, NS, TAG, ATT, VAL, EVENT, MSG> From<ChangeText<'a>>
-    for Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
 {
     fn from(ct: ChangeText<'a>) -> Self {
         Patch::ChangeText(ct)
     }
 }
 
-impl<'a, NS, TAG, ATT, VAL, EVENT, MSG>
-    From<InsertNode<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
-    for Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>
+impl<'a, NS, TAG, ATT, VAL, EVENT>
+    From<InsertNode<'a, NS, TAG, ATT, VAL, EVENT>>
+    for Patch<'a, NS, TAG, ATT, VAL, EVENT>
+where
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
 {
-    fn from(ic: InsertNode<'a, NS, TAG, ATT, VAL, EVENT, MSG>) -> Self {
+    fn from(ic: InsertNode<'a, NS, TAG, ATT, VAL, EVENT>) -> Self {
         Patch::InsertNode(ic)
     }
 }
 
-impl<'a, NS, TAG, ATT, VAL, EVENT, MSG>
-    From<AppendChildren<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
-    for Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>
+impl<'a, NS, TAG, ATT, VAL, EVENT>
+    From<AppendChildren<'a, NS, TAG, ATT, VAL, EVENT>>
+    for Patch<'a, NS, TAG, ATT, VAL, EVENT>
+where
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
 {
-    fn from(ac: AppendChildren<'a, NS, TAG, ATT, VAL, EVENT, MSG>) -> Self {
+    fn from(ac: AppendChildren<'a, NS, TAG, ATT, VAL, EVENT>) -> Self {
         Patch::AppendChildren(ac)
     }
 }
 
-impl<'a, NS, TAG, ATT, VAL, EVENT, MSG> From<RemoveNode<'a, TAG>>
-    for Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>
+impl<'a, NS, TAG, ATT, VAL, EVENT> From<RemoveNode<'a, TAG>>
+    for Patch<'a, NS, TAG, ATT, VAL, EVENT>
+where
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
 {
     fn from(rc: RemoveNode<'a, TAG>) -> Self {
         Patch::RemoveNode(rc)
     }
 }
 
-impl<'a, NS, TAG, ATT, VAL, EVENT, MSG>
-    From<ReplaceNode<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
-    for Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>
+impl<'a, NS, TAG, ATT, VAL, EVENT>
+    From<ReplaceNode<'a, NS, TAG, ATT, VAL, EVENT>>
+    for Patch<'a, NS, TAG, ATT, VAL, EVENT>
+where
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
 {
-    fn from(rn: ReplaceNode<'a, NS, TAG, ATT, VAL, EVENT, MSG>) -> Self {
+    fn from(rn: ReplaceNode<'a, NS, TAG, ATT, VAL, EVENT>) -> Self {
         Patch::ReplaceNode(rn)
     }
 }
 
-impl<'a, NS, TAG, ATT, VAL, EVENT, MSG>
-    From<AddAttributes<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
-    for Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>
+impl<'a, NS, TAG, ATT, VAL, EVENT>
+    From<AddAttributes<'a, NS, TAG, ATT, VAL, EVENT>>
+    for Patch<'a, NS, TAG, ATT, VAL, EVENT>
+where
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
 {
-    fn from(at: AddAttributes<'a, NS, TAG, ATT, VAL, EVENT, MSG>) -> Self {
+    fn from(at: AddAttributes<'a, NS, TAG, ATT, VAL, EVENT>) -> Self {
         Patch::AddAttributes(at)
     }
 }
 
-impl<'a, NS, TAG, ATT, VAL, EVENT, MSG>
-    From<RemoveAttributes<'a, NS, TAG, ATT, VAL, EVENT, MSG>>
-    for Patch<'a, NS, TAG, ATT, VAL, EVENT, MSG>
+impl<'a, NS, TAG, ATT, VAL, EVENT>
+    From<RemoveAttributes<'a, NS, TAG, ATT, VAL, EVENT>>
+    for Patch<'a, NS, TAG, ATT, VAL, EVENT>
+where
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
 {
-    fn from(rt: RemoveAttributes<'a, NS, TAG, ATT, VAL, EVENT, MSG>) -> Self {
+    fn from(rt: RemoveAttributes<'a, NS, TAG, ATT, VAL, EVENT>) -> Self {
         Patch::RemoveAttributes(rt)
     }
 }
