@@ -32,7 +32,7 @@
     - (Good): It can be reused as is, in other crates such as `sauron-native`
 - [ ] Use zipper in the `apply_patches` code to traverse and parse the Node
 - [X] Don't recycle keyed_elements, keyed_elements that isn't matched should be removed.
-- [ ] Update `NodeIdx` into `TreePath`.
+- [ ] Upgrade `NodeIdx` into `TreePath`.
         ```rust
             struct TreePath{
                 // the resulting new index of this node after modification
@@ -50,6 +50,7 @@
             }
         ```
 - [ ] Move `AttValue` to `sauron` so `mt-dom` doesn't have to deal with EVENT.
+- [ ] Use `NodeZipper` to `apply_patch`.
 
 ## Optimization
 - Create a data structure which has old_element and its node_idx and the new_element with its node_idx
