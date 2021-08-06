@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.0
+ - **breaking** Move Callback to sauron and mt-dom will focus solely on vdom diffing.
+ - modify the diffing algorithmn to replace a node when the key didn't matched
+
 ## 0.6.0
 - Add a REP for explicitly replace the node when REP evaluates to true
 - Patch variant now contains NodeIdx for the new node inserted, appended, and the replacement node
