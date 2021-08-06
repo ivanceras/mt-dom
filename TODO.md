@@ -49,6 +49,7 @@
                 new_path: TreePath,
             }
         ```
+- [ ] Move `AttValue` to `sauron` so `mt-dom` doesn't have to deal with EVENT.
 
 ## Optimization
 - Create a data structure which has old_element and its node_idx and the new_element with its node_idx

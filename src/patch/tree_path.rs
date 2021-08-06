@@ -1,3 +1,6 @@
+use crate::Node;
+use std::fmt::Debug;
+
 /// Describe the path traversal of a Node starting from the root node
 ///
 /// The figure below shows `node_idx` in a depth first traversal.
@@ -87,24 +90,110 @@ impl PatchPath {
     }
 }
 
+fn traverse_node<'a, NS, TAG, ATT, VAL, EVENT>(
+    node: &'a Node<NS, TAG, ATT, VAL, EVENT>,
+    path: &mut Vec<usize>,
+) -> Option<&'a Node<NS, TAG, ATT, VAL, EVENT>>
+where
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
+{
+    println!("\n Traversing path: {:?}", path);
+    if path.is_empty() {
+        Some(node)
+    } else if let Some(children) = node.get_children() {
+        let idx = path.remove(0);
+        println!("\t idx to see: {}", idx);
+        let child = &children[idx];
+        traverse_node(&children[idx], path)
+    } else {
+        None
+    }
+}
+
+fn find_node_by_path<'a, NS, TAG, ATT, VAL, EVENT>(
+    node: &'a Node<NS, TAG, ATT, VAL, EVENT>,
+    path: &[usize],
+) -> Option<&'a Node<NS, TAG, ATT, VAL, EVENT>>
+where
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
+{
+    let mut path = path.to_vec();
+    path.remove(0); // remove the first 0
+    traverse_node(node, &mut path)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use sauron::prelude::*;
+    use crate::*;
+
+    type MyNode =
+        Node<&'static str, &'static str, &'static str, &'static str, ()>;
+
+    fn sample_node() -> MyNode {
+        let node: MyNode = element(
+            "div",
+            vec![attr("class", "[0]"), attr("id", "0")],
+            vec![
+                element(
+                    "div",
+                    vec![attr("class", "[0,0]"), attr("id", "1")],
+                    vec![
+                        element(
+                            "div",
+                            vec![attr("class", "[0,0,0]"), attr("id", "2")],
+                            vec![],
+                        ),
+                        element(
+                            "div",
+                            vec![attr("class", "[0,0,1]"), attr("id", "3")],
+                            vec![],
+                        ),
+                    ],
+                ),
+                element(
+                    "div",
+                    vec![attr("class", "[0,1]"), attr("id", "4")],
+                    vec![
+                        element(
+                            "div",
+                            vec![attr("class", "[0,1,0]"), attr("id", "5")],
+                            vec![],
+                        ),
+                        element(
+                            "div",
+                            vec![attr("class", "[0,1,1]"), attr("id", "6")],
+                            vec![],
+                        ),
+                        element(
+                            "div",
+                            vec![attr("class", "[0,1,2]"), attr("id", "7")],
+                            vec![],
+                        ),
+                    ],
+                ),
+            ],
+        );
+        node
+    }
 
     // index is the index of this code with respect to it's sibling
     fn assert_traverse_match(
-        node: &Node<()>,
+        node: &MyNode,
         node_idx: &mut usize,
         index: usize,
         path: Vec<usize>,
     ) {
-        let id = node.get_attribute_value(&"id").unwrap()[0]
-            .get_simple()
-            .unwrap();
-        let class = node.get_attribute_value(&"class").unwrap()[0]
-            .get_simple()
-            .unwrap();
+        let id = node.get_attribute_value(&"id").unwrap()[0];
+        let class = node.get_attribute_value(&"class").unwrap()[0];
         println!("\tid: {:?} class: {:?}", id, class);
         println!("\tnode_idx: {} = {}", node_idx, format_vec(&path));
         assert_eq!(id.to_string(), node_idx.to_string());
@@ -132,19 +221,58 @@ mod tests {
 
     #[test]
     fn should_match_paths() {
-        let node: Node<()> = node! {
-            <div id="0" class="[0]">
-                <div id="1" class="[0,0]">
-                    <div id="2" class="[0,0,0]"/>
-                    <div id="3" class="[0,0,1]"/>
-                </div>
-                <div id="4" class="[0,1]">
-                    <div id="5" class="[0,1,0]"/>
-                    <div id="6" class="[0,1,1]"/>
-                    <div id="7" class="[0,1,2]"/>
-                </div>
-            </div>
-        };
+        let node = sample_node();
         assert_traverse_match(&node, &mut 0, 0, vec![0]);
+    }
+
+    #[test]
+    fn should_find_root_node() {
+        let node = sample_node();
+
+        let root = super::find_node_by_path(&node, &[0]);
+        dbg!(&root);
+        assert_eq!(Some(&node), root);
+    }
+
+    #[test]
+    fn should_find_node4() {
+        let node = sample_node();
+        let node4 = super::find_node_by_path(&node, &[0, 1]);
+        dbg!(&node4);
+        let expected = element(
+            "div",
+            vec![attr("class", "[0,1]"), attr("id", "4")],
+            vec![
+                element(
+                    "div",
+                    vec![attr("class", "[0,1,0]"), attr("id", "5")],
+                    vec![],
+                ),
+                element(
+                    "div",
+                    vec![attr("class", "[0,1,1]"), attr("id", "6")],
+                    vec![],
+                ),
+                element(
+                    "div",
+                    vec![attr("class", "[0,1,2]"), attr("id", "7")],
+                    vec![],
+                ),
+            ],
+        );
+        assert_eq!(Some(&expected), node4);
+    }
+
+    #[test]
+    fn should_find_node7() {
+        let node = sample_node();
+        let node7 = super::find_node_by_path(&node, &[0, 1, 2]);
+        dbg!(&node7);
+        let expected = element(
+            "div",
+            vec![attr("class", "[0,1,2]"), attr("id", "7")],
+            vec![],
+        );
+        assert_eq!(Some(&expected), node7);
     }
 }
