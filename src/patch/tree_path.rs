@@ -107,8 +107,11 @@ where
     } else if let Some(children) = node.get_children() {
         let idx = path.remove(0);
         println!("\t idx to see: {}", idx);
-        let child = &children[idx];
-        traverse_node(&children[idx], path)
+        if let Some(child) = &children.get(idx) {
+            traverse_node(&children[idx], path)
+        } else {
+            None
+        }
     } else {
         None
     }
@@ -126,7 +129,8 @@ where
     EVENT: PartialEq + Clone + Debug,
 {
     let mut path = path.to_vec();
-    path.remove(0); // remove the first 0
+    let root_idx = path.remove(0); // remove the first 0
+    assert_eq!(0, root_idx, "path must start with 0");
     traverse_node(node, &mut path)
 }
 
@@ -350,5 +354,29 @@ mod tests {
             vec![],
         );
         assert_eq!(Some(&expected), node7);
+    }
+
+    #[test]
+    fn should_find_none_in_013() {
+        let node = sample_node();
+        let found = super::find_node_by_path(&node, &[0, 1, 3]);
+        dbg!(&found);
+        assert_eq!(None, found);
+    }
+
+    #[test]
+    fn should_find_none_in_00000() {
+        let node = sample_node();
+        let found = super::find_node_by_path(&node, &[0, 0, 0, 0]);
+        dbg!(&found);
+        assert_eq!(None, found);
+    }
+
+    #[test]
+    fn should_find_none_in_007() {
+        let node = sample_node();
+        let bond = super::find_node_by_path(&node, &[0, 0, 7]);
+        dbg!(&bond);
+        assert_eq!(None, bond);
     }
 }
