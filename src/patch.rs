@@ -15,6 +15,7 @@ mod insert_node;
 mod remove_attributes;
 mod remove_node;
 mod replace_node;
+mod tree_path;
 
 /// NodeIdx alias type
 pub type NodeIdx = usize;

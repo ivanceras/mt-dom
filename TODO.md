@@ -35,14 +35,18 @@
 - [ ] Update `NodeIdx` into `TreePath`.
         ```rust
             struct TreePath{
-                // old index of this node before applying the patch
-                old_idx: usize,
                 // the resulting new index of this node after modification
-                new_idx: usize,
+                node_idx: usize,
                 // an alternative path vector, where it specifies
                 // the first element is the index of the root node which is always 0
                 // the second element is the index of the child to traverse to and so on.
                 path: Vec<usize>,
+            }
+
+            /// path of this patch
+            enum PatchPath{
+                old_path: TreePath,
+                new_path: TreePath,
             }
         ```
 
