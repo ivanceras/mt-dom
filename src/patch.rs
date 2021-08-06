@@ -7,6 +7,7 @@ pub use remove_attributes::RemoveAttributes;
 pub use remove_node::RemoveNode;
 pub use replace_node::ReplaceNode;
 use std::fmt::Debug;
+pub use tree_path::TreePath;
 
 mod add_attributes;
 mod append_children;

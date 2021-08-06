@@ -27,7 +27,7 @@ pub use node::{
     },
     element, element_ns, text, Attribute, Element, Node, Text,
 };
-pub use patch::{NodeIdx, Patch};
+pub use patch::{NodeIdx, Patch, TreePath};
 
 pub mod apply_patches;
 pub mod diff;

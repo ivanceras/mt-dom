@@ -57,6 +57,7 @@ use std::fmt::Debug;
 ///    6 = [0,1,1]
 ///    7 = [0,1,2]
 /// ```
+#[derive(Debug, Clone, PartialEq)]
 pub struct TreePath {
     /// The `node_idx` is the index when traversing the DOM tree depth first.
     /// 0 is the root node, 1 is the first child of the root node, 2 is the first child of first
@@ -73,18 +74,21 @@ pub struct TreePath {
 }
 
 /// path of this patch
+#[derive(Debug, Clone, PartialEq)]
 pub struct PatchPath {
     pub old_path: TreePath,
     pub new_path: TreePath,
 }
 
 impl TreePath {
+    /// create a TreePath with node index `node_idx` and traversal path `path`
     pub fn new(node_idx: usize, path: Vec<usize>) -> Self {
         Self { node_idx, path }
     }
 }
 
 impl PatchPath {
+    /// create a PatchPath with old_path and new_path specified
     pub fn new(old_path: TreePath, new_path: TreePath) -> Self {
         Self { old_path, new_path }
     }
