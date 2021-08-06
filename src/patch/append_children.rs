@@ -1,6 +1,5 @@
 use super::NodeIdx;
 use crate::Node;
-use std::fmt;
 use std::fmt::Debug;
 
 /// Append a vector of child nodes to a parent node id.

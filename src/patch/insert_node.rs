@@ -1,6 +1,5 @@
 use super::NodeIdx;
 use crate::Node;
-use std::fmt;
 use std::fmt::Debug;
 
 /// InsertNode patch contains the a node to insert into

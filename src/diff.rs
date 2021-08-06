@@ -10,7 +10,7 @@ use crate::{
 };
 use keyed_elements::diff_keyed_elements;
 use std::fmt::Debug;
-use std::{cmp, fmt, mem};
+use std::{cmp, mem};
 
 mod keyed_elements;
 

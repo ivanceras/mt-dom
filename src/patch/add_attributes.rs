@@ -1,7 +1,6 @@
 //! patch is adding attributes
 use super::NodeIdx;
 use crate::Attribute;
-use std::fmt;
 use std::fmt::Debug;
 
 /// Add attributes

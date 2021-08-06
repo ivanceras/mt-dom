@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.7.1
+- Remove warnings
+
 ## 0.7.0
  - **breaking** Move Callback to sauron and mt-dom will focus solely on vdom diffing.
  - modify the diffing algorithmn to replace a node when the key didn't matched

@@ -6,7 +6,6 @@ pub use insert_node::InsertNode;
 pub use remove_attributes::RemoveAttributes;
 pub use remove_node::RemoveNode;
 pub use replace_node::ReplaceNode;
-use std::fmt;
 use std::fmt::Debug;
 
 mod add_attributes;

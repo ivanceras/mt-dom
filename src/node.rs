@@ -1,6 +1,5 @@
 pub use attribute::Attribute;
 pub use element::Element;
-use std::fmt;
 use std::fmt::Debug;
 
 pub(crate) mod attribute;

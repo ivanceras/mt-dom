@@ -1,6 +1,5 @@
 use super::NodeIdx;
 use crate::Node;
-use std::fmt;
 use std::fmt::Debug;
 
 /// Replace a node with another node. This typically happens when a node's tag changes.

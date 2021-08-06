@@ -1,4 +1,3 @@
-use std::fmt;
 use std::fmt::Debug;
 
 /// These are the plain attributes of an element

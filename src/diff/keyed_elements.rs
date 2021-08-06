@@ -6,7 +6,7 @@ use crate::{
     Element, Node, NodeIdx, Patch,
 };
 use std::fmt::Debug;
-use std::{collections::BTreeMap, fmt, iter::FromIterator};
+use std::{collections::BTreeMap, iter::FromIterator};
 
 /// find the element and its node_idx which has this key
 /// and its node_idx not in `not_in`

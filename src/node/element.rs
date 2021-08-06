@@ -1,5 +1,4 @@
 use crate::node::{Attribute, Node};
-use std::fmt;
 use std::fmt::Debug;
 
 /// Represents an element of the virtual node

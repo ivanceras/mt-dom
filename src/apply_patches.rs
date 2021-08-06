@@ -2,7 +2,6 @@
 //! target_dom when patches is applied.
 //!
 use crate::{Node, NodeIdx, Patch};
-use std::fmt;
 use std::fmt::Debug;
 
 /// had to find the node each time, since rust does not allow multiple mutable borrows

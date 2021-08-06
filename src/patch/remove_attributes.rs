@@ -1,6 +1,5 @@
 use super::NodeIdx;
 use crate::Attribute;
-use std::fmt;
 use std::fmt::Debug;
 
 /// Remove attributes that the old node had that the new node doesn't
