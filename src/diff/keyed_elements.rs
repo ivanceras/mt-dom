@@ -154,7 +154,7 @@ pub fn diff_keyed_elements<'a, 'b, NS, TAG, ATT, VAL, EVENT, SKIP, REP>(
     new_element: &'a Element<NS, TAG, ATT, VAL, EVENT>,
     key: &ATT,
     cur_node_idx: &'b mut usize,
-    new_element_node_idx: &'b mut usize,
+    new_node_idx: &'b mut usize,
     cur_path: &'b mut Vec<usize>,
     new_path: &'b mut Vec<usize>,
     skip: &SKIP,
@@ -181,7 +181,7 @@ where
         old_element,
         new_element,
         cur_node_idx,
-        new_element_node_idx,
+        new_node_idx,
         cur_path,
         new_path,
     );
@@ -208,9 +208,9 @@ where
     > = BTreeMap::new();
 
     for new_child in new_element.get_children().iter() {
-        *new_element_node_idx += 1;
-        node_idx_new_elements.insert(*new_element_node_idx, new_child);
-        increment_node_idx_to_descendant_count(new_child, new_element_node_idx);
+        *new_node_idx += 1;
+        node_idx_new_elements.insert(*new_node_idx, new_child);
+        increment_node_idx_to_descendant_count(new_child, new_node_idx);
     }
 
     let mut new_keyed_elements: BTreeMap<
@@ -218,12 +218,12 @@ where
         (Vec<&VAL>, (NodeIdx, &Node<NS, TAG, ATT, VAL, EVENT>)),
     > = BTreeMap::new();
 
-    for (new_idx, (new_node_idx, new_child)) in
+    for (new_idx, (new_element_node_idx, new_child)) in
         node_idx_new_elements.iter().enumerate()
     {
         if let Some(new_key) = new_child.get_attribute_value(key) {
             new_keyed_elements
-                .insert(new_idx, (new_key, (*new_node_idx, new_child)));
+                .insert(new_idx, (new_key, (*new_element_node_idx, new_child)));
         }
     }
 
@@ -328,11 +328,15 @@ where
         NodeIdx,
         &Node<NS, TAG, ATT, VAL, EVENT>,
     )> = vec![];
-    for (idx, (new_node_idx, new_child)) in
+    for (idx, (new_element_node_idx, new_child)) in
         node_idx_new_elements.iter().enumerate()
     {
         if !matched_new_idx_pass2.contains(&idx) {
-            unmatched_new_child_pass2.push((idx, *new_node_idx, new_child));
+            unmatched_new_child_pass2.push((
+                idx,
+                *new_element_node_idx,
+                new_child,
+            ));
         }
     }
 
@@ -359,9 +363,10 @@ where
             find_matched_new_child(&matched_old_new_keyed, old_idx)
         {
             // insert unmatched new_child that is less than the matched new_idx
-            for (idx, new_node_idx, unmatched) in unmatched_new_child_pass2
-                .iter()
-                .filter(|(idx, _, _)| *idx < new_idx)
+            for (idx, new_element_node_idx, unmatched) in
+                unmatched_new_child_pass2
+                    .iter()
+                    .filter(|(idx, _, _)| *idx < new_idx)
             {
                 if !already_inserted.contains(idx) {
                     insert_node_patches.push(
@@ -373,7 +378,7 @@ where
                                     child_cur_path.clone(),
                                 ),
                                 TreePath::start_at(
-                                    *new_node_idx,
+                                    *new_element_node_idx,
                                     child_new_path.clone(),
                                 ),
                             ),
@@ -417,7 +422,9 @@ where
     // that are not matched, and not already part of the InsertNode
     let mut append_children_patches = vec![];
 
-    for (new_idx, new_node_idx, new_child) in unmatched_new_child_pass2.iter() {
+    for (new_idx, new_element_node_idx, new_child) in
+        unmatched_new_child_pass2.iter()
+    {
         if !already_inserted.contains(&new_idx) {
             append_children_patches.push(
                 AppendChildren::new(
@@ -432,7 +439,7 @@ where
                             vec![0],
                         ),
                     ),
-                    vec![(*new_node_idx, new_child)],
+                    vec![(*new_element_node_idx, new_child)],
                 )
                 .into(),
             );
