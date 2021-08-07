@@ -43,8 +43,10 @@ fn key_inserted_at_start() {
         diff,
         vec![InsertNode::new(
             Some(&"main"),
-            1,
-            1,
+            PatchPath::new(
+                TreePath::start_at(1, vec![0, 0]),
+                TreePath::start_at(1, vec![0, 0])
+            ),
             &element("div", vec![attr("key", "XXX")], vec![text("lineXXX")])
         )
         .into()]
@@ -92,8 +94,10 @@ fn key_inserted_at_middle() {
         diff,
         vec![InsertNode::new(
             Some(&"main"),
-            11,
-            11,
+            PatchPath::new(
+                TreePath::start_at(11, vec![0, 0]),
+                TreePath::start_at(11, vec![0, 0])
+            ),
             &element("div", vec![attr("key", "XXX")], vec![text("lineXXX")])
         )
         .into()]
@@ -149,8 +153,10 @@ fn wrapped_elements() {
         diff,
         vec![InsertNode::new(
             Some(&"main"),
-            12,
-            12,
+            PatchPath::new(
+                TreePath::start_at(12, vec![0, 0]),
+                TreePath::start_at(12, vec![0, 0])
+            ),
             &element("div", vec![attr("key", "XXX")], vec![text("lineXXX")])
         )
         .into()]
@@ -208,9 +214,11 @@ fn text_changed() {
     assert_eq!(
         diff,
         vec![ChangeText::new(
-            15,
             &Text::new("line7"),
-            15,
+            PatchPath::new(
+                TreePath::start_at(15, vec![0, 0]),
+                TreePath::start_at(15, vec![0, 0])
+            ),
             &Text::new("line7_changed")
         )
         .into()]
@@ -264,9 +272,11 @@ fn text_changed_non_keyed() {
     assert_eq!(
         diff,
         vec![ChangeText::new(
-            15,
             &Text::new("line7"),
-            15,
+            PatchPath::new(
+                TreePath::start_at(15, vec![0, 0]),
+                TreePath::start_at(15, vec![0, 0])
+            ),
             &Text::new("line7_changed")
         )
         .into()]
@@ -359,13 +369,39 @@ fn insert_one_line_at_start() {
     assert_eq!(
         diff,
         vec![
-            ChangeText::new(4, &Text::new("1"), 9, &Text::new("2")).into(),
-            ChangeText::new(9, &Text::new("2"), 14, &Text::new("3")).into(),
-            ChangeText::new(14, &Text::new("3"), 19, &Text::new("4")).into(),
+            ChangeText::new(
+                &Text::new("1"),
+                PatchPath::new(
+                    TreePath::start_at(4, vec![0, 0]),
+                    TreePath::start_at(9, vec![0, 0])
+                ),
+                &Text::new("2")
+            )
+            .into(),
+            ChangeText::new(
+                &Text::new("2"),
+                PatchPath::new(
+                    TreePath::start_at(9, vec![0, 0]),
+                    TreePath::start_at(14, vec![0, 0])
+                ),
+                &Text::new("3")
+            )
+            .into(),
+            ChangeText::new(
+                &Text::new("3"),
+                PatchPath::new(
+                    TreePath::start_at(14, vec![0, 0]),
+                    TreePath::start_at(19, vec![0, 0])
+                ),
+                &Text::new("4")
+            )
+            .into(),
             InsertNode::new(
                 Some(&"main"),
-                2,
-                2,
+                PatchPath::new(
+                    TreePath::start_at(2, vec![0, 0]),
+                    TreePath::start_at(2, vec![0, 0])
+                ),
                 &element(
                     "div",
                     vec![attr("key", "hashXXX")],
@@ -475,13 +511,39 @@ fn insert_two_lines_at_start() {
     assert_eq!(
         diff,
         vec![
-            ChangeText::new(4, &Text::new("1"), 14, &Text::new("3")).into(),
-            ChangeText::new(9, &Text::new("2"), 19, &Text::new("4")).into(),
-            ChangeText::new(14, &Text::new("2"), 24, &Text::new("5")).into(),
+            ChangeText::new(
+                &Text::new("1"),
+                PatchPath::new(
+                    TreePath::start_at(4, vec![0, 0]),
+                    TreePath::start_at(14, vec![0, 0])
+                ),
+                &Text::new("3")
+            )
+            .into(),
+            ChangeText::new(
+                &Text::new("2"),
+                PatchPath::new(
+                    TreePath::start_at(9, vec![0, 0]),
+                    TreePath::start_at(19, vec![0, 0])
+                ),
+                &Text::new("4")
+            )
+            .into(),
+            ChangeText::new(
+                &Text::new("2"),
+                PatchPath::new(
+                    TreePath::start_at(14, vec![0, 0]),
+                    TreePath::start_at(24, vec![0, 0])
+                ),
+                &Text::new("5")
+            )
+            .into(),
             InsertNode::new(
                 Some(&"main"),
-                2,
-                2,
+                PatchPath::new(
+                    TreePath::start_at(2, vec![0, 0]),
+                    TreePath::start_at(2, vec![0, 0])
+                ),
                 &element(
                     "div",
                     vec![attr("key", "hashXXX")],
@@ -494,8 +556,10 @@ fn insert_two_lines_at_start() {
             .into(),
             InsertNode::new(
                 Some(&"main"),
-                2,
-                7,
+                PatchPath::new(
+                    TreePath::start_at(2, vec![0, 0]),
+                    TreePath::start_at(7, vec![0, 0])
+                ),
                 &element(
                     "div",
                     vec![attr("key", "hashYYY")],

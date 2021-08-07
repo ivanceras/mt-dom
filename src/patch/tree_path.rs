@@ -76,13 +76,22 @@ pub struct TreePath {
 /// path of this patch
 #[derive(Debug, Clone, PartialEq)]
 pub struct PatchPath {
+    /// The target path traversal of this patch
     pub old_path: TreePath,
+    /// The new patch traversal after this patch has been applied
     pub new_path: TreePath,
 }
 
 impl TreePath {
+    /// create a tree path which starts at `node_idx` 0 and traversal path `path` at vec![0].
+    pub fn new() -> Self {
+        Self {
+            node_idx: 0,
+            path: vec![0],
+        }
+    }
     /// create a TreePath with node index `node_idx` and traversal path `path`
-    pub fn new(node_idx: usize, path: Vec<usize>) -> Self {
+    pub fn start_at(node_idx: usize, path: Vec<usize>) -> Self {
         Self { node_idx, path }
     }
 }
@@ -94,9 +103,9 @@ impl PatchPath {
     }
 }
 
-fn traverse_node<'a, NS, TAG, ATT, VAL, EVENT>(
+fn traverse_node_by_path<'a, NS, TAG, ATT, VAL, EVENT>(
     node: &'a Node<NS, TAG, ATT, VAL, EVENT>,
-    path: &mut Vec<usize>,
+    path: &mut TreePath,
 ) -> Option<&'a Node<NS, TAG, ATT, VAL, EVENT>>
 where
     NS: PartialEq + Clone + Debug,
@@ -106,13 +115,13 @@ where
     EVENT: PartialEq + Clone + Debug,
 {
     println!("\n Traversing path: {:?}", path);
-    if path.is_empty() {
+    if path.path.is_empty() {
         Some(node)
     } else if let Some(children) = node.get_children() {
-        let idx = path.remove(0);
+        let idx = path.path.remove(0);
         println!("\t idx to see: {}", idx);
         if let Some(child) = &children.get(idx) {
-            traverse_node(&children[idx], path)
+            traverse_node_by_path(&children[idx], path)
         } else {
             None
         }
@@ -121,9 +130,10 @@ where
     }
 }
 
-fn find_node_by_path<'a, NS, TAG, ATT, VAL, EVENT>(
+fn traverse_node_by_node_idx<'a, NS, TAG, ATT, VAL, EVENT>(
     node: &'a Node<NS, TAG, ATT, VAL, EVENT>,
-    path: &[usize],
+    path: &TreePath,
+    cur_node_idx: &mut usize,
 ) -> Option<&'a Node<NS, TAG, ATT, VAL, EVENT>>
 where
     NS: PartialEq + Clone + Debug,
@@ -132,10 +142,56 @@ where
     VAL: PartialEq + Clone + Debug,
     EVENT: PartialEq + Clone + Debug,
 {
-    let mut path = path.to_vec();
-    let root_idx = path.remove(0); // remove the first 0
+    println!("\nTraversing path: {:?}", path);
+    println!("\tcur_node_idx: {}", cur_node_idx);
+    if *cur_node_idx == path.node_idx {
+        return Some(node);
+    } else {
+        if let Some(children) = node.get_children() {
+            for (i, child) in children.iter().enumerate() {
+                *cur_node_idx += 1;
+                if let Some(found) =
+                    traverse_node_by_node_idx(child, path, cur_node_idx)
+                {
+                    return Some(found);
+                }
+            }
+            None
+        } else {
+            None
+        }
+    }
+}
+
+fn find_node_by_path<'a, NS, TAG, ATT, VAL, EVENT>(
+    node: &'a Node<NS, TAG, ATT, VAL, EVENT>,
+    path: &TreePath,
+) -> Option<&'a Node<NS, TAG, ATT, VAL, EVENT>>
+where
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
+{
+    let mut path = path.clone();
+    let root_idx = path.path.remove(0); // remove the first 0
     assert_eq!(0, root_idx, "path must start with 0");
-    traverse_node(node, &mut path)
+    traverse_node_by_path(node, &mut path)
+}
+
+fn find_node_by_node_idx<'a, NS, TAG, ATT, VAL, EVENT>(
+    node: &'a Node<NS, TAG, ATT, VAL, EVENT>,
+    path: &TreePath,
+) -> Option<&'a Node<NS, TAG, ATT, VAL, EVENT>>
+where
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
+{
+    traverse_node_by_node_idx(node, &path, &mut 0)
 }
 
 #[cfg(test)]
@@ -236,16 +292,18 @@ mod tests {
     #[test]
     fn should_find_root_node() {
         let node = sample_node();
-
-        let root = super::find_node_by_path(&node, &[0]);
+        let path = TreePath::start_at(0, vec![0]);
+        let root = find_node_by_path(&node, &path);
         dbg!(&root);
         assert_eq!(Some(&node), root);
+        assert_eq!(root, find_node_by_node_idx(&node, &path));
     }
 
     #[test]
     fn should_find_node1() {
         let node = sample_node();
-        let found = super::find_node_by_path(&node, &[0, 0]);
+        let path = TreePath::start_at(1, vec![0, 0]);
+        let found = find_node_by_path(&node, &path);
         dbg!(&found);
         let expected = element(
             "div",
@@ -264,12 +322,14 @@ mod tests {
             ],
         );
         assert_eq!(Some(&expected), found);
+        assert_eq!(found, find_node_by_node_idx(&node, &path));
     }
 
     #[test]
     fn should_find_node2() {
         let node = sample_node();
-        let found = super::find_node_by_path(&node, &[0, 0, 0]);
+        let path = TreePath::start_at(2, vec![0, 0, 0]);
+        let found = find_node_by_path(&node, &path);
         dbg!(&found);
         let expected = element(
             "div",
@@ -277,12 +337,14 @@ mod tests {
             vec![],
         );
         assert_eq!(Some(&expected), found);
+        assert_eq!(found, find_node_by_node_idx(&node, &path));
     }
 
     #[test]
     fn should_find_node3() {
         let node = sample_node();
-        let found = super::find_node_by_path(&node, &[0, 0, 1]);
+        let path = TreePath::start_at(3, vec![0, 0, 1]);
+        let found = find_node_by_path(&node, &path);
         dbg!(&found);
         let expected = element(
             "div",
@@ -290,13 +352,15 @@ mod tests {
             vec![],
         );
         assert_eq!(Some(&expected), found);
+        assert_eq!(found, find_node_by_node_idx(&node, &path));
     }
 
     #[test]
     fn should_find_node4() {
         let node = sample_node();
-        let node4 = super::find_node_by_path(&node, &[0, 1]);
-        dbg!(&node4);
+        let path = TreePath::start_at(4, vec![0, 1]);
+        let found = find_node_by_path(&node, &path);
+        dbg!(&found);
         let expected = element(
             "div",
             vec![attr("class", "[0,1]"), attr("id", "4")],
@@ -318,69 +382,82 @@ mod tests {
                 ),
             ],
         );
-        assert_eq!(Some(&expected), node4);
+        assert_eq!(Some(&expected), found);
+        assert_eq!(found, find_node_by_node_idx(&node, &path));
     }
 
     #[test]
     fn should_find_node5() {
         let node = sample_node();
-        let node5 = super::find_node_by_path(&node, &[0, 1, 0]);
-        dbg!(&node5);
+        let path = TreePath::start_at(5, vec![0, 1, 0]);
+        let found = find_node_by_path(&node, &path);
+        dbg!(&found);
         let expected = element(
             "div",
             vec![attr("class", "[0,1,0]"), attr("id", "5")],
             vec![],
         );
-        assert_eq!(Some(&expected), node5);
+        assert_eq!(Some(&expected), found);
+        assert_eq!(found, find_node_by_node_idx(&node, &path));
     }
 
     #[test]
     fn should_find_node6() {
         let node = sample_node();
-        let node6 = super::find_node_by_path(&node, &[0, 1, 1]);
-        dbg!(&node6);
+        let path = TreePath::start_at(6, vec![0, 1, 1]);
+        let found = find_node_by_path(&node, &path);
+        dbg!(&found);
         let expected = element(
             "div",
             vec![attr("class", "[0,1,1]"), attr("id", "6")],
             vec![],
         );
-        assert_eq!(Some(&expected), node6);
+        assert_eq!(Some(&expected), found);
+        assert_eq!(found, find_node_by_node_idx(&node, &path));
     }
 
     #[test]
     fn should_find_node7() {
         let node = sample_node();
-        let node7 = super::find_node_by_path(&node, &[0, 1, 2]);
-        dbg!(&node7);
+        let path = TreePath::start_at(7, vec![0, 1, 2]);
+        let found = find_node_by_path(&node, &path);
+        dbg!(&found);
         let expected = element(
             "div",
             vec![attr("class", "[0,1,2]"), attr("id", "7")],
             vec![],
         );
-        assert_eq!(Some(&expected), node7);
+        assert_eq!(Some(&expected), found);
+        assert_eq!(found, find_node_by_node_idx(&node, &path));
     }
 
     #[test]
     fn should_find_none_in_013() {
         let node = sample_node();
-        let found = super::find_node_by_path(&node, &[0, 1, 3]);
+        let path = TreePath::start_at(404, vec![0, 1, 3]);
+        let found = find_node_by_path(&node, &path);
         dbg!(&found);
         assert_eq!(None, found);
+        assert_eq!(found, find_node_by_node_idx(&node, &path));
     }
 
     #[test]
     fn should_find_none_in_00000() {
         let node = sample_node();
-        let found = super::find_node_by_path(&node, &[0, 0, 0, 0]);
+        let path = TreePath::start_at(100000, vec![0, 0, 0, 0]);
+        let found = find_node_by_path(&node, &path);
         dbg!(&found);
         assert_eq!(None, found);
+        assert_eq!(found, find_node_by_node_idx(&node, &path));
     }
 
     #[test]
     fn should_find_none_in_007() {
         let node = sample_node();
-        let bond = super::find_node_by_path(&node, &[0, 0, 7]);
+        let path = TreePath::start_at(10007, vec![0, 0, 7]);
+        let bond = find_node_by_path(&node, &path);
         dbg!(&bond);
         assert_eq!(None, bond);
+        assert_eq!(bond, find_node_by_node_idx(&node, &path));
     }
 }

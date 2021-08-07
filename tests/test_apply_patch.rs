@@ -1,3 +1,4 @@
+/*
 use mt_dom::{apply_patches, diff::*, patch::*, *};
 
 pub type MyNode =
@@ -334,3 +335,4 @@ fn test_multiple_patch_keyed() {
     apply_patches(&mut old_clone, &patch);
     assert_eq!(&old_clone, &update1);
 }
+*/

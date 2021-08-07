@@ -1,5 +1,6 @@
 use super::NodeIdx;
 use crate::Node;
+use crate::PatchPath;
 use std::fmt::Debug;
 
 /// InsertNode patch contains the a node to insert into
@@ -15,11 +16,7 @@ where
     /// the tag of the target node to be inserted
     pub tag: Option<&'a TAG>,
     /// the target node_idx of which our node will be inserted before it.
-    pub node_idx: NodeIdx,
-    /// the new node_idx of this newly inserted node.
-    /// this will be inserted into a fast lookup of NodeIdx to get
-    /// the referenced node faster than having to traverse it.
-    pub new_node_idx: NodeIdx,
+    pub patch_path: PatchPath,
     /// the node to be inserted
     pub node: &'a Node<NS, TAG, ATT, VAL, EVENT>,
 }
@@ -34,14 +31,12 @@ where
     /// create a new InsertNode patch
     pub fn new(
         tag: Option<&'a TAG>,
-        node_idx: NodeIdx,
-        new_node_idx: NodeIdx,
+        patch_path: PatchPath,
         node: &'a Node<NS, TAG, ATT, VAL, EVENT>,
     ) -> Self {
         InsertNode {
             tag,
-            node_idx,
-            new_node_idx,
+            patch_path,
             node,
         }
     }
