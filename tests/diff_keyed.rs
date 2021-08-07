@@ -388,14 +388,64 @@ fn key_2_inserted_at_the_end() {
         diff,
         vec![AppendChildren::new(
             &"main",
-            PatchPath::new(
-                TreePath::start_at(0, vec![0]),
-                TreePath::start_at(0, vec![0])
-            ),
+            PatchPath::old(TreePath::start_at(0, vec![0]),),
             vec![(2, &element("div", vec![attr("key", "2")], vec![]))]
         )
         .into()]
     );
+}
+
+#[test]
+fn test_append_at_sub_level() {
+    let old: MyNode = element(
+        "div",
+        vec![attr("id", "some-id"), attr("class", "some-class")],
+        vec![element(
+            "main",
+            vec![],
+            vec![element("div", vec![attr("key", "1")], vec![text(1)])],
+        )],
+    );
+
+    let new: MyNode = element(
+        "div",
+        vec![attr("id", "some-id"), attr("class", "some-class")],
+        vec![element(
+            "main",
+            vec![],
+            vec![
+                element("div", vec![attr("key", "1")], vec![text(1)]),
+                element("div", vec![attr("key", "2")], vec![text(2)]),
+                element("div", vec![attr("key", "3")], vec![text(3)]),
+            ],
+        )],
+    );
+
+    let diff = diff_with_key(&old, &new, &"key");
+    dbg!(&diff);
+    assert_eq!(
+        diff,
+        vec![
+            AppendChildren::new(
+                &"main",
+                PatchPath::old(TreePath::start_at(1, vec![0, 0]),),
+                vec![(
+                    4,
+                    &element("div", vec![attr("key", "2")], vec![text(2)])
+                ),],
+            )
+            .into(),
+            AppendChildren::new(
+                &"main",
+                PatchPath::old(TreePath::start_at(1, vec![0, 0]),),
+                vec![(
+                    6,
+                    &element("div", vec![attr("key", "3")], vec![text(3)])
+                )],
+            )
+            .into()
+        ]
+    )
 }
 
 #[test]

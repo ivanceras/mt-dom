@@ -344,10 +344,7 @@ fn test_append() {
         diff,
         vec![AppendChildren::new(
             &"div",
-            PatchPath::new(
-                TreePath::start_at(0, vec![0,]),
-                TreePath::start_at(0, vec![0,])
-            ),
+            PatchPath::old(TreePath::start_at(0, vec![0]),),
             vec![(3, &element("div", vec![], vec![text(2)]))],
         )
         .into()]
@@ -377,13 +374,52 @@ fn test_append_more() {
         diff,
         vec![AppendChildren::new(
             &"div",
-            PatchPath::new(
-                TreePath::start_at(0, vec![0]),
-                TreePath::start_at(0, vec![0])
-            ),
+            PatchPath::old(TreePath::start_at(0, vec![0]),),
             vec![
                 (3, &element("div", vec![], vec![text(2)])),
                 (5, &element("div", vec![], vec![text(3)]))
+            ],
+        )
+        .into()]
+    )
+}
+
+#[test]
+fn test_append_at_sub_level() {
+    let old: MyNode = element(
+        "div",
+        vec![attr("id", "some-id"), attr("class", "some-class")],
+        vec![element(
+            "main",
+            vec![],
+            vec![element("div", vec![], vec![text(1)])],
+        )],
+    );
+
+    let new: MyNode = element(
+        "div",
+        vec![attr("id", "some-id"), attr("class", "some-class")],
+        vec![element(
+            "main",
+            vec![],
+            vec![
+                element("div", vec![], vec![text(1)]),
+                element("div", vec![], vec![text(2)]),
+                element("div", vec![], vec![text(3)]),
+            ],
+        )],
+    );
+
+    let diff = diff_with_key(&old, &new, &"key");
+    dbg!(&diff);
+    assert_eq!(
+        diff,
+        vec![AppendChildren::new(
+            &"main",
+            PatchPath::old(TreePath::start_at(1, vec![0, 0]),),
+            vec![
+                (4, &element("div", vec![], vec![text(2)])),
+                (6, &element("div", vec![], vec![text(3)]))
             ],
         )
         .into()]

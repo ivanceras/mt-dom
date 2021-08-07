@@ -429,16 +429,10 @@ where
             append_children_patches.push(
                 AppendChildren::new(
                     &old_element.tag,
-                    PatchPath::new(
-                        TreePath::start_at(
-                            new_child_excess_cur_node_idx,
-                            vec![0],
-                        ),
-                        TreePath::start_at(
-                            new_child_excess_cur_node_idx,
-                            vec![0],
-                        ),
-                    ),
+                    PatchPath::old(TreePath::start_at(
+                        new_child_excess_cur_node_idx,
+                        cur_path.clone(),
+                    )),
                     vec![(*new_element_node_idx, new_child)],
                 )
                 .into(),

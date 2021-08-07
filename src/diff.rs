@@ -458,10 +458,10 @@ where
 
     AppendChildren::new(
         &old_element.tag,
-        PatchPath::new(
-            TreePath::start_at(this_cur_node_idx, this_cur_path.clone()),
-            TreePath::start_at(this_cur_node_idx, this_cur_path.clone()),
-        ),
+        PatchPath::old(TreePath::start_at(
+            this_cur_node_idx,
+            this_cur_path.clone(),
+        )),
         append_patch,
     )
     .into()
