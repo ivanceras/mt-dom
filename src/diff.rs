@@ -91,8 +91,6 @@ where
 ///
 /// Note: This is not including the count of itself, since the node is being processed and the cur_node_idx is
 /// incremented in the loop together with its siblings
-/// TODO: this can be optimize by adding the children count
-/// and then descending into element node that has children only
 pub fn increment_node_idx_to_descendant_count<NS, TAG, ATT, VAL, EVENT>(
     node: &Node<NS, TAG, ATT, VAL, EVENT>,
     cur_node_idx: &mut usize,
@@ -411,62 +409,95 @@ where
     // If there are more new child than old_node child, we make a patch to append the excess element
     // starting from old_child_count to the last item of the new_elements
     if new_child_count > old_child_count {
-        let mut append_patch: Vec<(usize, &'a Node<NS, TAG, ATT, VAL, EVENT>)> =
-            vec![];
-
-        for append_child in new_element.children.iter().skip(old_child_count) {
-            *new_node_idx += 1;
-            append_patch.push((*new_node_idx, append_child));
-            increment_node_idx_to_descendant_count(append_child, new_node_idx);
-        }
-
-        patches.push(
-            AppendChildren::new(
-                &old_element.tag,
-                PatchPath::new(
-                    TreePath::start_at(
-                        this_cur_node_idx,
-                        this_cur_path.clone(),
-                    ),
-                    TreePath::start_at(
-                        this_cur_node_idx,
-                        this_cur_path.clone(),
-                    ),
-                ),
-                append_patch,
-            )
-            .into(),
-        )
+        let append_children_patch = create_append_children_patch(
+            old_element,
+            new_element,
+            this_cur_node_idx,
+            new_node_idx,
+            this_cur_path,
+        );
+        patches.push(append_children_patch);
     }
 
     if new_child_count < old_child_count {
-        for (i, old_child) in old_element
-            .get_children()
-            .iter()
-            .skip(new_child_count)
-            .enumerate()
-        {
-            *cur_node_idx += 1;
-            let mut child_cur_path = cur_path.clone();
-            child_cur_path.push(new_child_count + i);
-
-            let mut child_new_path = new_path.clone();
-            child_new_path.push(i);
-
-            patches.push(
-                RemoveNode::new(
-                    old_child.tag(),
-                    PatchPath::old(TreePath::start_at(
-                        *cur_node_idx,
-                        child_cur_path,
-                    )),
-                )
-                .into(),
-            );
-            increment_node_idx_to_descendant_count(old_child, cur_node_idx);
-        }
+        let remove_node_patches = create_remove_node_patch(
+            old_element,
+            new_element,
+            cur_node_idx,
+            cur_path,
+        );
+        patches.extend(remove_node_patches);
     }
 
+    patches
+}
+
+fn create_append_children_patch<'a, 'b, NS, TAG, ATT, VAL, EVENT>(
+    old_element: &'a Element<NS, TAG, ATT, VAL, EVENT>,
+    new_element: &'a Element<NS, TAG, ATT, VAL, EVENT>,
+    this_cur_node_idx: usize,
+    new_node_idx: &'b mut usize,
+    this_cur_path: Vec<usize>,
+) -> Patch<'a, NS, TAG, ATT, VAL, EVENT>
+where
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
+{
+    let old_child_count = old_element.children.len();
+    let mut append_patch: Vec<(usize, &'a Node<NS, TAG, ATT, VAL, EVENT>)> =
+        vec![];
+
+    for append_child in new_element.children.iter().skip(old_child_count) {
+        *new_node_idx += 1;
+        append_patch.push((*new_node_idx, append_child));
+        increment_node_idx_to_descendant_count(append_child, new_node_idx);
+    }
+
+    AppendChildren::new(
+        &old_element.tag,
+        PatchPath::new(
+            TreePath::start_at(this_cur_node_idx, this_cur_path.clone()),
+            TreePath::start_at(this_cur_node_idx, this_cur_path.clone()),
+        ),
+        append_patch,
+    )
+    .into()
+}
+
+fn create_remove_node_patch<'a, 'b, NS, TAG, ATT, VAL, EVENT>(
+    old_element: &'a Element<NS, TAG, ATT, VAL, EVENT>,
+    new_element: &'a Element<NS, TAG, ATT, VAL, EVENT>,
+    cur_node_idx: &'b mut usize,
+    cur_path: &'b mut Vec<usize>,
+) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT>>
+where
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
+{
+    let new_child_count = new_element.children.len();
+    let mut patches = vec![];
+    for (i, old_child) in old_element
+        .get_children()
+        .iter()
+        .skip(new_child_count)
+        .enumerate()
+    {
+        *cur_node_idx += 1;
+        let mut child_cur_path = cur_path.clone();
+        child_cur_path.push(new_child_count + i);
+        let remove_node_patch = RemoveNode::new(
+            old_child.tag(),
+            PatchPath::old(TreePath::start_at(*cur_node_idx, child_cur_path)),
+        );
+        patches.push(remove_node_patch.into());
+        increment_node_idx_to_descendant_count(old_child, cur_node_idx);
+    }
     patches
 }
 
