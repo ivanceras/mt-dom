@@ -7,6 +7,7 @@ pub use remove_attributes::RemoveAttributes;
 pub use remove_node::RemoveNode;
 pub use replace_node::ReplaceNode;
 use std::fmt::Debug;
+pub use tree_path::PatchPath;
 pub use tree_path::TreePath;
 
 mod add_attributes;
@@ -93,6 +94,7 @@ where
     VAL: PartialEq + Clone + Debug,
     EVENT: PartialEq + Clone + Debug,
 {
+    /*
     /// Every Patch is meant to be applied to a specific node within the DOM. Get the
     /// index of the DOM node that this patch should apply to. DOM nodes are indexed
     /// depth first with the root node in the tree having index 0.
@@ -107,6 +109,7 @@ where
             Patch::ChangeText(ct) => ct.node_idx,
         }
     }
+    */
 
     /// return the tag of this patch
     pub fn tag(&self) -> Option<&TAG> {
