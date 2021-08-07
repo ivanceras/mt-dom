@@ -51,7 +51,8 @@
         ```
 - [ ] Move `AttValue` to `sauron` so `mt-dom` doesn't have to deal with EVENT.
 - [ ] Use `NodeZipper` to `apply_patch`.
-- [ ] Refactor the `replace` flag in `diff` module, make it in one if else expression.
+- [X] Refactor the `replace` flag in `diff` module, make it in one if else expression.
+    - no have it's dedicated function `should_replace`
 
 ## Optimization
 - Create a data structure which has old_element and its node_idx and the new_element with its node_idx

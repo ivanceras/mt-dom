@@ -153,6 +153,56 @@ where
     }
 }
 
+fn should_replace<'a, 'b, NS, TAG, ATT, VAL, EVENT, REP>(
+    old_node: &'a Node<NS, TAG, ATT, VAL, EVENT>,
+    new_node: &'a Node<NS, TAG, ATT, VAL, EVENT>,
+    key: &ATT,
+    rep: &REP,
+) -> bool
+where
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
+    REP: Fn(
+        &'a Node<NS, TAG, ATT, VAL, EVENT>,
+        &'a Node<NS, TAG, ATT, VAL, EVENT>,
+    ) -> bool,
+{
+    if mem::discriminant(old_node) != mem::discriminant(new_node) {
+        return true;
+    }
+
+    // handle explicit replace if the REP fn evaluates to true
+    if rep(old_node, new_node) {
+        return true;
+    }
+
+    // replace if the old key does not match the new key
+    match (
+        old_node.get_attribute_value(&key),
+        new_node.get_attribute_value(&key),
+    ) {
+        (Some(old_key), Some(new_key)) => {
+            if old_key != new_key {
+                return true;
+            }
+        }
+        _ => (),
+    }
+    // Different enum variants, replace!
+    if let (Node::Element(old_element), Node::Element(new_element)) =
+        (old_node, new_node)
+    {
+        // Replace if there are different element tags
+        if old_element.tag != new_element.tag {
+            return true;
+        }
+    }
+    false
+}
+
 fn diff_recursive<'a, 'b, NS, TAG, ATT, VAL, EVENT, SKIP, REP>(
     old_node: &'a Node<NS, TAG, ATT, VAL, EVENT>,
     new_node: &'a Node<NS, TAG, ATT, VAL, EVENT>,
@@ -186,41 +236,10 @@ where
         return vec![];
     }
 
-    //TODO: replace can be unify here to ---v
-    let mut replace =
-        mem::discriminant(old_node) != mem::discriminant(new_node);
+    let replace = should_replace(old_node, new_node, key, rep);
 
     let mut patches = vec![];
 
-    // handle explicit replace if the REP fn evaluates to true
-    if rep(old_node, new_node) {
-        replace = true;
-    }
-
-    // replace if the old key does not match the new key
-    match (
-        old_node.get_attribute_value(&key),
-        new_node.get_attribute_value(&key),
-    ) {
-        (Some(old_key), Some(new_key)) => {
-            if old_key != new_key {
-                replace = true;
-            }
-        }
-        _ => (),
-    }
-    // Different enum variants, replace!
-    if let (Node::Element(old_element), Node::Element(new_element)) =
-        (old_node, new_node)
-    {
-        // Replace if there are different element tags
-        if old_element.tag != new_element.tag {
-            replace = true;
-        }
-    }
-    // TODO: replace can be unify from there -------^
-
-    // Handle implicit replace
     if replace {
         patches.push(
             ReplaceNode::new(
