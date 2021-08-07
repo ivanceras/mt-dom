@@ -162,7 +162,7 @@ where
         let idx = path.path.remove(0);
         println!("\t idx to see: {}", idx);
         if let Some(child) = &children.get(idx) {
-            traverse_node_by_path(&children[idx], path)
+            traverse_node_by_path(child, path)
         } else {
             None
         }
@@ -189,7 +189,7 @@ where
         return Some(node);
     } else {
         if let Some(children) = node.get_children() {
-            for (i, child) in children.iter().enumerate() {
+            for child in children.iter() {
                 *cur_node_idx += 1;
                 if let Some(found) =
                     traverse_node_by_node_idx(child, path, cur_node_idx)
@@ -294,7 +294,6 @@ mod tests {
     fn assert_traverse_match(
         node: &MyNode,
         node_idx: &mut usize,
-        index: usize,
         path: Vec<usize>,
     ) {
         let id = node.get_attribute_value(&"id").unwrap()[0];
@@ -304,12 +303,11 @@ mod tests {
         assert_eq!(id.to_string(), node_idx.to_string());
         assert_eq!(class.to_string(), format_vec(&path));
         if let Some(children) = node.get_children() {
-            let children_len = children.len();
             for (i, child) in children.iter().enumerate() {
                 *node_idx += 1;
                 let mut child_path = path.clone();
                 child_path.push(i);
-                assert_traverse_match(child, node_idx, i, child_path);
+                assert_traverse_match(child, node_idx, child_path);
             }
         }
     }
@@ -326,7 +324,6 @@ mod tests {
         assert_eq!(id.to_string(), node_idx.to_string());
         assert_eq!(class.to_string(), format_vec(&path.path));
         if let Some(children) = node.get_children() {
-            let children_len = children.len();
             for (i, child) in children.iter().enumerate() {
                 *node_idx += 1;
                 let mut child_path = path.clone();
@@ -349,7 +346,7 @@ mod tests {
     #[test]
     fn should_match_paths() {
         let node = sample_node();
-        assert_traverse_match(&node, &mut 0, 0, vec![0]);
+        assert_traverse_match(&node, &mut 0, vec![0]);
         traverse_tree_path(&node, &TreePath::new(), &mut 0);
     }
 

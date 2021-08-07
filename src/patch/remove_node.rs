@@ -1,8 +1,7 @@
-use super::NodeIdx;
 use crate::PatchPath;
 use std::fmt::Debug;
 
-/// remove the node at this NodeIdx
+/// remove the node at this
 #[derive(Clone, Debug, PartialEq)]
 pub struct RemoveNode<'a, TAG>
 where

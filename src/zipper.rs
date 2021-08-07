@@ -109,6 +109,7 @@ where
     }
 }
 
+#[allow(unused)]
 fn zipper_traverse_node<NS, TAG, ATT, VAL, EVENT>(
     node: Node<NS, TAG, ATT, VAL, EVENT>,
     path: &mut Vec<usize>,
@@ -133,6 +134,7 @@ where
     }
 }
 
+#[allow(unused)]
 fn find_node_by_zipper<NS, TAG, ATT, VAL, EVENT>(
     node: Node<NS, TAG, ATT, VAL, EVENT>,
     path: &[usize],

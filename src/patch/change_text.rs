@@ -1,4 +1,3 @@
-use super::NodeIdx;
 use crate::node::Text;
 use crate::PatchPath;
 

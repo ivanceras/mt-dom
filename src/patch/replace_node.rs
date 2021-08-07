@@ -1,4 +1,3 @@
-use super::NodeIdx;
 use crate::Node;
 use crate::PatchPath;
 use std::fmt::Debug;

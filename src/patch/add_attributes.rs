@@ -1,5 +1,4 @@
 //! patch is adding attributes
-use super::NodeIdx;
 use crate::Attribute;
 use crate::PatchPath;
 use std::fmt::Debug;
