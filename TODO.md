@@ -1,7 +1,7 @@
 # TODO
 - [X] Implement applying patches the mt-dom to for the purpose of verifying
     if it produces the same DOM tree as in the browser.
-- [ ] Change callback to use &'a lifetime instead of 'static
+- ~~[ ] Change callback to use &'a lifetime instead of 'static~~
 - [ ] Use associated type rather than just all Generics to simplify the code.
 - [X] Modularize Patch
     - [X] Create a struct of each of the variants
@@ -25,14 +25,13 @@
 - [X] Make the `key` a closure like `skip`.
 - [X] Move `Callback` into sauron.
 - [X] Move algorithmns to sauron such as `map_msg` since it handles the Callback
-- [ ] Add a special field:
+- [X] Add a special field:
     - `prefer_replace(bool)` which opt to replace the node when a changes in attribute value is detected.
         - alos when a change in children.
     - (Bad): which is supposed to be in sauron
     - (Good): It can be reused as is, in other crates such as `sauron-native`
-- [ ] Use zipper in the `apply_patches` code to traverse and parse the Node
 - [X] Don't recycle keyed_elements, keyed_elements that isn't matched should be removed.
-- [ ] Upgrade `NodeIdx` into `TreePath`.
+- [X] Upgrade `NodeIdx` into `TreePath`.
         ```rust
             struct TreePath{
                 // the resulting new index of this node after modification
@@ -40,6 +39,10 @@
                 // an alternative path vector, where it specifies
                 // the first element is the index of the root node which is always 0
                 // the second element is the index of the child to traverse to and so on.
+
+                // this also open to possibilities of optimization as we can see which patches
+                // at their common parent would be applied
+                // hence we can see which patches can be unecessary.
                 path: Vec<usize>,
             }
 
@@ -49,8 +52,15 @@
                 new_path: TreePath,
             }
         ```
+        - [ ] PatchPath will eventually just contain array for path traversal if path prove to be correct.
+            - We can get rid of `node_idx` and `new_path` as we don't really use the `new_path`.
+
+             ```rust
+                struct PatchPath(Vec<usize>);
+             ```
 - [ ] Move `AttValue` to `sauron` so `mt-dom` doesn't have to deal with EVENT.
-- [ ] Use `NodeZipper` to `apply_patch`.
+- ~~[ ] Use `NodeZipper` to `apply_patch`.~~
+    - apply_patch is removed
 - [X] Refactor the `replace` flag in `diff` module, make it in one if else expression.
     - no have it's dedicated function `should_replace`
 

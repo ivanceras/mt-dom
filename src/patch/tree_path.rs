@@ -73,7 +73,11 @@ pub struct TreePath {
     pub path: Vec<usize>,
 }
 
-/// path of this patch
+/// This contains the information on how to traverse the node from the root
+/// to get to the target element of this patch.
+/// Changes in `node_idx` from patches that comes before a particular patch
+/// has already been considered. It is assumed that the the previous
+/// patch has been applied in order to get to this particular target element
 #[derive(Debug, Clone, PartialEq)]
 pub struct PatchPath {
     /// The target path traversal of this patch
