@@ -43,10 +43,7 @@ fn key_1_removed_at_start() {
         diff,
         vec![RemoveNode::new(
             Some(&"div"),
-            PatchPath::new(
-                TreePath::start_at(1, vec![0, 0]),
-                TreePath::start_at(1, vec![0, 0])
-            ),
+            PatchPath::old(TreePath::start_at(1, vec![0, 0]),),
         )
         .into()]
     );
@@ -74,10 +71,7 @@ fn non_unique_keys_matched_at_old() {
         diff,
         vec![RemoveNode::new(
             Some(&"div"),
-            PatchPath::new(
-                TreePath::start_at(2, vec![0, 1]),
-                TreePath::start_at(2, vec![0, 1])
-            ),
+            PatchPath::old(TreePath::start_at(2, vec![0, 1]),),
         )
         .into()]
     );
@@ -105,10 +99,7 @@ fn key_2_removed_at_the_end() {
         diff,
         vec![RemoveNode::new(
             Some(&"div"),
-            PatchPath::new(
-                TreePath::start_at(2, vec![0, 1]),
-                TreePath::start_at(2, vec![0, 1])
-            ),
+            PatchPath::old(TreePath::start_at(2, vec![0, 1]),),
         )
         .into()]
     );
@@ -140,10 +131,7 @@ fn key_2_removed_at_the_middle() {
         diff,
         vec![RemoveNode::new(
             Some(&"div"),
-            PatchPath::new(
-                TreePath::start_at(2, vec![0, 1]),
-                TreePath::start_at(2, vec![0, 1])
-            ),
+            PatchPath::old(TreePath::start_at(2, vec![0, 1]),),
         )
         .into()]
     );
@@ -188,10 +176,7 @@ fn there_are_2_exact_same_keys_in_the_old() {
             .into(),
             RemoveNode::new(
                 Some(&"div"),
-                PatchPath::new(
-                    TreePath::start_at(3, vec![0, 1]),
-                    TreePath::start_at(3, vec![0, 1])
-                ),
+                PatchPath::old(TreePath::start_at(3, vec![0, 1]),),
             )
             .into()
         ]
@@ -306,10 +291,7 @@ fn there_are_2_exact_same_keys_in_both_old_and_new() {
             .into(),
             RemoveNode::new(
                 Some(&"div"),
-                PatchPath::new(
-                    TreePath::start_at(5, vec![0, 2]),
-                    TreePath::start_at(5, vec![0, 2])
-                ),
+                PatchPath::old(TreePath::start_at(5, vec![0, 2]),),
             )
             .into(),
         ]
@@ -493,10 +475,7 @@ fn key1_removed_at_start_then_key2_has_additional_attributes() {
             .into(),
             RemoveNode::new(
                 Some(&"div"),
-                PatchPath::new(
-                    TreePath::start_at(1, vec![0, 0]),
-                    TreePath::start_at(1, vec![0, 0])
-                ),
+                PatchPath::old(TreePath::start_at(1, vec![0, 0]),),
             )
             .into(),
         ]
@@ -548,10 +527,7 @@ fn deep_nested_key1_removed_at_start_then_key2_has_additional_attributes() {
             .into(),
             RemoveNode::new(
                 Some(&"div"),
-                PatchPath::new(
-                    TreePath::start_at(2, vec![0, 0, 0]),
-                    TreePath::start_at(2, vec![0, 0, 0])
-                ),
+                PatchPath::old(TreePath::start_at(2, vec![0, 0, 0]),),
             )
             .into(),
         ]
@@ -605,18 +581,12 @@ fn deep_nested_more_children_key0_and_key1_removed_at_start_then_key2_has_additi
             .into(),
             RemoveNode::new(
                 Some(&"div"),
-                PatchPath::new(
-                    TreePath::start_at(2, vec![0, 0, 0]),
-                    TreePath::start_at(2, vec![0, 0, 0])
-                ),
+                PatchPath::old(TreePath::start_at(2, vec![0, 0, 0]),),
             )
             .into(),
             RemoveNode::new(
                 Some(&"div"),
-                PatchPath::new(
-                    TreePath::start_at(3, vec![0, 0, 1]),
-                    TreePath::start_at(3, vec![0, 0, 1])
-                ),
+                PatchPath::old(TreePath::start_at(3, vec![0, 0, 1]),),
             )
             .into(),
         ]
@@ -709,18 +679,12 @@ fn deep_nested_keyed_with_non_keyed_children() {
             .into(),
             RemoveNode::new(
                 Some(&"div"),
-                PatchPath::new(
-                    TreePath::start_at(2, vec![0, 0, 0]),
-                    TreePath::start_at(2, vec![0, 0, 0])
-                ),
+                PatchPath::old(TreePath::start_at(2, vec![0, 0, 0]),),
             )
             .into(),
             RemoveNode::new(
                 Some(&"div"),
-                PatchPath::new(
-                    TreePath::start_at(3, vec![0, 0, 1]),
-                    TreePath::start_at(3, vec![0, 0, 1])
-                ),
+                PatchPath::old(TreePath::start_at(3, vec![0, 0, 1]),),
             )
             .into(),
         ]
@@ -778,10 +742,7 @@ fn text_changed_in_keyed_elements() {
             .into(),
             RemoveNode::new(
                 Some(&"article"),
-                PatchPath::new(
-                    TreePath::start_at(2, vec![0, 0, 0]),
-                    TreePath::start_at(2, vec![0, 0, 0])
-                ),
+                PatchPath::old(TreePath::start_at(2, vec![0, 0, 0]),),
             )
             .into()
         ]
@@ -860,10 +821,7 @@ fn text_changed_in_mixed_keyed_and_non_keyed_elements() {
             .into(),
             RemoveNode::new(
                 Some(&"article"),
-                PatchPath::new(
-                    TreePath::start_at(2, vec![0, 0, 0]),
-                    TreePath::start_at(2, vec![0, 0, 0])
-                ),
+                PatchPath::old(TreePath::start_at(2, vec![0, 0, 0]),),
             )
             .into(),
             ChangeText::new(
@@ -954,10 +912,7 @@ fn test12() {
             .into(),
             RemoveNode::new(
                 Some(&"article"),
-                PatchPath::new(
-                    TreePath::start_at(4, vec![0, 1, 0]),
-                    TreePath::start_at(4, vec![0, 1, 0])
-                ),
+                PatchPath::old(TreePath::start_at(4, vec![0, 1, 0]),),
             )
             .into(),
             ChangeText::new(
@@ -1000,10 +955,7 @@ fn remove_first() {
         diff,
         vec![RemoveNode::new(
             Some(&"div"),
-            PatchPath::new(
-                TreePath::start_at(1, vec![0, 0]),
-                TreePath::start_at(1, vec![0, 0])
-            ),
+            PatchPath::old(TreePath::start_at(1, vec![0, 0]),),
         )
         .into()]
     )

@@ -402,16 +402,10 @@ where
             remove_node_patches.push(
                 RemoveNode::new(
                     old_child.tag(),
-                    PatchPath::new(
-                        TreePath::start_at(
-                            *cur_node_idx,
-                            child_cur_path.clone(),
-                        ),
-                        TreePath::start_at(
-                            *cur_node_idx,
-                            child_cur_path.clone(),
-                        ),
-                    ),
+                    PatchPath::old(TreePath::start_at(
+                        *cur_node_idx,
+                        child_cur_path.clone(),
+                    )),
                 )
                 .into(),
             );

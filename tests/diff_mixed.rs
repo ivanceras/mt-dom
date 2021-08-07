@@ -121,10 +121,7 @@ fn mixed_key_and_no_key_with_misordered_2_matched() {
             .into(),
             RemoveNode::new(
                 Some(&"div"),
-                PatchPath::new(
-                    TreePath::start_at(3, vec![0, 1]),
-                    TreePath::start_at(3, vec![0, 1])
-                ),
+                PatchPath::old(TreePath::start_at(3, vec![0, 1]),),
             )
             .into(),
         ]

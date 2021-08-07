@@ -437,10 +437,10 @@ where
             patches.push(
                 RemoveNode::new(
                     old_child.tag(),
-                    PatchPath::new(
-                        TreePath::start_at(*cur_node_idx, child_cur_path),
-                        TreePath::start_at(*new_node_idx, child_new_path),
-                    ),
+                    PatchPath::old(TreePath::start_at(
+                        *cur_node_idx,
+                        child_cur_path,
+                    )),
                 )
                 .into(),
             );

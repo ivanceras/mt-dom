@@ -98,10 +98,7 @@ fn test_205() {
         vec![
             RemoveNode::new(
                 Some(&"i"),
-                PatchPath::new(
-                    TreePath::start_at(3, vec![0, 0, 1]),
-                    TreePath::start_at(2, vec![0, 0, 0])
-                ),
+                PatchPath::old(TreePath::start_at(3, vec![0, 0, 1]),),
             )
             .into(),
             ReplaceNode::new(

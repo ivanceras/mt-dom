@@ -79,7 +79,7 @@ pub struct PatchPath {
     /// The target path traversal of this patch
     pub old_path: TreePath,
     /// The new patch traversal after this patch has been applied
-    pub new_path: TreePath,
+    pub new_path: Option<TreePath>,
 }
 
 impl TreePath {
@@ -129,7 +129,18 @@ impl TreePath {
 impl PatchPath {
     /// create a PatchPath with old_path and new_path specified
     pub fn new(old_path: TreePath, new_path: TreePath) -> Self {
-        Self { old_path, new_path }
+        Self {
+            old_path,
+            new_path: Some(new_path),
+        }
+    }
+
+    /// PatchPath that doesn't need to have new patch such as RemoveNode
+    pub fn old(old_path: TreePath) -> Self {
+        Self {
+            old_path,
+            new_path: None,
+        }
     }
 }
 
