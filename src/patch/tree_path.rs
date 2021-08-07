@@ -94,6 +94,36 @@ impl TreePath {
     pub fn start_at(node_idx: usize, path: Vec<usize>) -> Self {
         Self { node_idx, path }
     }
+
+    /// find the node using the path of this tree path
+    pub fn find_node_by_path<'a, NS, TAG, ATT, VAL, EVENT>(
+        &self,
+        node: &'a Node<NS, TAG, ATT, VAL, EVENT>,
+    ) -> Option<&'a Node<NS, TAG, ATT, VAL, EVENT>>
+    where
+        NS: PartialEq + Clone + Debug,
+        TAG: PartialEq + Clone + Debug,
+        ATT: PartialEq + Clone + Debug,
+        VAL: PartialEq + Clone + Debug,
+        EVENT: PartialEq + Clone + Debug,
+    {
+        find_node_by_path(node, &self)
+    }
+
+    /// find the node using the node_idx of this tree path
+    pub fn find_node_by_node_idx<'a, NS, TAG, ATT, VAL, EVENT>(
+        &self,
+        node: &'a Node<NS, TAG, ATT, VAL, EVENT>,
+    ) -> Option<&'a Node<NS, TAG, ATT, VAL, EVENT>>
+    where
+        NS: PartialEq + Clone + Debug,
+        TAG: PartialEq + Clone + Debug,
+        ATT: PartialEq + Clone + Debug,
+        VAL: PartialEq + Clone + Debug,
+        EVENT: PartialEq + Clone + Debug,
+    {
+        find_node_by_node_idx(node, &self)
+    }
 }
 
 impl PatchPath {

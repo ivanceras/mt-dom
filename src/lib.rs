@@ -18,7 +18,6 @@
 //! mt-dom is not limited to be used in html base virtual-dom implementation, but can also be use
 //! for native UI elements.
 //!
-//pub use apply_patches::apply_patches;
 pub use diff::diff_with_key;
 pub use node::{
     attribute::{
@@ -29,7 +28,6 @@ pub use node::{
 };
 pub use patch::{NodeIdx, Patch, PatchPath, TreePath};
 
-//pub mod apply_patches;
 pub mod diff;
 mod node;
 pub mod patch;

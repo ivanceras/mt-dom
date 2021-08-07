@@ -16,7 +16,7 @@ where
     /// the tag of the node we are appending the children into
     pub tag: &'a TAG,
     /// index of the node we are going to append the children into
-    patch_path: PatchPath,
+    pub patch_path: PatchPath,
     /// children nodes to be appended and their corresponding new_node_idx
     pub children: Vec<(NodeIdx, &'a Node<NS, TAG, ATT, VAL, EVENT>)>,
 }
