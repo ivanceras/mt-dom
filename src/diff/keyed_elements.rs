@@ -153,8 +153,10 @@ pub fn diff_keyed_elements<'a, 'b, NS, TAG, ATT, VAL, EVENT, SKIP, REP>(
     old_element: &'a Element<NS, TAG, ATT, VAL, EVENT>,
     new_element: &'a Element<NS, TAG, ATT, VAL, EVENT>,
     key: &ATT,
-    old_path: &'b mut TreePath,
-    new_path: &'b mut TreePath,
+    cur_node_idx: &'b mut usize,
+    new_element_node_idx: &'b mut usize,
+    cur_path: &'b mut Vec<usize>,
+    new_path: &'b mut Vec<usize>,
     skip: &SKIP,
     rep: &REP,
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT>>
@@ -175,8 +177,14 @@ where
 {
     let mut patches = vec![];
 
-    let attributes_patches =
-        diff_attributes(old_element, new_element, old_path, new_path);
+    let attributes_patches = diff_attributes(
+        old_element,
+        new_element,
+        cur_node_idx,
+        new_element_node_idx,
+        cur_path,
+        new_path,
+    );
     // create a map for both the old and new element
     // we can not use VAL as the key, since it is not Hash
     let old_keyed_elements: BTreeMap<
@@ -200,9 +208,9 @@ where
     > = BTreeMap::new();
 
     for new_child in new_element.get_children().iter() {
-        new_path.node_idx += 1;
-        node_idx_new_elements.insert(new_path.node_idx, new_child);
-        increment_node_idx_to_descendant_count(new_child, new_path);
+        *new_element_node_idx += 1;
+        node_idx_new_elements.insert(*new_element_node_idx, new_child);
+        increment_node_idx_to_descendant_count(new_child, new_element_node_idx);
     }
 
     let mut new_keyed_elements: BTreeMap<
@@ -328,8 +336,8 @@ where
         }
     }
 
-    // process this last so as not to move the old_path.node_idx forward
-    // and without creating a snapshot for old_path.node_idx for other patch types
+    // process this last so as not to move the cur_node_idx forward
+    // and without creating a snapshot for cur_node_idx for other patch types
     let mut matched_keyed_element_patches = vec![];
     let mut remove_node_patches = vec![];
     let mut insert_node_patches = vec![];
@@ -337,10 +345,16 @@ where
     // keeps track of new_idx that is part of the InsertNode
     let mut already_inserted = vec![];
 
-    let new_child_excess_path = old_path.clone();
+    let new_child_excess_cur_node_idx = *cur_node_idx;
 
     for (old_idx, old_child) in old_element.children.iter().enumerate() {
-        old_path.node_idx += 1;
+        *cur_node_idx += 1;
+        let mut child_cur_path = cur_path.clone();
+        child_cur_path.push(old_idx);
+
+        let mut child_new_path = new_path.clone();
+        child_new_path.push(old_idx);
+
         if let Some((new_idx, (new_child_node_idx, new_child))) =
             find_matched_new_child(&matched_old_new_keyed, old_idx)
         {
@@ -353,7 +367,16 @@ where
                     insert_node_patches.push(
                         InsertNode::new(
                             Some(&old_element.tag),
-                            PatchPath::new(old_path.clone(), new_path.clone()),
+                            PatchPath::new(
+                                TreePath::start_at(
+                                    *cur_node_idx,
+                                    child_cur_path.clone(),
+                                ),
+                                TreePath::start_at(
+                                    *new_node_idx,
+                                    child_new_path.clone(),
+                                ),
+                            ),
                             unmatched,
                         )
                         .into(),
@@ -362,14 +385,15 @@ where
                 }
             }
 
-            let mut this_new_child_path =
-                TreePath::start_at(new_child_node_idx, old_path.path.clone());
+            let mut this_new_child_node_idx = new_child_node_idx;
 
             matched_keyed_element_patches.extend(diff_recursive(
                 old_child,
                 new_child,
-                old_path,
-                &mut this_new_child_path,
+                cur_node_idx,
+                &mut this_new_child_node_idx,
+                &mut child_cur_path,
+                &mut child_new_path,
                 key,
                 skip,
                 rep,
@@ -378,11 +402,20 @@ where
             remove_node_patches.push(
                 RemoveNode::new(
                     old_child.tag(),
-                    PatchPath::new(new_path.clone(), old_path.clone()),
+                    PatchPath::new(
+                        TreePath::start_at(
+                            *cur_node_idx,
+                            child_cur_path.clone(),
+                        ),
+                        TreePath::start_at(
+                            *cur_node_idx,
+                            child_cur_path.clone(),
+                        ),
+                    ),
                 )
                 .into(),
             );
-            increment_node_idx_to_descendant_count(old_child, old_path);
+            increment_node_idx_to_descendant_count(old_child, cur_node_idx);
         }
     }
 
@@ -392,14 +425,18 @@ where
 
     for (new_idx, new_node_idx, new_child) in unmatched_new_child_pass2.iter() {
         if !already_inserted.contains(&new_idx) {
-            //TODO: calculate the new patch by deriving from new_child_excess_path with added
-            //new_idx
             append_children_patches.push(
                 AppendChildren::new(
                     &old_element.tag,
                     PatchPath::new(
-                        new_child_excess_path.clone(),
-                        new_child_excess_path.clone(),
+                        TreePath::start_at(
+                            new_child_excess_cur_node_idx,
+                            vec![0],
+                        ),
+                        TreePath::start_at(
+                            new_child_excess_cur_node_idx,
+                            vec![0],
+                        ),
                     ),
                     vec![(*new_node_idx, new_child)],
                 )

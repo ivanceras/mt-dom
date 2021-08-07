@@ -273,6 +273,28 @@ mod tests {
         }
     }
 
+    fn traverse_tree_path(
+        node: &MyNode,
+        path: &TreePath,
+        node_idx: &mut usize,
+    ) {
+        let id = node.get_attribute_value(&"id").unwrap()[0];
+        let class = node.get_attribute_value(&"class").unwrap()[0];
+        println!("\tid: {:?} class: {:?}", id, class);
+        println!("\tnode_idx: {} = {}", node_idx, format_vec(&path.path));
+        assert_eq!(id.to_string(), node_idx.to_string());
+        assert_eq!(class.to_string(), format_vec(&path.path));
+        if let Some(children) = node.get_children() {
+            let children_len = children.len();
+            for (i, child) in children.iter().enumerate() {
+                *node_idx += 1;
+                let mut child_path = path.clone();
+                child_path.path.push(i);
+                traverse_tree_path(child, &child_path, node_idx);
+            }
+        }
+    }
+
     fn format_vec(v: &[usize]) -> String {
         format!(
             "[{}]",
@@ -287,6 +309,7 @@ mod tests {
     fn should_match_paths() {
         let node = sample_node();
         assert_traverse_match(&node, &mut 0, 0, vec![0]);
+        traverse_tree_path(&node, &TreePath::new(), &mut 0);
     }
 
     #[test]

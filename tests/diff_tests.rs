@@ -94,21 +94,21 @@ fn test_205() {
         ],
     ); //{ <div> <b> <i></i> </b> <i></i> </div>},
     assert_eq!(
-        diff_with_key(&old, &new, &"key"),
+        dbg!(diff_with_key(&old, &new, &"key")),
         vec![
             RemoveNode::new(
                 Some(&"i"),
                 PatchPath::new(
-                    TreePath::start_at(3, vec![0, 0]),
-                    TreePath::start_at(3, vec![0, 0])
+                    TreePath::start_at(3, vec![0, 0, 1]),
+                    TreePath::start_at(2, vec![0, 0, 0])
                 ),
             )
             .into(),
             ReplaceNode::new(
                 Some(&"b"),
                 PatchPath::new(
-                    TreePath::start_at(4, vec![0, 0]),
-                    TreePath::start_at(3, vec![0, 0])
+                    TreePath::start_at(4, vec![0, 1]),
+                    TreePath::start_at(3, vec![0, 1])
                 ),
                 &element("i", vec![], vec![])
             )
@@ -197,6 +197,7 @@ fn text_node_changed() {
     );
 
     let diff = diff_with_key(&old, &new, &"key");
+    dbg!(&diff);
     assert_eq!(
         diff,
         vec![Patch::ChangeText(ChangeText::new(
