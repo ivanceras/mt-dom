@@ -1,4 +1,5 @@
 use crate::Node;
+use crate::NodeIdx;
 use std::fmt::Debug;
 
 /// Describe the path traversal of a Node starting from the root node
@@ -99,6 +100,11 @@ impl TreePath {
         Self { node_idx, path }
     }
 
+    /// add a path node idx
+    pub fn push_path(&mut self, node_idx: usize) {
+        self.path.push(node_idx)
+    }
+
     /// find the node using the path of this tree path
     pub fn find_node_by_path<'a, NS, TAG, ATT, VAL, EVENT>(
         &self,
@@ -145,6 +151,16 @@ impl PatchPath {
             old_path,
             new_path: None,
         }
+    }
+
+    /// return the node id of this PatchPath
+    pub fn node_idx(&self) -> NodeIdx {
+        self.old_path.node_idx
+    }
+
+    /// return the traversal path of this PatchPath
+    pub fn traversal_path(&self) -> &[usize] {
+        &self.old_path.path
     }
 }
 
