@@ -551,6 +551,7 @@ where
                 )
                 .into(),
             );
+            already_inserted.push(*new_idx);
         }
     }
     append_children_patches
