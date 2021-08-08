@@ -280,19 +280,15 @@ where
     let node_idx_new_elements =
         build_node_idx_new_elements(new_element, new_node_idx);
 
-    let mut new_keyed_elements: BTreeMap<
-        usize,
-        (Vec<&VAL>, (NodeIdx, &Node<NS, TAG, ATT, VAL, EVENT>)),
-    > = BTreeMap::new();
-
-    for (new_idx, (new_element_node_idx, new_child)) in
-        node_idx_new_elements.iter().enumerate()
-    {
-        if let Some(new_key) = new_child.get_attribute_value(key) {
-            new_keyed_elements
-                .insert(new_idx, (new_key, (*new_element_node_idx, new_child)));
-        }
-    }
+    let new_keyed_elements = BTreeMap::from_iter(
+        node_idx_new_elements.iter().enumerate().filter_map(
+            |(new_idx, (new_element_node_idx, new_child))| {
+                new_child.get_attribute_value(key).map(|new_key| {
+                    (new_idx, (new_key, (*new_element_node_idx, *new_child)))
+                })
+            },
+        ),
+    );
 
     // compiles that matched old and new with
     // with their (old_idx, new_idx) as key and the value is (old_element, new_element)
