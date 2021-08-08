@@ -76,9 +76,10 @@ pub struct TreePath {
 
 /// This contains the information on how to traverse the node from the root
 /// to get to the target element of this patch.
-/// Changes in `node_idx` from patches that comes before a particular patch
-/// has already been considered. It is assumed that the the previous
-/// patch has been applied in order to get to this particular target element
+///
+/// Note: The logic to apply the patch, must get a reference to the target elements first
+/// before applying any of the patches. Doing so will prevent us from targeting the wrong nodem
+/// once a partial patch is applied to some other elements.
 #[derive(Debug, Clone, PartialEq)]
 pub struct PatchPath {
     /// The target path traversal of this patch
