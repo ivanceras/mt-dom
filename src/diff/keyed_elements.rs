@@ -158,6 +158,58 @@ where
     ))
 }
 
+fn build_matched_old_new_keyed<'a, NS, TAG, ATT, VAL, EVENT>(
+    old_keyed_elements: &BTreeMap<
+        usize,
+        (Vec<&'a VAL>, &'a Node<NS, TAG, ATT, VAL, EVENT>),
+    >,
+    new_keyed_elements: &BTreeMap<
+        usize,
+        (Vec<&'a VAL>, (NodeIdx, &'a Node<NS, TAG, ATT, VAL, EVENT>)),
+    >,
+) -> BTreeMap<
+    (usize, usize),
+    (
+        &'a Node<NS, TAG, ATT, VAL, EVENT>,
+        (NodeIdx, &'a Node<NS, TAG, ATT, VAL, EVENT>),
+    ),
+>
+where
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
+{
+    let mut matched_old_new_keyed = BTreeMap::new();
+    let mut last_matched_old_idx = None;
+    let mut last_matched_new_idx = None;
+    // here, we need to processed both keyed element and non-keyed elements
+    for (new_idx, (new_key, new_element)) in new_keyed_elements.iter() {
+        // find the old element which has a key value which is the same with the new element key
+        // `new_key`
+        if let Some((old_idx, old_element)) = find_node_with_key(
+            &old_keyed_elements,
+            new_key,
+            last_matched_old_idx,
+        ) {
+            let last_matched_new_idx_val = last_matched_new_idx.unwrap_or(0);
+            // matching should be always on forward direction
+            if last_matched_new_idx.is_none()
+                || *new_idx > last_matched_new_idx_val
+            {
+                last_matched_old_idx = Some(old_idx);
+                last_matched_new_idx = Some(*new_idx);
+                matched_old_new_keyed
+                    .insert((old_idx, *new_idx), (old_element, *new_element));
+            } else {
+                // we don't matched already passed elements
+            }
+        }
+    }
+    matched_old_new_keyed
+}
+
 /// Reconciliation of keyed elements
 ///
 /// algorithm:
@@ -239,39 +291,8 @@ where
 
     // compiles that matched old and new with
     // with their (old_idx, new_idx) as key and the value is (old_element, new_element)
-    let mut matched_old_new_keyed: BTreeMap<
-        (usize, usize),
-        (
-            &Node<NS, TAG, ATT, VAL, EVENT>,
-            (NodeIdx, &Node<NS, TAG, ATT, VAL, EVENT>),
-        ),
-    > = BTreeMap::new();
-
-    let mut last_matched_old_idx = None;
-    let mut last_matched_new_idx = None;
-    // here, we need to processed both keyed element and non-keyed elements
-    for (new_idx, (new_key, new_element)) in new_keyed_elements.iter() {
-        // find the old element which has a key value which is the same with the new element key
-        // `new_key`
-        if let Some((old_idx, old_element)) = find_node_with_key(
-            &old_keyed_elements,
-            new_key,
-            last_matched_old_idx,
-        ) {
-            let last_matched_new_idx_val = last_matched_new_idx.unwrap_or(0);
-            // matching should be always on forward direction
-            if last_matched_new_idx.is_none()
-                || *new_idx > last_matched_new_idx_val
-            {
-                last_matched_old_idx = Some(old_idx);
-                last_matched_new_idx = Some(*new_idx);
-                matched_old_new_keyed
-                    .insert((old_idx, *new_idx), (old_element, *new_element));
-            } else {
-                // we don't matched already passed elements
-            }
-        }
-    }
+    let mut matched_old_new_keyed =
+        build_matched_old_new_keyed(&old_keyed_elements, &new_keyed_elements);
 
     // unmatched old and idx in pass 1
     let (matched_old_idx, matched_new_idx) =
