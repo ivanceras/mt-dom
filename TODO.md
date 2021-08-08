@@ -60,9 +60,11 @@
              ```
 - [ ] Move `AttValue` to `sauron` so `mt-dom` doesn't have to deal with EVENT.
 - ~~[ ] Use `NodeZipper` to `apply_patch`.~~
-    - apply_patch is removed
+    - apply_patches is removed
 - [X] Refactor the `replace` flag in `diff` module, make it in one if else expression.
     - no have it's dedicated function `should_replace`
+- [ ] Remove `new_node_idx` and `new_path`, since they are not really pointing to the correct object after patch is applied
+    and will eventually point to wrong element as more patches are applied
 
 ## Optimization
 - Create a data structure which has old_element and its node_idx and the new_element with its node_idx
