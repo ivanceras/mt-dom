@@ -385,7 +385,9 @@ where
     // keeps track of new_idx that is part of the InsertNode
     let mut already_inserted = vec![];
 
-    let new_child_excess_cur_node_idx = *cur_node_idx;
+    // cur_node_idx before incrementing inside the old element iteration and recursive increment
+    // that may be called for each of this old element children nodes
+    let snapshot_cur_node_idx = *cur_node_idx;
 
     for (old_idx, old_child) in old_element.children.iter().enumerate() {
         *cur_node_idx += 1;
@@ -395,7 +397,7 @@ where
         let mut child_new_path = new_path.clone();
         child_new_path.push(old_idx);
 
-        if let Some((new_idx, (new_child_node_idx, new_child))) =
+        if let Some((new_idx, (mut new_child_node_idx, new_child))) =
             find_matched_new_child(&matched_old_new_keyed, old_idx)
         {
             // insert unmatched new_child that is less than the matched new_idx
@@ -409,13 +411,11 @@ where
                 &child_new_path,
             ));
 
-            let mut this_new_child_node_idx = new_child_node_idx;
-
             matched_keyed_element_patches.extend(diff_recursive(
                 old_child,
                 new_child,
                 cur_node_idx,
-                &mut this_new_child_node_idx,
+                &mut new_child_node_idx,
                 &child_cur_path,
                 &child_new_path,
                 key,
@@ -444,7 +444,7 @@ where
         &mut already_inserted,
         &unmatched_new_child_pass2,
         &cur_path,
-        new_child_excess_cur_node_idx,
+        snapshot_cur_node_idx,
     );
 
     let attributes_patches = create_attribute_patches(
@@ -526,7 +526,7 @@ fn create_append_children_patches<'a, NS, TAG, ATT, VAL, EVENT>(
         &'a Node<NS, TAG, ATT, VAL, EVENT>,
     )>,
     cur_path: &Vec<usize>,
-    new_child_excess_cur_node_idx: usize,
+    snapshot_cur_node_idx: usize,
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT>>
 where
     NS: PartialEq + Clone + Debug,
@@ -544,7 +544,7 @@ where
                 AppendChildren::new(
                     &old_element.tag,
                     PatchPath::old(TreePath::start_at(
-                        new_child_excess_cur_node_idx,
+                        snapshot_cur_node_idx,
                         cur_path.clone(),
                     )),
                     vec![(*new_element_node_idx, new_child)],
