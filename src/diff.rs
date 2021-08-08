@@ -399,8 +399,8 @@ where
     let attributes_patches = create_attribute_patches(
         old_element,
         new_element,
-        cur_node_idx,
-        new_node_idx,
+        *cur_node_idx,
+        *new_node_idx,
         cur_path,
         new_path,
     );
@@ -547,8 +547,8 @@ where
 fn create_attribute_patches<'a, 'b, NS, TAG, ATT, VAL, EVENT>(
     old_element: &'a Element<NS, TAG, ATT, VAL, EVENT>,
     new_element: &'a Element<NS, TAG, ATT, VAL, EVENT>,
-    cur_node_idx: &'b mut usize,
-    new_node_idx: &'b mut usize,
+    cur_node_idx: usize,
+    new_node_idx: usize,
     cur_path: &Vec<usize>,
     new_path: &Vec<usize>,
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT>>
@@ -617,8 +617,8 @@ where
             AddAttributes::new(
                 &old_element.tag,
                 PatchPath::new(
-                    TreePath::start_at(*cur_node_idx, cur_path.clone()),
-                    TreePath::start_at(*new_node_idx, new_path.clone()),
+                    TreePath::start_at(cur_node_idx, cur_path.clone()),
+                    TreePath::start_at(new_node_idx, new_path.clone()),
                 ),
                 add_attributes,
             )
@@ -630,8 +630,8 @@ where
             RemoveAttributes::new(
                 &old_element.tag,
                 PatchPath::new(
-                    TreePath::start_at(*cur_node_idx, cur_path.clone()),
-                    TreePath::start_at(*new_node_idx, new_path.clone()),
+                    TreePath::start_at(cur_node_idx, cur_path.clone()),
+                    TreePath::start_at(new_node_idx, new_path.clone()),
                 ),
                 remove_attributes,
             )

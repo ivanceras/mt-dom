@@ -210,6 +210,27 @@ where
     matched_old_new_keyed
 }
 
+fn build_node_idx_new_elements<'a, NS, TAG, ATT, VAL, EVENT>(
+    new_element: &'a Element<NS, TAG, ATT, VAL, EVENT>,
+    new_node_idx: &mut usize,
+) -> BTreeMap<NodeIdx, &'a Node<NS, TAG, ATT, VAL, EVENT>>
+where
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
+{
+    let mut node_idx_new_elements = BTreeMap::new();
+
+    for new_child in new_element.get_children().iter() {
+        *new_node_idx += 1;
+        node_idx_new_elements.insert(*new_node_idx, new_child);
+        increment_node_idx_to_descendant_count(new_child, new_node_idx);
+    }
+    node_idx_new_elements
+}
+
 /// Reconciliation of keyed elements
 ///
 /// algorithm:
@@ -252,28 +273,12 @@ where
 {
     let mut patches = vec![];
 
-    let attributes_patches = create_attribute_patches(
-        old_element,
-        new_element,
-        cur_node_idx,
-        new_node_idx,
-        cur_path,
-        new_path,
-    );
     // create a map for both the old and new element
     // we can not use VAL as the key, since it is not Hash
     let old_keyed_elements = build_keyed_elements(old_element, key);
 
-    let mut node_idx_new_elements: BTreeMap<
-        NodeIdx,
-        &Node<NS, TAG, ATT, VAL, EVENT>,
-    > = BTreeMap::new();
-
-    for new_child in new_element.get_children().iter() {
-        *new_node_idx += 1;
-        node_idx_new_elements.insert(*new_node_idx, new_child);
-        increment_node_idx_to_descendant_count(new_child, new_node_idx);
-    }
+    let node_idx_new_elements =
+        build_node_idx_new_elements(new_element, new_node_idx);
 
     let mut new_keyed_elements: BTreeMap<
         usize,
@@ -440,6 +445,15 @@ where
         &unmatched_new_child_pass2,
         &cur_path,
         new_child_excess_cur_node_idx,
+    );
+
+    let attributes_patches = create_attribute_patches(
+        old_element,
+        new_element,
+        *cur_node_idx,
+        *new_node_idx,
+        cur_path,
+        new_path,
     );
 
     // patch order matters here
