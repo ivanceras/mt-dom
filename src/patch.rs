@@ -109,6 +109,19 @@ where
         }
     }
 
+    /// return the path to traverse for this patch to get to the target Node
+    pub fn path(&self) -> &[usize] {
+        match self {
+            Patch::InsertNode(ic) => &ic.patch_path.old_path.path,
+            Patch::AppendChildren(ac) => &ac.patch_path.old_path.path,
+            Patch::RemoveNode(rn) => &rn.patch_path.old_path.path,
+            Patch::ReplaceNode(rn) => &rn.patch_path.old_path.path,
+            Patch::AddAttributes(at) => &at.patch_path.old_path.path,
+            Patch::RemoveAttributes(rt) => &rt.patch_path.old_path.path,
+            Patch::ChangeText(ct) => &ct.patch_path.old_path.path,
+        }
+    }
+
     /// return the tag of this patch
     pub fn tag(&self) -> Option<&TAG> {
         match self {
