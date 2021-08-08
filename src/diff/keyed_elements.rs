@@ -404,25 +404,13 @@ where
 
     // the node that are to be appended are nodes
     // that are not matched, and not already part of the InsertNode
-    let mut append_children_patches = vec![];
-
-    for (new_idx, new_element_node_idx, new_child) in
-        unmatched_new_child_pass2.iter()
-    {
-        if !already_inserted.contains(&new_idx) {
-            append_children_patches.push(
-                AppendChildren::new(
-                    &old_element.tag,
-                    PatchPath::old(TreePath::start_at(
-                        new_child_excess_cur_node_idx,
-                        cur_path.clone(),
-                    )),
-                    vec![(*new_element_node_idx, new_child)],
-                )
-                .into(),
-            );
-        }
-    }
+    let append_children_patches = create_append_children_patches(
+        old_element,
+        &mut already_inserted,
+        &unmatched_new_child_pass2,
+        &cur_path,
+        new_child_excess_cur_node_idx,
+    );
 
     // patch order matters here
     // apply changes to the matched element first,
@@ -483,4 +471,43 @@ where
     }
 
     insert_node_patches
+}
+
+fn create_append_children_patches<'a, NS, TAG, ATT, VAL, EVENT>(
+    old_element: &'a Element<NS, TAG, ATT, VAL, EVENT>,
+    already_inserted: &mut Vec<NodeIdx>,
+    unmatched_new_child_pass2: &Vec<(
+        usize,
+        usize,
+        &'a Node<NS, TAG, ATT, VAL, EVENT>,
+    )>,
+    cur_path: &Vec<usize>,
+    new_child_excess_cur_node_idx: usize,
+) -> Vec<Patch<'a, NS, TAG, ATT, VAL, EVENT>>
+where
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
+{
+    let mut append_children_patches = vec![];
+    for (new_idx, new_element_node_idx, new_child) in
+        unmatched_new_child_pass2.iter()
+    {
+        if !already_inserted.contains(&new_idx) {
+            append_children_patches.push(
+                AppendChildren::new(
+                    &old_element.tag,
+                    PatchPath::old(TreePath::start_at(
+                        new_child_excess_cur_node_idx,
+                        cur_path.clone(),
+                    )),
+                    vec![(*new_element_node_idx, new_child)],
+                )
+                .into(),
+            );
+        }
+    }
+    append_children_patches
 }
