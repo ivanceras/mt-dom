@@ -129,7 +129,7 @@ where
 ///
 /// Note: This is not including the count of itself, since the node is being processed and the cur_node_idx is
 /// incremented in the loop together with its siblings
-pub fn increment_node_idx_to_descendant_count<NS, TAG, ATT, VAL, EVENT>(
+fn increment_node_idx_to_descendant_count<NS, TAG, ATT, VAL, EVENT>(
     node: &Node<NS, TAG, ATT, VAL, EVENT>,
     cur_node_idx: &mut usize,
 ) where
@@ -396,7 +396,7 @@ where
     let this_cur_node_idx = *cur_node_idx;
     let this_cur_path = cur_path.clone();
     let mut patches = vec![];
-    let attributes_patches = diff_attributes(
+    let attributes_patches = create_attribute_patches(
         old_element,
         new_element,
         cur_node_idx,
@@ -544,7 +544,7 @@ where
 /// Note: The performance bottlenecks
 ///     - allocating new vec
 ///     - merging attributes of the same name
-fn diff_attributes<'a, 'b, NS, TAG, ATT, VAL, EVENT>(
+fn create_attribute_patches<'a, 'b, NS, TAG, ATT, VAL, EVENT>(
     old_element: &'a Element<NS, TAG, ATT, VAL, EVENT>,
     new_element: &'a Element<NS, TAG, ATT, VAL, EVENT>,
     cur_node_idx: &'b mut usize,

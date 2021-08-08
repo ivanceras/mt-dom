@@ -1,5 +1,6 @@
 use super::{
-    diff_attributes, diff_recursive, increment_node_idx_to_descendant_count,
+    create_attribute_patches, diff_recursive,
+    increment_node_idx_to_descendant_count,
 };
 use crate::{
     patch::{AppendChildren, InsertNode, RemoveNode},
@@ -177,7 +178,7 @@ where
 {
     let mut patches = vec![];
 
-    let attributes_patches = diff_attributes(
+    let attributes_patches = create_attribute_patches(
         old_element,
         new_element,
         cur_node_idx,
