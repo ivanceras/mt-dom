@@ -22,7 +22,12 @@ mod keyed_elements;
 /// * key - the literal name of key attribute, ie: "key"
 ///
 /// # Example
-/// ```
+/// ```rust
+/// use mt_dom::{diff::*, patch::*, *};
+///
+/// pub type MyNode =
+///    Node<&'static str, &'static str, &'static str, &'static str, ()>;
+///
 /// let old: MyNode = element(
 ///     "main",
 ///     vec![attr("class", "container")],
