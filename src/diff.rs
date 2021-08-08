@@ -14,7 +14,40 @@ use std::{cmp, mem};
 
 mod keyed_elements;
 
-/// calculate the difference of 2 nodes
+/// Return the patches needed for `old_node` to have the same DOM as `new_node`
+///
+/// # Agruments
+/// * old_node - the old virtual dom node
+/// * new_node - the new virtual dom node
+/// * key - the literal name of key attribute, ie: "key"
+///
+/// # Example
+/// ```
+/// let old: MyNode = element(
+///     "main",
+///     vec![attr("class", "container")],
+///     vec![
+///         element("div", vec![attr("key", "1")], vec![]),
+///         element("div", vec![attr("key", "2")], vec![]),
+///     ],
+/// );
+///
+/// let new: MyNode = element(
+///     "main",
+///     vec![attr("class", "container")],
+///     vec![element("div", vec![attr("key", "2")], vec![])],
+/// );
+///
+/// let diff = diff_with_key(&old, &new, &"key");
+/// assert_eq!(
+///     diff,
+///     vec![RemoveNode::new(
+///         Some(&"div"),
+///         PatchPath::old(TreePath::start_at(1, vec![0, 0]),),
+///     )
+///     .into()]
+/// );
+/// ```
 pub fn diff_with_key<'a, NS, TAG, ATT, VAL, EVENT>(
     old_node: &'a Node<NS, TAG, ATT, VAL, EVENT>,
     new_node: &'a Node<NS, TAG, ATT, VAL, EVENT>,

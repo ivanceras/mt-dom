@@ -89,7 +89,7 @@ pub struct PatchPath {
 }
 
 impl TreePath {
-    /// create a tree path which starts at `node_idx` 0 and traversal path `path` at vec![0].
+    /// create a tree path which starts at `node_idx` 0 and traversal path `path` at `vec![0]`.
     pub fn new() -> Self {
         Self {
             node_idx: 0,
