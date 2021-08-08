@@ -280,7 +280,10 @@ where
     let node_idx_new_elements =
         build_node_idx_new_elements(new_element, new_node_idx);
 
-    let new_keyed_elements = BTreeMap::from_iter(
+    let new_keyed_elements: BTreeMap<
+        usize,
+        (Vec<&VAL>, (NodeIdx, &Node<NS, TAG, ATT, VAL, EVENT>)),
+    > = BTreeMap::from_iter(
         node_idx_new_elements.iter().enumerate().filter_map(
             |(new_idx, (new_element_node_idx, new_child))| {
                 new_child.get_attribute_value(key).map(|new_key| {
@@ -292,7 +295,7 @@ where
 
     // compiles that matched old and new with
     // with their (old_idx, new_idx) as key and the value is (old_element, new_element)
-    let mut matched_old_new_keyed =
+    let matched_old_new_keyed =
         build_matched_old_new_keyed(&old_keyed_elements, &new_keyed_elements);
 
     // unmatched old and idx in pass 1
@@ -342,17 +345,20 @@ where
             }),
     );
 
-    // merge both
-    // TODO: rename `matched_old_new_keyed` to `matched_old_new_all`
+    // This is named all_matched_elements
     // since it both contains keyed and the not-necessarily keyed
     // Note: not-necessarily keyed means an element could be keyed
     // but not matched using the key value, therefore will be tried
     // to be match to pass2 which only checks for aligned idx to match each other.
-    matched_old_new_keyed.extend(matched_old_new);
+    let all_matched_elements = {
+        let mut tmp = matched_old_new_keyed.clone();
+        tmp.extend(matched_old_new);
+        tmp
+    };
 
     // unmatched old and idx in pass 2
     let (_matched_old_idx_pass2, matched_new_idx_pass2) =
-        get_matched_old_new_idx(&matched_old_new_keyed);
+        get_matched_old_new_idx(&all_matched_elements);
 
     // this elements are for inserting, appending
     let mut unmatched_new_child_pass2: Vec<(
@@ -394,7 +400,7 @@ where
         child_new_path.push(old_idx);
 
         if let Some((new_idx, (mut new_child_node_idx, new_child))) =
-            find_matched_new_child(&matched_old_new_keyed, old_idx)
+            find_matched_new_child(&all_matched_elements, old_idx)
         {
             // insert unmatched new_child that is less than the matched new_idx
             insert_node_patches.extend(create_insert_node_patches(
