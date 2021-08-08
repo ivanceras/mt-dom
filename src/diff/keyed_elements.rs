@@ -136,6 +136,28 @@ where
         .collect()
 }
 
+fn build_keyed_elements<'a, NS, TAG, ATT, VAL, EVENT>(
+    element: &'a Element<NS, TAG, ATT, VAL, EVENT>,
+    key: &ATT,
+) -> BTreeMap<usize, (Vec<&'a VAL>, &'a Node<NS, TAG, ATT, VAL, EVENT>)>
+where
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    EVENT: PartialEq + Clone + Debug,
+{
+    BTreeMap::from_iter(element.get_children().iter().enumerate().filter_map(
+        |(idx, child)| {
+            if let Some(child_key) = child.get_attribute_value(key) {
+                Some((idx, (child_key, child)))
+            } else {
+                None
+            }
+        },
+    ))
+}
+
 /// Reconciliation of keyed elements
 ///
 /// algorithm:
@@ -188,20 +210,7 @@ where
     );
     // create a map for both the old and new element
     // we can not use VAL as the key, since it is not Hash
-    let old_keyed_elements: BTreeMap<
-        usize,
-        (Vec<&VAL>, &Node<NS, TAG, ATT, VAL, EVENT>),
-    > = BTreeMap::from_iter(
-        old_element.get_children().iter().enumerate().filter_map(
-            |(old_idx, old_child)| {
-                if let Some(old_key) = old_child.get_attribute_value(key) {
-                    Some((old_idx, (old_key, old_child)))
-                } else {
-                    None
-                }
-            },
-        ),
-    );
+    let old_keyed_elements = build_keyed_elements(old_element, key);
 
     let mut node_idx_new_elements: BTreeMap<
         NodeIdx,
