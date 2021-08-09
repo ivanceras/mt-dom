@@ -107,31 +107,29 @@ impl TreePath {
     }
 
     /// find the node using the path of this tree path
-    pub fn find_node_by_path<'a, NS, TAG, ATT, VAL, EVENT>(
+    pub fn find_node_by_path<'a, NS, TAG, ATT, VAL>(
         &self,
-        node: &'a Node<NS, TAG, ATT, VAL, EVENT>,
-    ) -> Option<&'a Node<NS, TAG, ATT, VAL, EVENT>>
+        node: &'a Node<NS, TAG, ATT, VAL>,
+    ) -> Option<&'a Node<NS, TAG, ATT, VAL>>
     where
         NS: PartialEq + Clone + Debug,
         TAG: PartialEq + Clone + Debug,
         ATT: PartialEq + Clone + Debug,
         VAL: PartialEq + Clone + Debug,
-        EVENT: PartialEq + Clone + Debug,
     {
         find_node_by_path(node, &self)
     }
 
     /// find the node using the node_idx of this tree path
-    pub fn find_node_by_node_idx<'a, NS, TAG, ATT, VAL, EVENT>(
+    pub fn find_node_by_node_idx<'a, NS, TAG, ATT, VAL>(
         &self,
-        node: &'a Node<NS, TAG, ATT, VAL, EVENT>,
-    ) -> Option<&'a Node<NS, TAG, ATT, VAL, EVENT>>
+        node: &'a Node<NS, TAG, ATT, VAL>,
+    ) -> Option<&'a Node<NS, TAG, ATT, VAL>>
     where
         NS: PartialEq + Clone + Debug,
         TAG: PartialEq + Clone + Debug,
         ATT: PartialEq + Clone + Debug,
         VAL: PartialEq + Clone + Debug,
-        EVENT: PartialEq + Clone + Debug,
     {
         find_node_by_node_idx(node, &self)
     }
@@ -165,16 +163,15 @@ impl PatchPath {
     }
 }
 
-fn traverse_node_by_path<'a, NS, TAG, ATT, VAL, EVENT>(
-    node: &'a Node<NS, TAG, ATT, VAL, EVENT>,
+fn traverse_node_by_path<'a, NS, TAG, ATT, VAL>(
+    node: &'a Node<NS, TAG, ATT, VAL>,
     path: &mut TreePath,
-) -> Option<&'a Node<NS, TAG, ATT, VAL, EVENT>>
+) -> Option<&'a Node<NS, TAG, ATT, VAL>>
 where
     NS: PartialEq + Clone + Debug,
     TAG: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
-    EVENT: PartialEq + Clone + Debug,
 {
     println!("\n Traversing path: {:?}", path);
     if path.path.is_empty() {
@@ -192,17 +189,16 @@ where
     }
 }
 
-fn traverse_node_by_node_idx<'a, NS, TAG, ATT, VAL, EVENT>(
-    node: &'a Node<NS, TAG, ATT, VAL, EVENT>,
+fn traverse_node_by_node_idx<'a, NS, TAG, ATT, VAL>(
+    node: &'a Node<NS, TAG, ATT, VAL>,
     path: &TreePath,
     cur_node_idx: &mut usize,
-) -> Option<&'a Node<NS, TAG, ATT, VAL, EVENT>>
+) -> Option<&'a Node<NS, TAG, ATT, VAL>>
 where
     NS: PartialEq + Clone + Debug,
     TAG: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
-    EVENT: PartialEq + Clone + Debug,
 {
     println!("\nTraversing path: {:?}", path);
     println!("\tcur_node_idx: {}", cur_node_idx);
@@ -225,16 +221,15 @@ where
     }
 }
 
-fn find_node_by_path<'a, NS, TAG, ATT, VAL, EVENT>(
-    node: &'a Node<NS, TAG, ATT, VAL, EVENT>,
+fn find_node_by_path<'a, NS, TAG, ATT, VAL>(
+    node: &'a Node<NS, TAG, ATT, VAL>,
     path: &TreePath,
-) -> Option<&'a Node<NS, TAG, ATT, VAL, EVENT>>
+) -> Option<&'a Node<NS, TAG, ATT, VAL>>
 where
     NS: PartialEq + Clone + Debug,
     TAG: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
-    EVENT: PartialEq + Clone + Debug,
 {
     let mut path = path.clone();
     let root_idx = path.path.remove(0); // remove the first 0
@@ -242,16 +237,15 @@ where
     traverse_node_by_path(node, &mut path)
 }
 
-fn find_node_by_node_idx<'a, NS, TAG, ATT, VAL, EVENT>(
-    node: &'a Node<NS, TAG, ATT, VAL, EVENT>,
+fn find_node_by_node_idx<'a, NS, TAG, ATT, VAL>(
+    node: &'a Node<NS, TAG, ATT, VAL>,
     path: &TreePath,
-) -> Option<&'a Node<NS, TAG, ATT, VAL, EVENT>>
+) -> Option<&'a Node<NS, TAG, ATT, VAL>>
 where
     NS: PartialEq + Clone + Debug,
     TAG: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
-    EVENT: PartialEq + Clone + Debug,
 {
     traverse_node_by_node_idx(node, &path, &mut 0)
 }
@@ -261,8 +255,7 @@ mod tests {
     use super::*;
     use crate::*;
 
-    type MyNode =
-        Node<&'static str, &'static str, &'static str, &'static str, ()>;
+    type MyNode = Node<&'static str, &'static str, &'static str, &'static str>;
 
     fn sample_node() -> MyNode {
         let node: MyNode = element(

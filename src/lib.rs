@@ -21,8 +21,7 @@
 pub use diff::diff_with_key;
 pub use node::{
     attribute::{
-        attr, attr_ns, group_attributes_per_name,
-        merge_attributes_of_same_name, on, AttValue,
+        attr, attr_ns, group_attributes_per_name, merge_attributes_of_same_name,
     },
     element, element_ns, text, Attribute, Element, Node, Text,
 };

@@ -5,13 +5,12 @@ use std::fmt::Debug;
 
 /// Add attributes
 #[derive(Clone, Debug, PartialEq)]
-pub struct AddAttributes<'a, NS, TAG, ATT, VAL, EVENT>
+pub struct AddAttributes<'a, NS, TAG, ATT, VAL>
 where
     NS: PartialEq + Clone + Debug,
     TAG: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
-    EVENT: PartialEq + Clone + Debug,
 {
     /// node tag
     /// use for verifying that the we are patching the correct node which
@@ -20,16 +19,15 @@ where
     /// the target dom traversal using this patch path
     pub patch_path: PatchPath,
     /// the attributes to be patched into the target node
-    pub attrs: Vec<&'a Attribute<NS, ATT, VAL, EVENT>>,
+    pub attrs: Vec<&'a Attribute<NS, ATT, VAL>>,
 }
 
-impl<'a, NS, TAG, ATT, VAL, EVENT> AddAttributes<'a, NS, TAG, ATT, VAL, EVENT>
+impl<'a, NS, TAG, ATT, VAL> AddAttributes<'a, NS, TAG, ATT, VAL>
 where
     NS: PartialEq + Clone + Debug,
     TAG: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
-    EVENT: PartialEq + Clone + Debug,
 {
     /// Add attributes that the new node has that the old node does not
     /// Note: the attributes is not a reference since attributes of same
@@ -37,7 +35,7 @@ where
     pub fn new(
         tag: &'a TAG,
         patch_path: PatchPath,
-        attrs: Vec<&'a Attribute<NS, ATT, VAL, EVENT>>,
+        attrs: Vec<&'a Attribute<NS, ATT, VAL>>,
     ) -> Self {
         AddAttributes {
             tag,

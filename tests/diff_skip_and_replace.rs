@@ -1,7 +1,7 @@
 #![deny(warnings)]
 use mt_dom::{diff::diff_with_functions, patch::*, *};
 
-type MyNode = Node<&'static str, &'static str, &'static str, &'static str, ()>;
+type MyNode = Node<&'static str, &'static str, &'static str, &'static str>;
 
 #[test]
 fn force_replace() {
@@ -57,7 +57,7 @@ fn skip_in_attribute() {
             attributes
                 .iter()
                 .filter(|a| a.name == "skip")
-                .flat_map(|a| a.get_plain())
+                .flat_map(|a| a.value())
                 .any(|v| *v == "true")
         } else {
             false
@@ -89,7 +89,7 @@ fn replace_true_in_attribute_must_replace_old_node_regardless() {
             attributes
                 .iter()
                 .filter(|a| a.name == "replace")
-                .flat_map(|a| a.get_plain())
+                .flat_map(|a| a.value())
                 .any(|v| *v == "true")
         } else {
             false
@@ -214,7 +214,7 @@ fn replace_and_skip_in_sub_nodes() {
             attributes
                 .iter()
                 .filter(|a| a.name == "skip")
-                .flat_map(|a| a.get_plain())
+                .flat_map(|a| a.value())
                 .any(|v| *v == "true")
         } else {
             false
@@ -225,7 +225,7 @@ fn replace_and_skip_in_sub_nodes() {
             attributes
                 .iter()
                 .filter(|a| a.name == "replace")
-                .flat_map(|a| a.get_plain())
+                .flat_map(|a| a.value())
                 .any(|v| *v == "true")
         } else {
             false

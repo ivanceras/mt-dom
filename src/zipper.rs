@@ -4,31 +4,26 @@ use std::fmt::Debug;
 /// A zipper is a technique of representing an aggregate data structure so that it is convenient for writing programs
 /// that traverse the structure arbitrarily and update its contents
 #[derive(Clone, Debug, PartialEq)]
-pub struct Zipper<NS, TAG, ATT, VAL, EVENT>
+pub struct Zipper<NS, TAG, ATT, VAL>
 where
     NS: PartialEq + Clone + Debug,
     TAG: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
-    EVENT: PartialEq + Clone + Debug,
 {
-    node: Node<NS, TAG, ATT, VAL, EVENT>,
-    parent: Option<Box<Zipper<NS, TAG, ATT, VAL, EVENT>>>,
+    node: Node<NS, TAG, ATT, VAL>,
+    parent: Option<Box<Zipper<NS, TAG, ATT, VAL>>>,
     index_in_parent: usize,
 }
 
-impl<NS, TAG, ATT, VAL, EVENT> Zipper<NS, TAG, ATT, VAL, EVENT>
+impl<NS, TAG, ATT, VAL> Zipper<NS, TAG, ATT, VAL>
 where
     NS: PartialEq + Clone + Debug,
     TAG: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
-    EVENT: PartialEq + Clone + Debug,
 {
-    pub fn child(
-        mut self,
-        index: usize,
-    ) -> Option<Zipper<NS, TAG, ATT, VAL, EVENT>> {
+    pub fn child(mut self, index: usize) -> Option<Zipper<NS, TAG, ATT, VAL>> {
         // Remove the specified child from the node's children.
         // A Zipper shouldn't let its users inspect its parent,
         // since we mutate the parents
@@ -52,7 +47,7 @@ where
         }
     }
 
-    pub fn parent(self) -> Zipper<NS, TAG, ATT, VAL, EVENT> {
+    pub fn parent(self) -> Zipper<NS, TAG, ATT, VAL> {
         // Destructure this Zipper
         let Zipper {
             node,
@@ -82,7 +77,7 @@ where
         }
     }
 
-    pub fn finish(mut self) -> Node<NS, TAG, ATT, VAL, EVENT> {
+    pub fn finish(mut self) -> Node<NS, TAG, ATT, VAL> {
         while let Some(_) = self.parent {
             self = self.parent();
         }
@@ -91,16 +86,15 @@ where
     }
 }
 
-impl<NS, TAG, ATT, VAL, EVENT> Node<NS, TAG, ATT, VAL, EVENT>
+impl<NS, TAG, ATT, VAL> Node<NS, TAG, ATT, VAL>
 where
     NS: PartialEq + Clone + Debug,
     TAG: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
-    EVENT: PartialEq + Clone + Debug,
 {
     /// create a Zipper for a Node
-    pub fn zipper(self) -> Zipper<NS, TAG, ATT, VAL, EVENT> {
+    pub fn zipper(self) -> Zipper<NS, TAG, ATT, VAL> {
         Zipper {
             node: self,
             parent: None,
@@ -110,16 +104,15 @@ where
 }
 
 #[allow(unused)]
-fn zipper_traverse_node<NS, TAG, ATT, VAL, EVENT>(
-    node: Node<NS, TAG, ATT, VAL, EVENT>,
+fn zipper_traverse_node<NS, TAG, ATT, VAL>(
+    node: Node<NS, TAG, ATT, VAL>,
     path: &mut Vec<usize>,
-) -> Option<Node<NS, TAG, ATT, VAL, EVENT>>
+) -> Option<Node<NS, TAG, ATT, VAL>>
 where
     NS: PartialEq + Clone + Debug,
     TAG: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
-    EVENT: PartialEq + Clone + Debug,
 {
     if path.is_empty() {
         Some(node)
@@ -135,16 +128,15 @@ where
 }
 
 #[allow(unused)]
-fn find_node_by_zipper<NS, TAG, ATT, VAL, EVENT>(
-    node: Node<NS, TAG, ATT, VAL, EVENT>,
+fn find_node_by_zipper<NS, TAG, ATT, VAL>(
+    node: Node<NS, TAG, ATT, VAL>,
     path: &[usize],
-) -> Option<Node<NS, TAG, ATT, VAL, EVENT>>
+) -> Option<Node<NS, TAG, ATT, VAL>>
 where
     NS: PartialEq + Clone + Debug,
     TAG: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
-    EVENT: PartialEq + Clone + Debug,
 {
     let mut path = path.to_vec();
     let root_idx = path.remove(0); // remove the first 0
@@ -159,8 +151,7 @@ mod tests {
     use super::*;
     use crate::*;
 
-    type MyNode =
-        Node<&'static str, &'static str, &'static str, &'static str, ()>;
+    type MyNode = Node<&'static str, &'static str, &'static str, &'static str>;
 
     fn sample_node() -> MyNode {
         let node: MyNode = element(

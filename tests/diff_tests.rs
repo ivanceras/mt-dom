@@ -1,8 +1,7 @@
 #![deny(warnings)]
 use mt_dom::{patch::*, *};
 
-pub type MyNode =
-    Node<&'static str, &'static str, &'static str, &'static str, ()>;
+pub type MyNode = Node<&'static str, &'static str, &'static str, &'static str>;
 
 #[test]
 fn test_replace_node() {

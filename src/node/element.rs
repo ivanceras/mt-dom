@@ -15,13 +15,12 @@ use std::fmt::Debug;
 /// The namespace is also needed in attributes where namespace are necessary such as `xlink:href`
 /// where the namespace `xlink` is needed in order for the linked element in an svg image to work.
 #[derive(Clone, Debug, PartialEq, Default)]
-pub struct Element<NS, TAG, ATT, VAL, EVENT>
+pub struct Element<NS, TAG, ATT, VAL>
 where
     NS: PartialEq + Clone + Debug,
     TAG: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
-    EVENT: PartialEq + Clone + Debug,
 {
     /// namespace of this element,
     /// svg elements requires namespace to render correcly in the browser
@@ -29,27 +28,26 @@ where
     /// the element tag, such as div, a, button
     pub tag: TAG,
     /// attributes for this element
-    pub attrs: Vec<Attribute<NS, ATT, VAL, EVENT>>,
+    pub attrs: Vec<Attribute<NS, ATT, VAL>>,
     /// children elements of this element
-    pub children: Vec<Node<NS, TAG, ATT, VAL, EVENT>>,
+    pub children: Vec<Node<NS, TAG, ATT, VAL>>,
     /// is the element has a self closing tag
     pub self_closing: bool,
 }
 
-impl<NS, TAG, ATT, VAL, EVENT> Element<NS, TAG, ATT, VAL, EVENT>
+impl<NS, TAG, ATT, VAL> Element<NS, TAG, ATT, VAL>
 where
     NS: PartialEq + Clone + Debug,
     TAG: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
-    EVENT: PartialEq + Clone + Debug,
 {
     /// create a new instance of an element
     pub fn new(
         namespace: Option<NS>,
         tag: TAG,
-        attrs: Vec<Attribute<NS, ATT, VAL, EVENT>>,
-        children: Vec<Node<NS, TAG, ATT, VAL, EVENT>>,
+        attrs: Vec<Attribute<NS, ATT, VAL>>,
+        children: Vec<Node<NS, TAG, ATT, VAL>>,
         self_closing: bool,
     ) -> Self {
         Element {
@@ -62,28 +60,22 @@ where
     }
 
     /// add attributes to this element
-    pub fn add_attributes(
-        &mut self,
-        attrs: Vec<Attribute<NS, ATT, VAL, EVENT>>,
-    ) {
+    pub fn add_attributes(&mut self, attrs: Vec<Attribute<NS, ATT, VAL>>) {
         self.attrs.extend(attrs)
     }
 
     /// add children virtual node to this element
-    pub fn add_children(
-        &mut self,
-        children: Vec<Node<NS, TAG, ATT, VAL, EVENT>>,
-    ) {
+    pub fn add_children(&mut self, children: Vec<Node<NS, TAG, ATT, VAL>>) {
         self.children.extend(children);
     }
 
     /// returns a refernce to the children of this node
-    pub fn get_children(&self) -> &[Node<NS, TAG, ATT, VAL, EVENT>] {
+    pub fn get_children(&self) -> &[Node<NS, TAG, ATT, VAL>] {
         &self.children
     }
 
     /// returns a mutable reference to the children of this node
-    pub fn children_mut(&mut self) -> &mut [Node<NS, TAG, ATT, VAL, EVENT>] {
+    pub fn children_mut(&mut self) -> &mut [Node<NS, TAG, ATT, VAL>] {
         &mut self.children
     }
 
@@ -97,7 +89,7 @@ where
     pub fn swap_remove_child(
         &mut self,
         index: usize,
-    ) -> Node<NS, TAG, ATT, VAL, EVENT> {
+    ) -> Node<NS, TAG, ATT, VAL> {
         self.children.swap_remove(index)
     }
 
@@ -115,17 +107,17 @@ where
     }
 
     /// consume self and return the children
-    pub fn take_children(self) -> Vec<Node<NS, TAG, ATT, VAL, EVENT>> {
+    pub fn take_children(self) -> Vec<Node<NS, TAG, ATT, VAL>> {
         self.children
     }
 
     /// return a reference to the attribute of this element
-    pub fn get_attributes(&self) -> &[Attribute<NS, ATT, VAL, EVENT>] {
+    pub fn get_attributes(&self) -> &[Attribute<NS, ATT, VAL>] {
         &self.attrs
     }
 
     /// consume self and return the attributes
-    pub fn take_attributes(self) -> Vec<Attribute<NS, ATT, VAL, EVENT>> {
+    pub fn take_attributes(self) -> Vec<Attribute<NS, ATT, VAL>> {
         self.attrs
     }
 
@@ -156,10 +148,7 @@ where
 
     /// remove the existing values of this attribute
     /// and add the new values
-    pub fn set_attributes(
-        &mut self,
-        attrs: Vec<Attribute<NS, ATT, VAL, EVENT>>,
-    ) {
+    pub fn set_attributes(&mut self, attrs: Vec<Attribute<NS, ATT, VAL>>) {
         attrs
             .iter()
             .for_each(|att| self.remove_attribute(&att.name));
@@ -169,7 +158,7 @@ where
     /// merge to existing attributes if it exist
     pub fn merge_attributes(
         &mut self,
-        new_attrs: Vec<Attribute<NS, ATT, VAL, EVENT>>,
+        new_attrs: Vec<Attribute<NS, ATT, VAL>>,
     ) {
         for new_att in new_attrs {
             if let Some(existing_attr) =
@@ -188,7 +177,7 @@ where
             .attrs
             .iter()
             .filter(|att| att.name == *name)
-            .flat_map(|att| att.get_plain())
+            .flat_map(|att| att.value())
             .collect();
 
         if result.is_empty() {

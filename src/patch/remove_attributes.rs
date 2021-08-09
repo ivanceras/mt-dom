@@ -4,13 +4,12 @@ use std::fmt::Debug;
 
 /// Remove attributes that the old node had that the new node doesn't
 #[derive(Clone, Debug, PartialEq)]
-pub struct RemoveAttributes<'a, NS, TAG, ATT, VAL, EVENT>
+pub struct RemoveAttributes<'a, NS, TAG, ATT, VAL>
 where
     NS: PartialEq + Clone + Debug,
     TAG: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
-    EVENT: PartialEq + Clone + Debug,
 {
     /// the tag of the node to be remove
     /// this is only used for verifying that we are patching the correct node
@@ -19,17 +18,15 @@ where
     /// relative to the application root node
     pub patch_path: PatchPath,
     /// attributes that are to be removed from this target node
-    pub attrs: Vec<&'a Attribute<NS, ATT, VAL, EVENT>>,
+    pub attrs: Vec<&'a Attribute<NS, ATT, VAL>>,
 }
 
-impl<'a, NS, TAG, ATT, VAL, EVENT>
-    RemoveAttributes<'a, NS, TAG, ATT, VAL, EVENT>
+impl<'a, NS, TAG, ATT, VAL> RemoveAttributes<'a, NS, TAG, ATT, VAL>
 where
     NS: PartialEq + Clone + Debug,
     TAG: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
-    EVENT: PartialEq + Clone + Debug,
 {
     /// Add attributes that the new node has that the old node does not
     /// Note: the attributes is not a reference since attributes of same
@@ -37,7 +34,7 @@ where
     pub fn new(
         tag: &'a TAG,
         patch_path: PatchPath,
-        attrs: Vec<&'a Attribute<NS, ATT, VAL, EVENT>>,
+        attrs: Vec<&'a Attribute<NS, ATT, VAL>>,
     ) -> Self {
         RemoveAttributes {
             tag,

@@ -1,7 +1,6 @@
 use mt_dom::{diff::*, patch::*, *};
 
-pub type MyNode =
-    Node<&'static str, &'static str, &'static str, &'static str, ()>;
+pub type MyNode = Node<&'static str, &'static str, &'static str, &'static str>;
 // should have no changes
 #[test]
 fn mixed_key_and_no_key_with_no_change() {
