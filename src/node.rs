@@ -236,7 +236,8 @@ where
         }
     }
 
-    /// recursive count the number of nodes under this tree
+    /// Returns the total number of nodes on this node tree, that is counting the direct and
+    /// indirect child nodes of this node.
     pub fn node_count(&self) -> usize {
         let mut current = 0;
         self.node_count_recursive(&mut current);
@@ -287,6 +288,17 @@ where
 }
 
 /// create a virtual node with tag, attrs and children
+/// # Example
+/// ```rust
+/// use mt_dom::{Node,element,attr};
+///
+/// let div:Node<&'static str, &'static str, &'static str, &'static str> =
+///     element(
+///          "div",
+///          vec![attr("class", "container")],
+///          vec![],
+///      );
+/// ```
 #[inline]
 pub fn element<NS, TAG, ATT, VAL>(
     tag: TAG,
@@ -303,6 +315,19 @@ where
 }
 
 /// create a virtual node with namespace, tag, attrs and children
+/// # Example
+/// ```rust
+/// use mt_dom::{Node,element_ns,attr};
+///
+/// let svg:Node<&'static str, &'static str, &'static str, &'static str> =
+///     element_ns(
+///         Some("http://www.w3.org/2000/svg"),
+///          "svg",
+///          vec![attr("width","400"), attr("height","400")],
+///          vec![],
+///          false
+///      );
+/// ```
 pub fn element_ns<NS, TAG, ATT, VAL>(
     namespace: Option<NS>,
     tag: TAG,
@@ -319,7 +344,14 @@ where
     Node::Element(Element::new(namespace, tag, attrs, children, self_closing))
 }
 
-/// Create a textnode element
+/// Create a text node element
+/// # Example
+/// ```rust
+/// use mt_dom::{Node,text};
+///
+/// let txt:Node<&'static str, &'static str, &'static str, &'static str> =
+///     text("This is a text node");
+/// ```
 pub fn text<S, NS, TAG, ATT, VAL>(s: S) -> Node<NS, TAG, ATT, VAL>
 where
     S: ToString,

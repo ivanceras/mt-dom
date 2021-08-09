@@ -64,6 +64,12 @@ where
 }
 
 /// Create an attribute
+/// # Example
+/// ```rust
+/// use mt_dom::{Attribute,attr};
+/// let class: Attribute<&'static str, &'static str, &'static str> =
+///     attr("class", "container");
+/// ```
 #[inline]
 pub fn attr<NS, ATT, VAL>(name: ATT, value: VAL) -> Attribute<NS, ATT, VAL>
 where
@@ -77,8 +83,10 @@ where
 /// Create an attribute with namespace
 /// # Example
 /// ```rust
-/// use mt_dom::attr_ns;
-/// attr_ns(Some("http://www.w3.org/1999/xlink"), "href", "cool-script.js");
+/// use mt_dom::{Attribute,attr_ns};
+///
+/// let href: Attribute<&'static str, &'static str, &'static str> =
+///     attr_ns(Some("http://www.w3.org/1999/xlink"), "href", "cool-script.js");
 /// ```
 #[inline]
 pub fn attr_ns<NS, ATT, VAL>(
@@ -95,6 +103,7 @@ where
 }
 
 /// merge the values of attributes with the same name
+#[doc(hidden)]
 pub fn merge_attributes_of_same_name<NS, ATT, VAL>(
     attributes: &[&Attribute<NS, ATT, VAL>],
 ) -> Vec<Attribute<NS, ATT, VAL>>
@@ -121,6 +130,7 @@ where
 }
 
 /// group attributes of the same name
+#[doc(hidden)]
 pub fn group_attributes_per_name<'a, NS, ATT, VAL>(
     attributes: &'a [Attribute<NS, ATT, VAL>],
 ) -> Vec<(&'a ATT, Vec<&'a Attribute<NS, ATT, VAL>>)>

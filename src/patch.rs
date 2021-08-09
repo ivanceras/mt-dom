@@ -31,7 +31,7 @@ mod tree_path;
 /// Our old virtual dom's nodes are indexed depth first, as shown in this illustration
 /// (0 being the root node, 1 being it's first child, 2 being it's first child's first child).
 ///
-/// ```ignore
+/// ```text
 ///             .─.
 ///            ( 0 )
 ///             `-'
