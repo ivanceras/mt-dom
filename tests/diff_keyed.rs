@@ -472,7 +472,7 @@ fn key1_removed_at_start_then_key2_has_additional_attributes() {
 
     let diff = diff_with_key(&old, &new, &"key");
     dbg!(&diff);
-    // we add attrubytes at NodeIdx 2, and this will become a NodeIdx 1
+    // we add attrubutes at node index 2, and this will become a node index 1
     assert_eq!(
         diff,
         vec![

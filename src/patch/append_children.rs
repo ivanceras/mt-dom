@@ -1,4 +1,3 @@
-use super::NodeIdx;
 use crate::Node;
 use crate::TreePath;
 use std::fmt::Debug;
@@ -17,7 +16,7 @@ where
     /// index of the node we are going to append the children into
     pub patch_path: TreePath,
     /// children nodes to be appended and their corresponding new_node_idx
-    pub children: Vec<(NodeIdx, &'a Node<NS, TAG, ATT, VAL>)>,
+    pub children: Vec<(usize, &'a Node<NS, TAG, ATT, VAL>)>,
 }
 
 impl<'a, NS, TAG, ATT, VAL> AppendChildren<'a, NS, TAG, ATT, VAL>
@@ -31,7 +30,7 @@ where
     pub fn new(
         tag: &'a TAG,
         patch_path: TreePath,
-        children: Vec<(NodeIdx, &'a Node<NS, TAG, ATT, VAL>)>,
+        children: Vec<(usize, &'a Node<NS, TAG, ATT, VAL>)>,
     ) -> Self {
         AppendChildren {
             tag,

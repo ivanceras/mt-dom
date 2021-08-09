@@ -4,7 +4,7 @@ use super::{
 };
 use crate::{
     patch::{AppendChildren, InsertNode, RemoveNode},
-    Element, Node, NodeIdx, Patch, TreePath,
+    Element, Node, Patch, TreePath,
 };
 use std::fmt::Debug;
 use std::{collections::BTreeMap, iter::FromIterator};
@@ -46,11 +46,11 @@ fn find_matched_new_child<'a, NS, TAG, ATT, VAL>(
         (usize, usize),
         (
             &'a Node<NS, TAG, ATT, VAL>,
-            (NodeIdx, &'a Node<NS, TAG, ATT, VAL>),
+            (usize, &'a Node<NS, TAG, ATT, VAL>),
         ),
     >,
     find_old_idx: usize,
-) -> Option<(usize, (NodeIdx, &'a Node<NS, TAG, ATT, VAL>))>
+) -> Option<(usize, (usize, &'a Node<NS, TAG, ATT, VAL>))>
 where
     NS: PartialEq + Clone + Debug,
     TAG: PartialEq + Clone + Debug,
@@ -94,7 +94,7 @@ fn get_matched_old_new_idx<'a, NS, TAG, ATT, VAL>(
         (usize, usize),
         (
             &'a Node<NS, TAG, ATT, VAL>,
-            (NodeIdx, &'a Node<NS, TAG, ATT, VAL>),
+            (usize, &'a Node<NS, TAG, ATT, VAL>),
         ),
     >,
 ) -> (Vec<usize>, Vec<usize>)
@@ -156,13 +156,13 @@ fn build_matched_old_new_keyed<'a, NS, TAG, ATT, VAL>(
     >,
     new_keyed_elements: &BTreeMap<
         usize,
-        (Vec<&'a VAL>, (NodeIdx, &'a Node<NS, TAG, ATT, VAL>)),
+        (Vec<&'a VAL>, (usize, &'a Node<NS, TAG, ATT, VAL>)),
     >,
 ) -> BTreeMap<
     (usize, usize),
     (
         &'a Node<NS, TAG, ATT, VAL>,
-        (NodeIdx, &'a Node<NS, TAG, ATT, VAL>),
+        (usize, &'a Node<NS, TAG, ATT, VAL>),
     ),
 >
 where
@@ -203,7 +203,7 @@ where
 fn build_node_idx_new_elements<'a, NS, TAG, ATT, VAL>(
     new_element: &'a Element<NS, TAG, ATT, VAL>,
     new_node_idx: &mut usize,
-) -> BTreeMap<NodeIdx, &'a Node<NS, TAG, ATT, VAL>>
+) -> BTreeMap<usize, &'a Node<NS, TAG, ATT, VAL>>
 where
     NS: PartialEq + Clone + Debug,
     TAG: PartialEq + Clone + Debug,
@@ -264,7 +264,7 @@ where
 
     let new_keyed_elements: BTreeMap<
         usize,
-        (Vec<&VAL>, (NodeIdx, &Node<NS, TAG, ATT, VAL>)),
+        (Vec<&VAL>, (usize, &Node<NS, TAG, ATT, VAL>)),
     > = BTreeMap::from_iter(
         node_idx_new_elements.iter().enumerate().filter_map(
             |(new_idx, (new_element_node_idx, new_child))| {
@@ -287,7 +287,7 @@ where
     // these are the new children that didn't matched in the keyed elements pass
     let mut unmatched_new_child: Vec<(
         usize,
-        (NodeIdx, &'a Node<NS, TAG, ATT, VAL>),
+        (usize, &'a Node<NS, TAG, ATT, VAL>),
     )> = vec![];
 
     for (idx, (node_idx, new_element)) in
@@ -309,7 +309,7 @@ where
         (usize, usize),
         (
             &'a Node<NS, TAG, ATT, VAL>,
-            (NodeIdx, &'a Node<NS, TAG, ATT, VAL>),
+            (usize, &'a Node<NS, TAG, ATT, VAL>),
         ),
     > = BTreeMap::from_iter(
         // try to match unmatched new child from the unmatched old child
@@ -345,7 +345,7 @@ where
     // this elements are for inserting, appending
     let mut unmatched_new_child_pass2: Vec<(
         usize,
-        NodeIdx,
+        usize,
         &Node<NS, TAG, ATT, VAL>,
     )> = vec![];
     for (idx, (new_element_node_idx, new_child)) in
@@ -447,7 +447,7 @@ where
 
 fn create_insert_node_patches<'a, NS, TAG, ATT, VAL>(
     old_element: &'a Element<NS, TAG, ATT, VAL>,
-    already_inserted: &mut Vec<NodeIdx>,
+    already_inserted: &mut Vec<usize>,
     unmatched_new_child_pass2: &Vec<(
         usize,
         usize,
@@ -486,7 +486,7 @@ where
 
 fn create_append_children_patches<'a, NS, TAG, ATT, VAL>(
     old_element: &'a Element<NS, TAG, ATT, VAL>,
-    already_inserted: &mut Vec<NodeIdx>,
+    already_inserted: &mut Vec<usize>,
     unmatched_new_child_pass2: &Vec<(
         usize,
         usize,

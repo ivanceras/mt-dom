@@ -18,9 +18,6 @@ mod remove_node;
 mod replace_node;
 mod tree_path;
 
-/// NodeIdx alias type
-pub type NodeIdx = usize;
-
 /// A Patch encodes an operation that modifies a real DOM element or native UI element
 ///
 /// To update the real DOM that a user sees you'll want to first diff your
@@ -94,7 +91,7 @@ where
     /// Every Patch is meant to be applied to a specific node within the DOM. Get the
     /// index of the DOM node that this patch should apply to. DOM nodes are indexed
     /// depth first with the root node in the tree having index 0.
-    pub fn node_idx(&self) -> NodeIdx {
+    pub fn node_idx(&self) -> usize {
         match self {
             Patch::InsertNode(ic) => ic.patch_path.node_idx,
             Patch::AppendChildren(ac) => ac.patch_path.node_idx,
@@ -129,20 +126,6 @@ where
             Patch::AddAttributes(at) => Some(at.tag),
             Patch::RemoveAttributes(rt) => Some(rt.tag),
             Patch::ChangeText(_) => None,
-        }
-    }
-
-    /// prioritize patches,
-    /// patches that doesn't change the NodeIdx in the actual DOM tree will be executed first.
-    pub fn priority(&self) -> usize {
-        match self {
-            Patch::AddAttributes(..) => 1,
-            Patch::RemoveAttributes(..) => 2,
-            Patch::ChangeText(..) => 3,
-            Patch::ReplaceNode(..) => 4,
-            Patch::AppendChildren(..) => 5,
-            Patch::InsertNode(..) => 6,
-            Patch::RemoveNode(..) => 7,
         }
     }
 }
