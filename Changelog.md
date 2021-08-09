@@ -1,5 +1,15 @@
 # Changelog
 
+## (Unreleased)
+- refactor `diff` and `diff::keyed_elements` splitting it into small functions.
+    - minimize the use of mutable collections
+    - rename variables to appropriate names
+    - Fix AppendChildren patch to also add to already_inserted when creating the patch
+    - Use consistent naming of variables as in diff for keyed_elements
+- Change tag line to mt-dom
+- **breaking** Refactor `Patch` to make use of `PatchPath` and `TreePath` as an alternative method to using `NodeIdx` to traverse the DOM.
+- Add `Zipper` implementation to traverse the `Node`.
+
 ## 0.7.1
 - Remove warnings
 
