@@ -4,7 +4,7 @@ use super::{
 };
 use crate::{
     patch::{AppendChildren, InsertNode, RemoveNode},
-    Element, Node, NodeIdx, Patch, PatchPath, TreePath,
+    Element, Node, NodeIdx, Patch, TreePath,
 };
 use std::fmt::Debug;
 use std::{collections::BTreeMap, iter::FromIterator};
@@ -392,7 +392,6 @@ where
                 *cur_node_idx,
                 new_idx,
                 &child_cur_path,
-                &child_new_path,
             ));
 
             matched_keyed_element_patches.extend(diff_recursive(
@@ -410,10 +409,7 @@ where
             remove_node_patches.push(
                 RemoveNode::new(
                     old_child.tag(),
-                    PatchPath::old(TreePath::start_at(
-                        *cur_node_idx,
-                        child_cur_path.clone(),
-                    )),
+                    TreePath::start_at(*cur_node_idx, child_cur_path.clone()),
                 )
                 .into(),
             );
@@ -435,9 +431,7 @@ where
         old_element,
         new_element,
         *cur_node_idx,
-        *new_node_idx,
         cur_path,
-        new_path,
     );
 
     // patch order matters here
@@ -462,7 +456,6 @@ fn create_insert_node_patches<'a, NS, TAG, ATT, VAL>(
     cur_node_idx: usize,
     new_idx: usize,
     child_cur_path: &Vec<usize>,
-    child_new_path: &Vec<usize>,
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL>>
 where
     NS: PartialEq + Clone + Debug,
@@ -471,7 +464,7 @@ where
     VAL: PartialEq + Clone + Debug,
 {
     let mut insert_node_patches = vec![];
-    for (idx, new_element_node_idx, unmatched) in unmatched_new_child_pass2
+    for (idx, _new_element_node_idx, unmatched) in unmatched_new_child_pass2
         .iter()
         .filter(|(idx, _, _)| *idx < new_idx)
     {
@@ -479,16 +472,7 @@ where
             insert_node_patches.push(
                 InsertNode::new(
                     Some(&old_element.tag),
-                    PatchPath::new(
-                        TreePath::start_at(
-                            cur_node_idx,
-                            child_cur_path.clone(),
-                        ),
-                        TreePath::start_at(
-                            *new_element_node_idx,
-                            child_new_path.clone(),
-                        ),
-                    ),
+                    TreePath::start_at(cur_node_idx, child_cur_path.clone()),
                     unmatched,
                 )
                 .into(),
@@ -525,10 +509,7 @@ where
             append_children_patches.push(
                 AppendChildren::new(
                     &old_element.tag,
-                    PatchPath::old(TreePath::start_at(
-                        snapshot_cur_node_idx,
-                        cur_path.clone(),
-                    )),
+                    TreePath::start_at(snapshot_cur_node_idx, cur_path.clone()),
                     vec![(*new_element_node_idx, new_child)],
                 )
                 .into(),

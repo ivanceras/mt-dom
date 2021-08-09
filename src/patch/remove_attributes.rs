@@ -1,5 +1,5 @@
 use crate::Attribute;
-use crate::PatchPath;
+use crate::TreePath;
 use std::fmt::Debug;
 
 /// Remove attributes that the old node had that the new node doesn't
@@ -16,7 +16,7 @@ where
     pub tag: &'a TAG,
     /// index of the node we are going to patch
     /// relative to the application root node
-    pub patch_path: PatchPath,
+    pub patch_path: TreePath,
     /// attributes that are to be removed from this target node
     pub attrs: Vec<&'a Attribute<NS, ATT, VAL>>,
 }
@@ -33,7 +33,7 @@ where
     /// name are merged to produce a new unify attribute
     pub fn new(
         tag: &'a TAG,
-        patch_path: PatchPath,
+        patch_path: TreePath,
         attrs: Vec<&'a Attribute<NS, ATT, VAL>>,
     ) -> Self {
         RemoveAttributes {

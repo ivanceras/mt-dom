@@ -1,5 +1,5 @@
 use crate::Node;
-use crate::PatchPath;
+use crate::TreePath;
 use std::fmt::Debug;
 
 /// InsertNode patch contains the a node to insert into
@@ -14,7 +14,7 @@ where
     /// the tag of the target node to be inserted
     pub tag: Option<&'a TAG>,
     /// the target node_idx of which our node will be inserted before it.
-    pub patch_path: PatchPath,
+    pub patch_path: TreePath,
     /// the node to be inserted
     pub node: &'a Node<NS, TAG, ATT, VAL>,
 }
@@ -28,7 +28,7 @@ where
     /// create a new InsertNode patch
     pub fn new(
         tag: Option<&'a TAG>,
-        patch_path: PatchPath,
+        patch_path: TreePath,
         node: &'a Node<NS, TAG, ATT, VAL>,
     ) -> Self {
         InsertNode {

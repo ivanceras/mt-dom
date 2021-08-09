@@ -1,5 +1,5 @@
 use crate::Node;
-use crate::PatchPath;
+use crate::TreePath;
 use std::fmt::Debug;
 
 /// Replace a node with another node. This typically happens when a node's tag changes.
@@ -16,7 +16,7 @@ where
     /// can replace text node, and text node doesn't have tags
     pub tag: Option<&'a TAG>,
     /// the index of the node we are going to replace
-    pub patch_path: PatchPath,
+    pub patch_path: TreePath,
     /// the node that will replace the target node
     pub replacement: &'a Node<NS, TAG, ATT, VAL>,
 }
@@ -31,7 +31,7 @@ where
     /// create a new ReplaceNode patch
     pub fn new(
         tag: Option<&'a TAG>,
-        patch_path: PatchPath,
+        patch_path: TreePath,
         replacement: &'a Node<NS, TAG, ATT, VAL>,
     ) -> Self {
         ReplaceNode {

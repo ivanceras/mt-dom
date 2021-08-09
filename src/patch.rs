@@ -7,7 +7,6 @@ pub use remove_attributes::RemoveAttributes;
 pub use remove_node::RemoveNode;
 pub use replace_node::ReplaceNode;
 use std::fmt::Debug;
-pub use tree_path::PatchPath;
 pub use tree_path::TreePath;
 
 mod add_attributes;
@@ -97,26 +96,26 @@ where
     /// depth first with the root node in the tree having index 0.
     pub fn node_idx(&self) -> NodeIdx {
         match self {
-            Patch::InsertNode(ic) => ic.patch_path.node_idx(),
-            Patch::AppendChildren(ac) => ac.patch_path.node_idx(),
-            Patch::RemoveNode(rn) => rn.patch_path.node_idx(),
-            Patch::ReplaceNode(rn) => rn.patch_path.node_idx(),
-            Patch::AddAttributes(at) => at.patch_path.node_idx(),
-            Patch::RemoveAttributes(rt) => rt.patch_path.node_idx(),
-            Patch::ChangeText(ct) => ct.patch_path.node_idx(),
+            Patch::InsertNode(ic) => ic.patch_path.node_idx,
+            Patch::AppendChildren(ac) => ac.patch_path.node_idx,
+            Patch::RemoveNode(rn) => rn.patch_path.node_idx,
+            Patch::ReplaceNode(rn) => rn.patch_path.node_idx,
+            Patch::AddAttributes(at) => at.patch_path.node_idx,
+            Patch::RemoveAttributes(rt) => rt.patch_path.node_idx,
+            Patch::ChangeText(ct) => ct.patch_path.node_idx,
         }
     }
 
     /// return the path to traverse for this patch to get to the target Node
     pub fn path(&self) -> &[usize] {
         match self {
-            Patch::InsertNode(ic) => &ic.patch_path.old_path.path,
-            Patch::AppendChildren(ac) => &ac.patch_path.old_path.path,
-            Patch::RemoveNode(rn) => &rn.patch_path.old_path.path,
-            Patch::ReplaceNode(rn) => &rn.patch_path.old_path.path,
-            Patch::AddAttributes(at) => &at.patch_path.old_path.path,
-            Patch::RemoveAttributes(rt) => &rt.patch_path.old_path.path,
-            Patch::ChangeText(ct) => &ct.patch_path.old_path.path,
+            Patch::InsertNode(ic) => &ic.patch_path.path,
+            Patch::AppendChildren(ac) => &ac.patch_path.path,
+            Patch::RemoveNode(rn) => &rn.patch_path.path,
+            Patch::ReplaceNode(rn) => &rn.patch_path.path,
+            Patch::AddAttributes(at) => &at.patch_path.path,
+            Patch::RemoveAttributes(rt) => &rt.patch_path.path,
+            Patch::ChangeText(ct) => &ct.patch_path.path,
         }
     }
 

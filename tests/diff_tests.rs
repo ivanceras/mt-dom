@@ -13,10 +13,7 @@ fn test_replace_node() {
         diff,
         vec![ReplaceNode::new(
             Some(&"div"),
-            PatchPath::new(
-                TreePath::start_at(0, vec![0]),
-                TreePath::start_at(0, vec![0])
-            ),
+            TreePath::start_at(0, vec![0]),
             &new
         )
         .into()],
@@ -31,15 +28,9 @@ fn test_replace_text_node() {
     let diff = diff_with_key(&old, &new, &"key");
     assert_eq!(
         diff,
-        vec![ReplaceNode::new(
-            None,
-            PatchPath::new(
-                TreePath::start_at(0, vec![0]),
-                TreePath::start_at(0, vec![0])
-            ),
-            &new
-        )
-        .into()],
+        vec![
+            ReplaceNode::new(None, TreePath::start_at(0, vec![0]), &new).into()
+        ],
     );
 }
 
@@ -54,10 +45,7 @@ fn test_replace_node_in_child() {
         diff,
         vec![ReplaceNode::new(
             Some(&"div"),
-            PatchPath::new(
-                TreePath::start_at(1, vec![0, 0]),
-                TreePath::start_at(1, vec![0, 0])
-            ),
+            TreePath::start_at(1, vec![0, 0]),
             &element("span", vec![], vec![]).into()
         )
         .into()],
@@ -95,17 +83,11 @@ fn test_205() {
     assert_eq!(
         dbg!(diff_with_key(&old, &new, &"key")),
         vec![
-            RemoveNode::new(
-                Some(&"i"),
-                PatchPath::old(TreePath::start_at(3, vec![0, 0, 1]),),
-            )
-            .into(),
+            RemoveNode::new(Some(&"i"), TreePath::start_at(3, vec![0, 0, 1]),)
+                .into(),
             ReplaceNode::new(
                 Some(&"b"),
-                PatchPath::new(
-                    TreePath::start_at(4, vec![0, 1]),
-                    TreePath::start_at(3, vec![0, 1])
-                ),
+                TreePath::start_at(4, vec![0, 1]),
                 &element("i", vec![], vec![])
             )
             .into(),
@@ -168,10 +150,7 @@ fn test_class_changed() {
         diff,
         vec![AddAttributes::new(
             &"div",
-            PatchPath::new(
-                TreePath::start_at(0, vec![0]),
-                TreePath::start_at(0, vec![0])
-            ),
+            TreePath::start_at(0, vec![0]),
             vec![&attr("class", "some-class2")]
         )
         .into()]
@@ -198,10 +177,7 @@ fn text_node_changed() {
         diff,
         vec![Patch::ChangeText(ChangeText::new(
             &Text::new("text1"),
-            PatchPath::new(
-                TreePath::start_at(1, vec![0, 0]),
-                TreePath::start_at(1, vec![0, 0])
-            ),
+            TreePath::start_at(1, vec![0, 0]),
             &Text::new("text2")
         ))]
     )
@@ -222,10 +198,7 @@ fn test_class_will_not_be_merged_on_different_calls() {
         diff,
         vec![AddAttributes::new(
             &"div",
-            PatchPath::new(
-                TreePath::start_at(0, vec![0]),
-                TreePath::start_at(0, vec![0])
-            ),
+            TreePath::start_at(0, vec![0]),
             vec![&Attribute::with_multiple_values(
                 None,
                 "class",
@@ -251,10 +224,7 @@ fn test_class_removed() {
         diff,
         vec![RemoveAttributes::new(
             &"div",
-            PatchPath::new(
-                TreePath::start_at(0, vec![0]),
-                TreePath::start_at(0, vec![0])
-            ),
+            TreePath::start_at(0, vec![0]),
             vec![&attr("class", "some-class")]
         )
         .into()]
@@ -286,10 +256,7 @@ fn test_multiple_calls_to_style() {
         diff,
         vec![AddAttributes::new(
             &"div",
-            PatchPath::new(
-                TreePath::start_at(0, vec![0,]),
-                TreePath::start_at(0, vec![0,])
-            ),
+            TreePath::start_at(0, vec![0,]),
             vec![
                 &attr("style", "display:flex"),
                 &attr("style", "width:200px;height:200px"),
@@ -311,10 +278,7 @@ fn inner_html_func_calls() {
         diff,
         vec![AddAttributes::new(
             &"div",
-            PatchPath::new(
-                TreePath::start_at(0, vec![0,]),
-                TreePath::start_at(0, vec![0,])
-            ),
+            TreePath::start_at(0, vec![0,]),
             vec![&attr("inner_html", "<h1>Hello</h2>")]
         )
         .into()]
@@ -343,7 +307,7 @@ fn test_append() {
         diff,
         vec![AppendChildren::new(
             &"div",
-            PatchPath::old(TreePath::start_at(0, vec![0]),),
+            TreePath::start_at(0, vec![0]),
             vec![(3, &element("div", vec![], vec![text(2)]))],
         )
         .into()]
@@ -373,7 +337,7 @@ fn test_append_more() {
         diff,
         vec![AppendChildren::new(
             &"div",
-            PatchPath::old(TreePath::start_at(0, vec![0]),),
+            TreePath::start_at(0, vec![0]),
             vec![
                 (3, &element("div", vec![], vec![text(2)])),
                 (5, &element("div", vec![], vec![text(3)]))
@@ -415,7 +379,7 @@ fn test_append_at_sub_level() {
         diff,
         vec![AppendChildren::new(
             &"main",
-            PatchPath::old(TreePath::start_at(1, vec![0, 0]),),
+            TreePath::start_at(1, vec![0, 0]),
             vec![
                 (4, &element("div", vec![], vec![text(2)])),
                 (6, &element("div", vec![], vec![text(3)]))

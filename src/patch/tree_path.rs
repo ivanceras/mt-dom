@@ -1,5 +1,4 @@
 use crate::Node;
-use crate::NodeIdx;
 use std::fmt::Debug;
 
 /// Describe the path traversal of a Node starting from the root node
@@ -74,20 +73,6 @@ pub struct TreePath {
     pub path: Vec<usize>,
 }
 
-/// This contains the information on how to traverse the node from the root
-/// to get to the target element of this patch.
-///
-/// Note: The logic to apply the patch, must get a reference to the target elements first
-/// before applying any of the patches. Doing so will prevent us from targeting the wrong nodem
-/// once a partial patch is applied to some other elements.
-#[derive(Debug, Clone, PartialEq)]
-pub struct PatchPath {
-    /// The target path traversal of this patch
-    pub old_path: TreePath,
-    /// The new patch traversal after this patch has been applied
-    pub new_path: Option<TreePath>,
-}
-
 impl TreePath {
     /// create a tree path which starts at `node_idx` 0 and traversal path `path` at `vec![0]`.
     pub fn new() -> Self {
@@ -132,34 +117,6 @@ impl TreePath {
         VAL: PartialEq + Clone + Debug,
     {
         find_node_by_node_idx(node, &self)
-    }
-}
-
-impl PatchPath {
-    /// create a PatchPath with old_path and new_path specified
-    pub fn new(old_path: TreePath, new_path: TreePath) -> Self {
-        Self {
-            old_path,
-            new_path: Some(new_path),
-        }
-    }
-
-    /// PatchPath that doesn't need to have new patch such as RemoveNode
-    pub fn old(old_path: TreePath) -> Self {
-        Self {
-            old_path,
-            new_path: None,
-        }
-    }
-
-    /// return the node id of this PatchPath
-    pub fn node_idx(&self) -> NodeIdx {
-        self.old_path.node_idx
-    }
-
-    /// return the traversal path of this PatchPath
-    pub fn traversal_path(&self) -> &[usize] {
-        &self.old_path.path
     }
 }
 

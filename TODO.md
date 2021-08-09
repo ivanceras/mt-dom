@@ -52,7 +52,7 @@
                 new_path: TreePath,
             }
         ```
-        - [ ] PatchPath will eventually just contain array for path traversal if path prove to be correct.
+        - [X] PatchPath will eventually just contain array for path traversal if path prove to be correct.
             - We can get rid of `node_idx` and `new_path` as we don't really use the `new_path`.
 
              ```rust
