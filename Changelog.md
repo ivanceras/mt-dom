@@ -6,7 +6,7 @@
     - rename variables to appropriate names
     - Fix AppendChildren patch to also add to already_inserted when creating the patch
     - Use consistent naming of variables as in diff for keyed_elements
-- Change tag line to mt-dom
+- Change tag line to `mt-dom`
 - **breaking** Refactor `Patch` to make use of `PatchPath` and `TreePath` as an alternative method to using `NodeIdx` to traverse the DOM.
 - Add `Zipper` implementation to traverse the `Node`.
 
