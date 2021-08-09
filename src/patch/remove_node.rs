@@ -1,13 +1,14 @@
 use crate::TreePath;
 use std::fmt::Debug;
 
-/// remove the node at this
+/// A patch where the target element that can be traverse using the patch_path will be remove.
 #[derive(Clone, Debug, PartialEq)]
 pub struct RemoveNode<'a, TAG>
 where
     TAG: PartialEq + Clone + Debug,
 {
-    /// the tag of the node that is to be removed
+    /// The tag of the node that is to be removed.
+    /// This is only used for additional check where are removing the correct node.
     pub tag: Option<&'a TAG>,
     /// the node_idx of the node to be removed
     pub patch_path: TreePath,

@@ -63,7 +63,7 @@
     - apply_patches is removed
 - [X] Refactor the `replace` flag in `diff` module, make it in one if else expression.
     - no have it's dedicated function `should_replace`
-- [ ] Remove `new_node_idx` and `new_path`, since they are not really pointing to the correct object after patch is applied
+- [X] Remove `new_node_idx` and `new_path`, since they are not really pointing to the correct object after patch is applied
     and will eventually point to wrong element as more patches are applied
 
 ## Optimization

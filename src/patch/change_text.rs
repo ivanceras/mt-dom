@@ -1,7 +1,7 @@
 use crate::node::Text;
 use crate::TreePath;
 
-/// The patch is changing the text content of a text node
+/// A patch where the text content of a text node is changed
 #[derive(Clone, Debug, PartialEq)]
 pub struct ChangeText<'a> {
     /// the target element to be patch can be traverse using this patch path

@@ -2,7 +2,8 @@ use crate::Node;
 use crate::TreePath;
 use std::fmt::Debug;
 
-/// InsertNode patch contains the a node to insert into
+/// A patch where we insert a new Node before the target element defined by the patch_path
+/// traversal
 #[derive(Clone, Debug, PartialEq)]
 pub struct InsertNode<'a, NS, TAG, ATT, VAL>
 where
@@ -13,7 +14,7 @@ where
 {
     /// the tag of the target node to be inserted
     pub tag: Option<&'a TAG>,
-    /// the target node_idx of which our node will be inserted before it.
+    /// the path to traverse to get to the target element of which our node will be inserted before it.
     pub patch_path: TreePath,
     /// the node to be inserted
     pub node: &'a Node<NS, TAG, ATT, VAL>,

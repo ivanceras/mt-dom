@@ -5,7 +5,7 @@ use std::fmt::Debug;
 ///
 /// The figure below shows `node_idx` in a depth first traversal.
 ///
-/// ```ignore
+/// ```text
 ///            .─.
 ///           ( 0 )
 ///            `-'
@@ -27,7 +27,7 @@ use std::fmt::Debug;
 ///
 /// The figure below shows the index of each child node relative to their parent node
 ///
-/// ```ignore
+/// ```text
 ///             .─.
 ///            ( 0 )
 ///             `-'
@@ -47,7 +47,7 @@ use std::fmt::Debug;
 ///                    `─'   `─'   `─'
 /// ```
 /// The equivalent idx and path are as follows:
-/// ```ignore
+/// ```text
 ///    0 = [0]
 ///    1 = [0,0]
 ///    2 = [0,0,0]

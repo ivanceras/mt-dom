@@ -75,6 +75,11 @@ where
 }
 
 /// Create an attribute with namespace
+/// # Example
+/// ```rust
+/// use mt_dom::attr_ns;
+/// attr_ns(Some("http://www.w3.org/1999/xlink"), "href", "cool-script.js");
+/// ```
 #[inline]
 pub fn attr_ns<NS, ATT, VAL>(
     namespace: Option<NS>,

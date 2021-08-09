@@ -3,7 +3,7 @@ use crate::Attribute;
 use crate::TreePath;
 use std::fmt::Debug;
 
-/// Add attributes
+/// A patch where a new attributes is added to the target element
 #[derive(Clone, Debug, PartialEq)]
 pub struct AddAttributes<'a, NS, TAG, ATT, VAL>
 where
@@ -16,7 +16,7 @@ where
     /// use for verifying that the we are patching the correct node which
     /// should match the same tag
     pub tag: &'a TAG,
-    /// the target dom traversal using this patch path
+    /// the path to traverse to get to the target lement of which we add the attributes.
     pub patch_path: TreePath,
     /// the attributes to be patched into the target node
     pub attrs: Vec<&'a Attribute<NS, ATT, VAL>>,

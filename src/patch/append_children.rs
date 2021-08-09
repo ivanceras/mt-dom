@@ -3,7 +3,7 @@ use crate::Node;
 use crate::TreePath;
 use std::fmt::Debug;
 
-/// Append a vector of child nodes to a parent node id.
+/// A patch where we add children to the target node
 #[derive(Clone, Debug, PartialEq)]
 pub struct AppendChildren<'a, NS, TAG, ATT, VAL>
 where
