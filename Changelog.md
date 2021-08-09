@@ -1,6 +1,6 @@
 # Changelog
 
-## (Unreleased)
+## 0.8.0
 - refactor `diff` and `diff::keyed_elements` splitting it into small functions.
     - minimize the use of mutable collections
     - rename variables to appropriate names
