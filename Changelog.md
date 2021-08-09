@@ -1,5 +1,9 @@
 # Changelog
 
+# 0.9.0
+- Remove `old_path` and `PatchPath` and use only `TreePath` which describes the path traversal for the target DOM element
+- Remove `AttValue`, so we can only deal with `VAL` which is the `AttributeValue` from sauron, which contains simple values and Callbacks
+
 ## 0.8.0
 - refactor `diff` and `diff::keyed_elements` splitting it into small functions.
     - minimize the use of mutable collections
