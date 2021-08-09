@@ -191,6 +191,7 @@ where
     VAL: PartialEq + Clone + Debug,
     REP: Fn(&'a Node<NS, TAG, ATT, VAL>, &'a Node<NS, TAG, ATT, VAL>) -> bool,
 {
+    // replace if they have different enum variants
     if mem::discriminant(old_node) != mem::discriminant(new_node) {
         return true;
     }
@@ -212,7 +213,7 @@ where
         }
         _ => (),
     }
-    // Different enum variants, replace!
+    // replace if they have different element tag
     if let (Node::Element(old_element), Node::Element(new_element)) =
         (old_node, new_node)
     {

@@ -58,7 +58,7 @@
              ```rust
                 struct PatchPath(Vec<usize>);
              ```
-- [ ] Move `AttValue` to `sauron` so `mt-dom` doesn't have to deal with EVENT.
+- [X] Move `AttValue` to `sauron` so `mt-dom` doesn't have to deal with EVENT.
 - ~~[ ] Use `NodeZipper` to `apply_patch`.~~
     - apply_patches is removed
 - [X] Refactor the `replace` flag in `diff` module, make it in one if else expression.
