@@ -3,6 +3,25 @@
     if it produces the same DOM tree as in the browser.
 - ~~[ ] Change callback to use &'a lifetime instead of 'static~~
 - [ ] Use associated type rather than just all Generics to simplify the code.
+    ```rust
+        enum Node<NS, TAG, ATT, VAL>{
+        }
+    ```
+    ```rust
+        trait NodeTrait{
+            type Namespace;
+            type Tag;
+            type AttributeName;
+            type AttributeValue;
+        }
+
+        enum Node: NodeTrait{
+            Element(Element)
+            Text(Text)
+        }
+
+
+    ```
 - [X] Modularize Patch
     - [X] Create a struct of each of the variants
 - [X] Add a `self_closing` flag to element to be able to properly render self closing elements such as `<input />`, `<br/>` etc.
