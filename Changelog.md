@@ -1,5 +1,8 @@
 # Changelog
 
+# (Unreleased)
+- Added `safe_html` to `Text` node, this indicated whether to render as text node or as innerHTML of its parent element.
+
 # 0.9.0
 - Remove `old_path` and `PatchPath` and use only `TreePath` which describes the path traversal for the target DOM element
 - Remove `AttValue`, so we can only deal with `VAL` which is the `AttributeValue` from sauron, which contains simple values and Callbacks
