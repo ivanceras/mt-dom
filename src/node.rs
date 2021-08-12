@@ -245,10 +245,10 @@ where
     }
 
     fn node_count_recursive(&self, current: &mut usize) {
+        *current += 1;
         match self {
-            Node::Text(_) => *current += 1,
+            Node::Text(_) => (),
             Node::Element(element) => {
-                *current += 1;
                 for child in element.children.iter() {
                     child.node_count_recursive(current);
                 }
