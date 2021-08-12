@@ -239,21 +239,20 @@ where
     /// Returns the total number of nodes on this node tree, that is counting the direct and
     /// indirect child nodes of this node.
     pub fn node_count(&self) -> usize {
-        let mut current = 0;
-        self.node_count_recursive(&mut current);
-        current
+        self.node_count_recursive()
     }
 
-    fn node_count_recursive(&self, current: &mut usize) {
-        *current += 1;
+    fn node_count_recursive(&self) -> usize {
+        let mut cnt = 1;
         match self {
             Node::Text(_) => (),
             Node::Element(element) => {
                 for child in element.children.iter() {
-                    child.node_count_recursive(current);
+                    cnt += child.node_count_recursive();
                 }
             }
         }
+        cnt
     }
 
     /// remove the existing attributes and set with the new value
