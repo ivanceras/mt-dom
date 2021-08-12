@@ -37,6 +37,9 @@ where
 pub struct Text {
     /// text node value
     pub text: String,
+    /// if true, then this text content will be injected as inner_html, otherwise it will be a text
+    /// node
+    pub safe_html: bool,
 }
 
 impl Text {
@@ -44,6 +47,16 @@ impl Text {
     pub fn new(txt: impl ToString) -> Self {
         Text {
             text: txt.to_string(),
+            safe_html: false,
+        }
+    }
+
+    /// Create a text node which is intended to be used as inner html for its
+    /// parent node
+    pub fn safe_html(txt: impl ToString) -> Self {
+        Text {
+            text: txt.to_string(),
+            safe_html: true,
         }
     }
 
@@ -361,4 +374,23 @@ where
     VAL: PartialEq + Clone + Debug,
 {
     Node::Text(Text::new(s))
+}
+
+/// Create a safe html text
+/// # Example
+/// ```rust
+/// use mt_dom::{Node,safe_html};
+///
+/// let html: Node<&'static str, &'static str, &'static str, &'static str> =
+///     safe_html("This contains safe html and it&#x27;s solid &nbsp should work correctly");
+/// ```
+pub fn safe_html<S, NS, TAG, ATT, VAL>(s: S) -> Node<NS, TAG, ATT, VAL>
+where
+    S: ToString,
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+{
+    Node::Text(Text::safe_html(s))
 }

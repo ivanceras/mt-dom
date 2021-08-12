@@ -23,7 +23,7 @@ pub use node::{
     attribute::{
         attr, attr_ns, group_attributes_per_name, merge_attributes_of_same_name,
     },
-    element, element_ns, text, Attribute, Element, Node, Text,
+    element, element_ns, safe_html, text, Attribute, Element, Node, Text,
 };
 pub use patch::{Patch, TreePath};
 
