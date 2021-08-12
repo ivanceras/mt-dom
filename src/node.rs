@@ -239,16 +239,17 @@ where
     /// Returns the total number of nodes on this node tree, that is counting the direct and
     /// indirect child nodes of this node.
     pub fn node_count(&self) -> usize {
-        self.node_count_recursive()
+        1 + self.descendant_node_count()
     }
 
-    fn node_count_recursive(&self) -> usize {
-        let mut cnt = 1;
+    /// only count the descendant node
+    pub fn descendant_node_count(&self) -> usize {
+        let mut cnt = 0;
         match self {
             Node::Text(_) => (),
             Node::Element(element) => {
                 for child in element.children.iter() {
-                    cnt += child.node_count_recursive();
+                    cnt += child.node_count();
                 }
             }
         }

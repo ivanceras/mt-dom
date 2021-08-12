@@ -1,7 +1,4 @@
-use super::{
-    create_attribute_patches, diff_recursive,
-    increment_node_idx_to_descendant_count,
-};
+use super::{create_attribute_patches, diff_recursive};
 use crate::{
     patch::{AppendChildren, InsertNode, RemoveNode},
     Element, Node, Patch, TreePath,
@@ -215,7 +212,7 @@ where
     for new_child in new_element.get_children().iter() {
         *new_node_idx += 1;
         node_idx_new_elements.insert(*new_node_idx, new_child);
-        increment_node_idx_to_descendant_count(new_child, new_node_idx);
+        *new_node_idx += new_child.descendant_node_count();
     }
     node_idx_new_elements
 }
@@ -413,7 +410,7 @@ where
                 )
                 .into(),
             );
-            increment_node_idx_to_descendant_count(old_child, cur_node_idx);
+            *cur_node_idx += old_child.descendant_node_count();
         }
     }
 

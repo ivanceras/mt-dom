@@ -8,6 +8,7 @@ fn node_count1() {
     let old: MyNode = element("div", vec![], vec![]);
 
     assert_eq!(1, old.node_count());
+    assert_eq!(0, old.descendant_node_count());
 }
 
 #[test]
@@ -36,6 +37,7 @@ fn node_count5() {
     );
 
     assert_eq!(5, old.node_count());
+    assert_eq!(4, old.descendant_node_count());
 }
 
 #[test]
@@ -57,4 +59,5 @@ fn node_count6() {
     );
 
     assert_eq!(6, old.node_count());
+    assert_eq!(5, old.descendant_node_count());
 }

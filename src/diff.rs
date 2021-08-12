@@ -117,32 +117,6 @@ where
     )
 }
 
-/// increment the cur_node_idx based on how many descendant it contains.
-///
-/// Note: This is not including the count of itself, since the node is being processed and the cur_node_idx is
-/// incremented in the loop together with its siblings
-fn increment_node_idx_to_descendant_count<NS, TAG, ATT, VAL>(
-    node: &Node<NS, TAG, ATT, VAL>,
-    cur_node_idx: &mut usize,
-) where
-    NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
-    ATT: PartialEq + Clone + Debug,
-    VAL: PartialEq + Clone + Debug,
-{
-    match node {
-        Node::Element(element_node) => {
-            for child in element_node.get_children().iter() {
-                *cur_node_idx += 1;
-                increment_node_idx_to_descendant_count(&child, cur_node_idx);
-            }
-        }
-        Node::Text(_txt) => {
-            // as is
-        }
-    }
-}
-
 /// returns true if any of the node children has key in their attributes
 fn is_any_children_keyed<'a, NS, TAG, ATT, VAL>(
     element: &'a Element<NS, TAG, ATT, VAL>,
@@ -246,8 +220,8 @@ where
 {
     // skip diffing if the function evaluates to true
     if skip(old_node, new_node) {
-        increment_node_idx_to_descendant_count(old_node, cur_node_idx);
-        increment_node_idx_to_descendant_count(new_node, new_node_idx);
+        *cur_node_idx += old_node.descendant_node_count();
+        *new_node_idx += new_node.descendant_node_count();
         return vec![];
     }
 
@@ -264,8 +238,8 @@ where
             )
             .into(),
         );
-        increment_node_idx_to_descendant_count(old_node, cur_node_idx);
-        increment_node_idx_to_descendant_count(new_node, new_node_idx);
+        *cur_node_idx += old_node.descendant_node_count();
+        *new_node_idx += new_node.descendant_node_count();
         return patches;
     }
 
@@ -453,7 +427,7 @@ where
     for append_child in new_element.children.iter().skip(old_child_count) {
         *new_node_idx += 1;
         append_patch.push((*new_node_idx, append_child));
-        increment_node_idx_to_descendant_count(append_child, new_node_idx);
+        *new_node_idx += append_child.descendant_node_count();
     }
 
     AppendChildren::new(
@@ -492,7 +466,7 @@ where
             TreePath::start_at(*cur_node_idx, child_cur_path),
         );
         patches.push(remove_node_patch.into());
-        increment_node_idx_to_descendant_count(old_child, cur_node_idx);
+        *cur_node_idx += old_child.descendant_node_count();
     }
     patches
 }
