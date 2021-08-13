@@ -376,7 +376,10 @@ where
     Node::Text(Text::new(s))
 }
 
-/// Create a safe html text
+/// Create an html and instruct the DOM renderer and/or DOM patcher that the operation is safe.
+///
+/// Note: this operation doesn't sanitize the html code. It is your responsibility
+/// as a programmer to sanitize the input here.
 /// # Example
 /// ```rust
 /// use mt_dom::{Node,safe_html};
