@@ -1,7 +1,11 @@
 # Changelog
 
-# (Unreleased)
+# 0.10.0
 - Added `safe_html` to `Text` node, this indicated whether to render as text node or as innerHTML of its parent element.
+- Remove function `increment_node_idx_to_descendant_count` and use a more elegent method in Node `descendant_node_count`
+    - modify count_recursive to not use mutable counter passed around
+    - Improve code for node_counting
+- Remove the use of NodeIdx, just use usize
 
 # 0.9.0
 - Remove `old_path` and `PatchPath` and use only `TreePath` which describes the path traversal for the target DOM element
