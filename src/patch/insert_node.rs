@@ -12,7 +12,7 @@ where
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
 {
-    /// the tag of the target node to be inserted
+    /// the tag of the target node we insert this node into
     pub tag: Option<&'a TAG>,
     /// the path to traverse to get to the target element of which our node will be inserted before it.
     pub patch_path: TreePath,
