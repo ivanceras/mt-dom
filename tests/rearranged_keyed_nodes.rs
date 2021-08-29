@@ -31,30 +31,33 @@ fn text_changed_non_keyed() {
     //FIXME:
     //
     // The patch should be: match3, Remove 1, 2 then append 2 and 1
-    assert_ne!(
+    assert_eq!(
         diff,
         vec![
-            RemoveNode::new(Some(&"main"), TreePath::start_at(1, vec![0, 0]))
-                .into(),
-            RemoveNode::new(Some(&"main"), TreePath::start_at(2, vec![0, 1]))
-                .into(),
             AppendChildren::new(
                 &"main",
                 TreePath::start_at(0, vec![0]),
-                vec![
-                    &element(
-                        "div",
-                        vec![attr("key", "2")],
-                        vec![text("line2")]
-                    ),
-                    &element(
-                        "div",
-                        vec![attr("key", "1")],
-                        vec![text("line1")]
-                    )
-                ]
+                vec![&element(
+                    "div",
+                    vec![attr("key", "2")],
+                    vec![text("line2")]
+                ),]
             )
             .into(),
+            AppendChildren::new(
+                &"main",
+                TreePath::start_at(0, vec![0]),
+                vec![&element(
+                    "div",
+                    vec![attr("key", "1")],
+                    vec![text("line1")]
+                )]
+            )
+            .into(),
+            RemoveNode::new(Some(&"div"), TreePath::start_at(1, vec![0, 0]))
+                .into(),
+            RemoveNode::new(Some(&"div"), TreePath::start_at(3, vec![0, 1]))
+                .into(),
         ]
     );
 }
