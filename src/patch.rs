@@ -88,21 +88,6 @@ where
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
 {
-    /// Every Patch is meant to be applied to a specific node within the DOM. Get the
-    /// index of the DOM node that this patch should apply to. DOM nodes are indexed
-    /// depth first with the root node in the tree having index 0.
-    pub fn node_idx(&self) -> usize {
-        match self {
-            Patch::InsertNode(ic) => ic.patch_path.node_idx,
-            Patch::AppendChildren(ac) => ac.patch_path.node_idx,
-            Patch::RemoveNode(rn) => rn.patch_path.node_idx,
-            Patch::ReplaceNode(rn) => rn.patch_path.node_idx,
-            Patch::AddAttributes(at) => at.patch_path.node_idx,
-            Patch::RemoveAttributes(rt) => rt.patch_path.node_idx,
-            Patch::ChangeText(ct) => ct.patch_path.node_idx,
-        }
-    }
-
     /// return the path to traverse for this patch to get to the target Node
     pub fn path(&self) -> &[usize] {
         match self {

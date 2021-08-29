@@ -16,12 +16,9 @@ fn force_replace() {
     let diff = diff_with_functions(&old, &new, &"key", &skip, &replace);
     assert_eq!(
         diff,
-        vec![ReplaceNode::new(
-            Some(&"div"),
-            TreePath::start_at(0, vec![0]),
-            &new
-        )
-        .into()],
+        vec![
+            ReplaceNode::new(Some(&"div"), TreePath::new(vec![0]), &new).into()
+        ],
     );
 }
 
@@ -96,12 +93,9 @@ fn replace_true_in_attribute_must_replace_old_node_regardless() {
     let diff = diff_with_functions(&old, &new, &"key", &skip, &replace);
     assert_eq!(
         diff,
-        vec![ReplaceNode::new(
-            Some(&"div"),
-            TreePath::start_at(0, vec![0]),
-            &new
-        )
-        .into()],
+        vec![
+            ReplaceNode::new(Some(&"div"), TreePath::new(vec![0]), &new).into()
+        ],
     );
 }
 
@@ -231,7 +225,7 @@ fn replace_and_skip_in_sub_nodes() {
         diff,
         vec![ReplaceNode::new(
             Some(&"div"),
-            TreePath::start_at(4, vec![0, 1]),
+            TreePath::new(vec![0, 1]),
             &element(
                 "div",
                 vec![

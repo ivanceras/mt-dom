@@ -48,7 +48,7 @@ mod keyed_elements;
 ///     diff,
 ///     vec![RemoveNode::new(
 ///         Some(&"div"),
-///         TreePath::start_at(1, vec![0, 0]),
+///         TreePath::new(1, vec![0, 0]),
 ///     )
 ///     .into()]
 /// );
@@ -67,7 +67,6 @@ where
     diff_recursive(
         old_node,
         new_node,
-        &mut 0,
         &vec![0],
         key,
         &|_old, _new| false,
@@ -102,7 +101,7 @@ where
     SKIP: Fn(&'a Node<NS, TAG, ATT, VAL>, &'a Node<NS, TAG, ATT, VAL>) -> bool,
     REP: Fn(&'a Node<NS, TAG, ATT, VAL>, &'a Node<NS, TAG, ATT, VAL>) -> bool,
 {
-    diff_recursive(old_node, new_node, &mut 0, &vec![0], key, skip, rep)
+    diff_recursive(old_node, new_node, &vec![0], key, skip, rep)
 }
 
 /// returns true if any of the node children has key in their attributes
@@ -190,7 +189,6 @@ where
 fn diff_recursive<'a, 'b, NS, TAG, ATT, VAL, SKIP, REP>(
     old_node: &'a Node<NS, TAG, ATT, VAL>,
     new_node: &'a Node<NS, TAG, ATT, VAL>,
-    cur_node_idx: &'b mut usize,
     cur_path: &Vec<usize>,
     key: &ATT,
     skip: &SKIP,
@@ -206,7 +204,6 @@ where
 {
     // skip diffing if the function evaluates to true
     if skip(old_node, new_node) {
-        *cur_node_idx += old_node.descendant_node_count();
         return vec![];
     }
 
@@ -218,12 +215,11 @@ where
         patches.push(
             ReplaceNode::new(
                 old_node.tag(),
-                TreePath::start_at(*cur_node_idx, cur_path.clone()),
+                TreePath::new(cur_path.clone()),
                 new_node,
             )
             .into(),
         );
-        *cur_node_idx += old_node.descendant_node_count();
         return patches;
     }
 
@@ -236,7 +232,7 @@ where
             if old_text != new_text {
                 let ct = ChangeText::new(
                     old_text,
-                    TreePath::start_at(*cur_node_idx, cur_path.clone()),
+                    TreePath::new(cur_path.clone()),
                     new_text,
                 );
                 patches.push(Patch::ChangeText(ct));
@@ -254,7 +250,6 @@ where
                     old_element,
                     new_element,
                     key,
-                    cur_node_idx,
                     cur_path,
                     skip,
                     rep,
@@ -265,7 +260,6 @@ where
                     old_element,
                     new_element,
                     key,
-                    cur_node_idx,
                     cur_path,
                     skip,
                     rep,
@@ -298,7 +292,6 @@ fn diff_non_keyed_elements<'a, 'b, NS, TAG, ATT, VAL, SKIP, REP>(
     old_element: &'a Element<NS, TAG, ATT, VAL>,
     new_element: &'a Element<NS, TAG, ATT, VAL>,
     key: &ATT,
-    cur_node_idx: &'b mut usize,
     cur_path: &Vec<usize>,
     skip: &SKIP,
     rep: &REP,
@@ -311,15 +304,10 @@ where
     SKIP: Fn(&'a Node<NS, TAG, ATT, VAL>, &'a Node<NS, TAG, ATT, VAL>) -> bool,
     REP: Fn(&'a Node<NS, TAG, ATT, VAL>, &'a Node<NS, TAG, ATT, VAL>) -> bool,
 {
-    let this_cur_node_idx = *cur_node_idx;
     let this_cur_path = cur_path.clone();
     let mut patches = vec![];
-    let attributes_patches = create_attribute_patches(
-        old_element,
-        new_element,
-        *cur_node_idx,
-        cur_path,
-    );
+    let attributes_patches =
+        create_attribute_patches(old_element, new_element, cur_path);
     patches.extend(attributes_patches);
 
     let old_child_count = old_element.children.len();
@@ -327,8 +315,6 @@ where
 
     let min_count = cmp::min(old_child_count, new_child_count);
     for index in 0..min_count {
-        *cur_node_idx += 1;
-
         let mut cur_child_path = cur_path.clone();
         cur_child_path.push(index);
         println!(
@@ -346,8 +332,7 @@ where
         let more_patches = diff_recursive(
             old_child,
             new_child,
-            cur_node_idx,
-            &mut cur_child_path,
+            &cur_child_path,
             key,
             skip,
             rep,
@@ -361,19 +346,14 @@ where
         let append_children_patch = create_append_children_patch(
             old_element,
             new_element,
-            this_cur_node_idx,
             this_cur_path,
         );
         patches.push(append_children_patch);
     }
 
     if new_child_count < old_child_count {
-        let remove_node_patches = create_remove_node_patch(
-            old_element,
-            new_element,
-            cur_node_idx,
-            cur_path,
-        );
+        let remove_node_patches =
+            create_remove_node_patch(old_element, new_element, cur_path);
         patches.extend(remove_node_patches);
     }
 
@@ -383,7 +363,6 @@ where
 fn create_append_children_patch<'a, 'b, NS, TAG, ATT, VAL>(
     old_element: &'a Element<NS, TAG, ATT, VAL>,
     new_element: &'a Element<NS, TAG, ATT, VAL>,
-    this_cur_node_idx: usize,
     this_cur_path: Vec<usize>,
 ) -> Patch<'a, NS, TAG, ATT, VAL>
 where
@@ -401,7 +380,7 @@ where
 
     AppendChildren::new(
         &old_element.tag,
-        TreePath::start_at(this_cur_node_idx, this_cur_path.clone()),
+        TreePath::new(this_cur_path.clone()),
         append_patch,
     )
     .into()
@@ -410,7 +389,6 @@ where
 fn create_remove_node_patch<'a, 'b, NS, TAG, ATT, VAL>(
     old_element: &'a Element<NS, TAG, ATT, VAL>,
     new_element: &'a Element<NS, TAG, ATT, VAL>,
-    cur_node_idx: &'b mut usize,
     cur_path: &Vec<usize>,
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL>>
 where
@@ -427,20 +405,15 @@ where
         .skip(new_child_count)
         .enumerate()
     {
-        *cur_node_idx += 1;
         let mut child_cur_path = cur_path.clone();
         child_cur_path.push(new_child_count + i);
-        let remove_node_patch = RemoveNode::new(
-            old_child.tag(),
-            TreePath::start_at(*cur_node_idx, child_cur_path),
-        );
+        let remove_node_patch =
+            RemoveNode::new(old_child.tag(), TreePath::new(child_cur_path));
         patches.push(remove_node_patch.into());
-        *cur_node_idx += old_child.descendant_node_count();
     }
     patches
 }
 
-/// diff the attributes of old_node element to the new element at this cur_node_idx
 ///
 /// Note: The performance bottlenecks
 ///     - allocating new vec
@@ -448,7 +421,6 @@ where
 fn create_attribute_patches<'a, 'b, NS, TAG, ATT, VAL>(
     old_element: &'a Element<NS, TAG, ATT, VAL>,
     new_element: &'a Element<NS, TAG, ATT, VAL>,
-    cur_node_idx: usize,
     cur_path: &Vec<usize>,
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL>>
 where
@@ -514,7 +486,7 @@ where
         patches.push(
             AddAttributes::new(
                 &old_element.tag,
-                TreePath::start_at(cur_node_idx, cur_path.clone()),
+                TreePath::new(cur_path.clone()),
                 add_attributes,
             )
             .into(),
@@ -524,7 +496,7 @@ where
         patches.push(
             RemoveAttributes::new(
                 &old_element.tag,
-                TreePath::start_at(cur_node_idx, cur_path.clone()),
+                TreePath::new(cur_path.clone()),
                 remove_attributes,
             )
             .into(),

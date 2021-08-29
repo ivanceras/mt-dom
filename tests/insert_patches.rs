@@ -30,7 +30,7 @@ fn insert_on_deep_level_keyed() {
         diff,
         vec![InsertNode::new(
             Some(&"main"),
-            TreePath::start_at(3, vec![0, 1]),
+            TreePath::new(vec![0, 1]),
             &element("div", vec![attr("key", "2")], vec![text(1)])
         )
         .into(),]
@@ -80,7 +80,7 @@ fn insert_on_deep_multi_level_level_keyed() {
         diff,
         vec![InsertNode::new(
             Some(&"div"),
-            TreePath::start_at(5, vec![0, 1, 1]),
+            TreePath::new(vec![0, 1, 1]),
             &element("div", vec![attr("key", "b")], vec![])
         )
         .into(),]
@@ -130,7 +130,7 @@ fn insert_on_deep_multi_level_keyed_non_keyed_keyed() {
         diff,
         vec![InsertNode::new(
             Some(&"div"),
-            TreePath::start_at(5, vec![0, 1, 1]),
+            TreePath::new(vec![0, 1, 1]),
             &element("div", vec![attr("key", "b")], vec![])
         )
         .into(),]
@@ -166,7 +166,7 @@ fn insert_on_deep_level_non_keyed_container() {
         diff,
         vec![InsertNode::new(
             Some(&"main"),
-            TreePath::start_at(3, vec![0, 1]),
+            TreePath::new(vec![0, 1]),
             &element("div", vec![attr("key", "2")], vec![text(1)])
         )
         .into(),]

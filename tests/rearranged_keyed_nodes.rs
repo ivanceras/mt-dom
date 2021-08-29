@@ -36,7 +36,7 @@ fn text_changed_non_keyed() {
         vec![
             AppendChildren::new(
                 &"main",
-                TreePath::start_at(0, vec![0]),
+                TreePath::new(vec![0]),
                 vec![&element(
                     "div",
                     vec![attr("key", "2")],
@@ -46,7 +46,7 @@ fn text_changed_non_keyed() {
             .into(),
             AppendChildren::new(
                 &"main",
-                TreePath::start_at(0, vec![0]),
+                TreePath::new(vec![0]),
                 vec![&element(
                     "div",
                     vec![attr("key", "1")],
@@ -54,10 +54,8 @@ fn text_changed_non_keyed() {
                 )]
             )
             .into(),
-            RemoveNode::new(Some(&"div"), TreePath::start_at(1, vec![0, 0]))
-                .into(),
-            RemoveNode::new(Some(&"div"), TreePath::start_at(3, vec![0, 1]))
-                .into(),
+            RemoveNode::new(Some(&"div"), TreePath::new(vec![0, 0])).into(),
+            RemoveNode::new(Some(&"div"), TreePath::new(vec![0, 1])).into(),
         ]
     );
 }

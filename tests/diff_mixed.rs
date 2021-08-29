@@ -59,13 +59,13 @@ fn mixed_key_and_no_key_with_2_matched() {
         vec![
             ChangeText::new(
                 &Text::new("2"),
-                TreePath::start_at(4, vec![0, 1, 0]),
+                TreePath::new(vec![0, 1, 0]),
                 &Text::new("1")
             )
             .into(),
             ChangeText::new(
                 &Text::new("2"),
-                TreePath::start_at(6, vec![0, 2, 0]),
+                TreePath::new(vec![0, 2, 0]),
                 &Text::new("3")
             )
             .into()
@@ -105,12 +105,11 @@ fn mixed_key_and_no_key_with_misordered_2_matched() {
         vec![
             InsertNode::new(
                 Some(&"main"),
-                TreePath::start_at(1, vec![0, 0]),
+                TreePath::new(vec![0, 0]),
                 &element("div", vec![], vec![text(1)]),
             )
             .into(),
-            RemoveNode::new(Some(&"div"), TreePath::start_at(3, vec![0, 1]),)
-                .into(),
+            RemoveNode::new(Some(&"div"), TreePath::new(vec![0, 1]),).into(),
         ]
     );
 }
