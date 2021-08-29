@@ -199,7 +199,6 @@ where
 
 fn build_node_idx_new_elements<'a, NS, TAG, ATT, VAL>(
     new_element: &'a Element<NS, TAG, ATT, VAL>,
-    new_node_idx: &mut usize,
 ) -> BTreeMap<usize, &'a Node<NS, TAG, ATT, VAL>>
 where
     NS: PartialEq + Clone + Debug,
@@ -209,10 +208,8 @@ where
 {
     let mut node_idx_new_elements = BTreeMap::new();
 
-    for new_child in new_element.get_children().iter() {
-        *new_node_idx += 1;
-        node_idx_new_elements.insert(*new_node_idx, new_child);
-        *new_node_idx += new_child.descendant_node_count();
+    for (i, new_child) in new_element.get_children().iter().enumerate() {
+        node_idx_new_elements.insert(i, new_child);
     }
     node_idx_new_elements
 }
@@ -236,7 +233,6 @@ pub fn diff_keyed_elements<'a, 'b, NS, TAG, ATT, VAL, SKIP, REP>(
     new_element: &'a Element<NS, TAG, ATT, VAL>,
     key: &ATT,
     cur_node_idx: &'b mut usize,
-    new_node_idx: &'b mut usize,
     cur_path: &Vec<usize>,
     new_path: &Vec<usize>,
     skip: &SKIP,
@@ -256,8 +252,7 @@ where
     // we can not use VAL as the key, since it is not Hash
     let old_keyed_elements = build_keyed_elements(old_element, key);
 
-    let node_idx_new_elements =
-        build_node_idx_new_elements(new_element, new_node_idx);
+    let node_idx_new_elements = build_node_idx_new_elements(new_element);
 
     let new_keyed_elements: BTreeMap<
         usize,
@@ -378,7 +373,7 @@ where
         let mut child_new_path = new_path.clone();
         child_new_path.push(old_idx);
 
-        if let Some((new_idx, (mut new_child_node_idx, new_child))) =
+        if let Some((new_idx, (_new_child_node_idx, new_child))) =
             find_matched_new_child(&all_matched_elements, old_idx)
         {
             // insert unmatched new_child that is less than the matched new_idx
@@ -395,7 +390,6 @@ where
                 old_child,
                 new_child,
                 cur_node_idx,
-                &mut new_child_node_idx,
                 &child_cur_path,
                 &child_new_path,
                 key,

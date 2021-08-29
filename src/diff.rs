@@ -68,7 +68,6 @@ where
         old_node,
         new_node,
         &mut 0,
-        &mut 0,
         &vec![0],
         &vec![0],
         key,
@@ -107,7 +106,6 @@ where
     diff_recursive(
         old_node,
         new_node,
-        &mut 0,
         &mut 0,
         &vec![0],
         &vec![0],
@@ -203,7 +201,6 @@ fn diff_recursive<'a, 'b, NS, TAG, ATT, VAL, SKIP, REP>(
     old_node: &'a Node<NS, TAG, ATT, VAL>,
     new_node: &'a Node<NS, TAG, ATT, VAL>,
     cur_node_idx: &'b mut usize,
-    new_node_idx: &'b mut usize,
     cur_path: &Vec<usize>,
     new_path: &Vec<usize>,
     key: &ATT,
@@ -221,7 +218,6 @@ where
     // skip diffing if the function evaluates to true
     if skip(old_node, new_node) {
         *cur_node_idx += old_node.descendant_node_count();
-        *new_node_idx += new_node.descendant_node_count();
         return vec![];
     }
 
@@ -239,7 +235,6 @@ where
             .into(),
         );
         *cur_node_idx += old_node.descendant_node_count();
-        *new_node_idx += new_node.descendant_node_count();
         return patches;
     }
 
@@ -271,7 +266,6 @@ where
                     new_element,
                     key,
                     cur_node_idx,
-                    new_node_idx,
                     cur_path,
                     new_path,
                     skip,
@@ -284,7 +278,6 @@ where
                     new_element,
                     key,
                     cur_node_idx,
-                    new_node_idx,
                     cur_path,
                     new_path,
                     skip,
@@ -319,7 +312,6 @@ fn diff_non_keyed_elements<'a, 'b, NS, TAG, ATT, VAL, SKIP, REP>(
     new_element: &'a Element<NS, TAG, ATT, VAL>,
     key: &ATT,
     cur_node_idx: &'b mut usize,
-    new_node_idx: &'b mut usize,
     cur_path: &Vec<usize>,
     new_path: &Vec<usize>,
     skip: &SKIP,
@@ -350,7 +342,6 @@ where
     let min_count = cmp::min(old_child_count, new_child_count);
     for index in 0..min_count {
         *cur_node_idx += 1;
-        *new_node_idx += 1;
 
         let mut cur_child_path = cur_path.clone();
         let mut new_child_path = new_path.clone();
@@ -372,7 +363,6 @@ where
             old_child,
             new_child,
             cur_node_idx,
-            new_node_idx,
             &mut cur_child_path,
             &mut new_child_path,
             key,
@@ -389,7 +379,6 @@ where
             old_element,
             new_element,
             this_cur_node_idx,
-            new_node_idx,
             this_cur_path,
         );
         patches.push(append_children_patch);
@@ -412,7 +401,6 @@ fn create_append_children_patch<'a, 'b, NS, TAG, ATT, VAL>(
     old_element: &'a Element<NS, TAG, ATT, VAL>,
     new_element: &'a Element<NS, TAG, ATT, VAL>,
     this_cur_node_idx: usize,
-    new_node_idx: &'b mut usize,
     this_cur_path: Vec<usize>,
 ) -> Patch<'a, NS, TAG, ATT, VAL>
 where
@@ -425,9 +413,7 @@ where
     let mut append_patch: Vec<&'a Node<NS, TAG, ATT, VAL>> = vec![];
 
     for append_child in new_element.children.iter().skip(old_child_count) {
-        *new_node_idx += 1;
         append_patch.push(append_child);
-        *new_node_idx += append_child.descendant_node_count();
     }
 
     AppendChildren::new(
