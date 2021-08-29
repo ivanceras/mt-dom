@@ -354,7 +354,7 @@ fn key_2_inserted_at_the_end() {
         vec![AppendChildren::new(
             &"main",
             TreePath::start_at(0, vec![0]),
-            vec![(2, &element("div", vec![attr("key", "2")], vec![]))]
+            vec![&element("div", vec![attr("key", "2")], vec![])]
         )
         .into()]
     );
@@ -394,19 +394,13 @@ fn test_append_at_sub_level() {
             AppendChildren::new(
                 &"main",
                 TreePath::start_at(1, vec![0, 0]),
-                vec![(
-                    4,
-                    &element("div", vec![attr("key", "2")], vec![text(2)])
-                ),],
+                vec![&element("div", vec![attr("key", "2")], vec![text(2)]),],
             )
             .into(),
             AppendChildren::new(
                 &"main",
                 TreePath::start_at(1, vec![0, 0]),
-                vec![(
-                    6,
-                    &element("div", vec![attr("key", "3")], vec![text(3)])
-                )],
+                vec![&element("div", vec![attr("key", "3")], vec![text(3)])],
             )
             .into()
         ]

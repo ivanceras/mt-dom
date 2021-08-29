@@ -308,7 +308,7 @@ fn test_append() {
         vec![AppendChildren::new(
             &"div",
             TreePath::start_at(0, vec![0]),
-            vec![(3, &element("div", vec![], vec![text(2)]))],
+            vec![&element("div", vec![], vec![text(2)])],
         )
         .into()]
     )
@@ -339,8 +339,8 @@ fn test_append_more() {
             &"div",
             TreePath::start_at(0, vec![0]),
             vec![
-                (3, &element("div", vec![], vec![text(2)])),
-                (5, &element("div", vec![], vec![text(3)]))
+                &element("div", vec![], vec![text(2)]),
+                &element("div", vec![], vec![text(3)])
             ],
         )
         .into()]
@@ -381,8 +381,8 @@ fn test_append_at_sub_level() {
             &"main",
             TreePath::start_at(1, vec![0, 0]),
             vec![
-                (4, &element("div", vec![], vec![text(2)])),
-                (6, &element("div", vec![], vec![text(3)]))
+                &element("div", vec![], vec![text(2)]),
+                &element("div", vec![], vec![text(3)])
             ],
         )
         .into()]

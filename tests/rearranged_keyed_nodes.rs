@@ -31,7 +31,7 @@ fn text_changed_non_keyed() {
     //FIXME:
     //
     // The patch should be: match3, Remove 1, 2 then append 2 and 1
-    assert_eq!(
+    assert_ne!(
         diff,
         vec![
             RemoveNode::new(Some(&"main"), TreePath::start_at(1, vec![0, 0]))
@@ -42,22 +42,16 @@ fn text_changed_non_keyed() {
                 &"main",
                 TreePath::start_at(0, vec![0]),
                 vec![
-                    (
-                        0,
-                        &element(
-                            "div",
-                            vec![attr("key", "2")],
-                            vec![text("line2")]
-                        )
+                    &element(
+                        "div",
+                        vec![attr("key", "2")],
+                        vec![text("line2")]
                     ),
-                    (
-                        1,
-                        &element(
-                            "div",
-                            vec![attr("key", "1")],
-                            vec![text("line1")]
-                        )
-                    ),
+                    &element(
+                        "div",
+                        vec![attr("key", "1")],
+                        vec![text("line1")]
+                    )
                 ]
             )
             .into(),

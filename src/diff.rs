@@ -422,11 +422,11 @@ where
     VAL: PartialEq + Clone + Debug,
 {
     let old_child_count = old_element.children.len();
-    let mut append_patch: Vec<(usize, &'a Node<NS, TAG, ATT, VAL>)> = vec![];
+    let mut append_patch: Vec<&'a Node<NS, TAG, ATT, VAL>> = vec![];
 
     for append_child in new_element.children.iter().skip(old_child_count) {
         *new_node_idx += 1;
-        append_patch.push((*new_node_idx, append_child));
+        append_patch.push(append_child);
         *new_node_idx += append_child.descendant_node_count();
     }
 

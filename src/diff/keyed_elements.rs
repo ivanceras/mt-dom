@@ -499,7 +499,7 @@ where
     VAL: PartialEq + Clone + Debug,
 {
     let mut append_children_patches = vec![];
-    for (new_idx, new_element_node_idx, new_child) in
+    for (new_idx, _new_element_node_idx, new_child) in
         unmatched_new_child_pass2.iter()
     {
         if !already_inserted.contains(&new_idx) {
@@ -507,7 +507,7 @@ where
                 AppendChildren::new(
                     &old_element.tag,
                     TreePath::start_at(snapshot_cur_node_idx, cur_path.clone()),
-                    vec![(*new_element_node_idx, new_child)],
+                    vec![new_child],
                 )
                 .into(),
             );
