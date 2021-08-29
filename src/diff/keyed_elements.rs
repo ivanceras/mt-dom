@@ -224,19 +224,7 @@ where
     // create a map for both the old and new element
     // we can not use VAL as the key, since it is not Hash
     let old_keyed_elements = build_keyed_elements(old_element, key);
-
-    let new_keyed_elements: BTreeMap<
-        usize,
-        (Vec<&VAL>, &Node<NS, TAG, ATT, VAL>),
-    > = BTreeMap::from_iter(
-        new_element.get_children().iter().enumerate().filter_map(
-            |(new_idx, new_child)| {
-                new_child
-                    .get_attribute_value(key)
-                    .map(|new_key| (new_idx, (new_key, new_child)))
-            },
-        ),
-    );
+    let new_keyed_elements = build_keyed_elements(new_element, key);
 
     // compiles that matched old and new with
     // with their (old_idx, new_idx) as key and the value is (old_element, new_element)
