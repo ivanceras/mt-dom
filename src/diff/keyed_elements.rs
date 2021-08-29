@@ -234,7 +234,6 @@ pub fn diff_keyed_elements<'a, 'b, NS, TAG, ATT, VAL, SKIP, REP>(
     key: &ATT,
     cur_node_idx: &'b mut usize,
     cur_path: &Vec<usize>,
-    new_path: &Vec<usize>,
     skip: &SKIP,
     rep: &REP,
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL>>
@@ -370,9 +369,6 @@ where
         let mut child_cur_path = cur_path.clone();
         child_cur_path.push(old_idx);
 
-        let mut child_new_path = new_path.clone();
-        child_new_path.push(old_idx);
-
         if let Some((new_idx, (_new_child_node_idx, new_child))) =
             find_matched_new_child(&all_matched_elements, old_idx)
         {
@@ -391,7 +387,6 @@ where
                 new_child,
                 cur_node_idx,
                 &child_cur_path,
-                &child_new_path,
                 key,
                 skip,
                 rep,

@@ -69,7 +69,6 @@ where
         new_node,
         &mut 0,
         &vec![0],
-        &vec![0],
         key,
         &|_old, _new| false,
         &|_old, _new| false,
@@ -103,16 +102,7 @@ where
     SKIP: Fn(&'a Node<NS, TAG, ATT, VAL>, &'a Node<NS, TAG, ATT, VAL>) -> bool,
     REP: Fn(&'a Node<NS, TAG, ATT, VAL>, &'a Node<NS, TAG, ATT, VAL>) -> bool,
 {
-    diff_recursive(
-        old_node,
-        new_node,
-        &mut 0,
-        &vec![0],
-        &vec![0],
-        key,
-        skip,
-        rep,
-    )
+    diff_recursive(old_node, new_node, &mut 0, &vec![0], key, skip, rep)
 }
 
 /// returns true if any of the node children has key in their attributes
@@ -202,7 +192,6 @@ fn diff_recursive<'a, 'b, NS, TAG, ATT, VAL, SKIP, REP>(
     new_node: &'a Node<NS, TAG, ATT, VAL>,
     cur_node_idx: &'b mut usize,
     cur_path: &Vec<usize>,
-    new_path: &Vec<usize>,
     key: &ATT,
     skip: &SKIP,
     rep: &REP,
@@ -267,7 +256,6 @@ where
                     key,
                     cur_node_idx,
                     cur_path,
-                    new_path,
                     skip,
                     rep,
                 );
@@ -279,7 +267,6 @@ where
                     key,
                     cur_node_idx,
                     cur_path,
-                    new_path,
                     skip,
                     rep,
                 );
@@ -313,7 +300,6 @@ fn diff_non_keyed_elements<'a, 'b, NS, TAG, ATT, VAL, SKIP, REP>(
     key: &ATT,
     cur_node_idx: &'b mut usize,
     cur_path: &Vec<usize>,
-    new_path: &Vec<usize>,
     skip: &SKIP,
     rep: &REP,
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL>>
@@ -344,13 +330,11 @@ where
         *cur_node_idx += 1;
 
         let mut cur_child_path = cur_path.clone();
-        let mut new_child_path = new_path.clone();
         cur_child_path.push(index);
         println!(
             "\t we just added index: {} ... cur_child_path is now: {:?}",
             index, cur_child_path
         );
-        new_child_path.push(index);
 
         let old_child = &old_element
             .children
@@ -364,7 +348,6 @@ where
             new_child,
             cur_node_idx,
             &mut cur_child_path,
-            &mut new_child_path,
             key,
             skip,
             rep,
