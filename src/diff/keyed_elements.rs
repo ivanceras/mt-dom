@@ -41,13 +41,10 @@ where
 fn find_matched_new_child<'a, NS, TAG, ATT, VAL>(
     matched_old_new_keyed: &BTreeMap<
         (usize, usize),
-        (
-            &'a Node<NS, TAG, ATT, VAL>,
-            (usize, &'a Node<NS, TAG, ATT, VAL>),
-        ),
+        (&'a Node<NS, TAG, ATT, VAL>, &'a Node<NS, TAG, ATT, VAL>),
     >,
     find_old_idx: usize,
-) -> Option<(usize, (usize, &'a Node<NS, TAG, ATT, VAL>))>
+) -> Option<(usize, &'a Node<NS, TAG, ATT, VAL>)>
 where
     NS: PartialEq + Clone + Debug,
     TAG: PartialEq + Clone + Debug,
@@ -89,10 +86,7 @@ where
 fn get_matched_old_new_idx<'a, NS, TAG, ATT, VAL>(
     matched_old_new_keyed: &BTreeMap<
         (usize, usize),
-        (
-            &'a Node<NS, TAG, ATT, VAL>,
-            (usize, &'a Node<NS, TAG, ATT, VAL>),
-        ),
+        (&'a Node<NS, TAG, ATT, VAL>, &'a Node<NS, TAG, ATT, VAL>),
     >,
 ) -> (Vec<usize>, Vec<usize>)
 where
@@ -153,14 +147,11 @@ fn build_matched_old_new_keyed<'a, NS, TAG, ATT, VAL>(
     >,
     new_keyed_elements: &BTreeMap<
         usize,
-        (Vec<&'a VAL>, (usize, &'a Node<NS, TAG, ATT, VAL>)),
+        (Vec<&'a VAL>, &'a Node<NS, TAG, ATT, VAL>),
     >,
 ) -> BTreeMap<
     (usize, usize),
-    (
-        &'a Node<NS, TAG, ATT, VAL>,
-        (usize, &'a Node<NS, TAG, ATT, VAL>),
-    ),
+    (&'a Node<NS, TAG, ATT, VAL>, &'a Node<NS, TAG, ATT, VAL>),
 >
 where
     NS: PartialEq + Clone + Debug,
@@ -195,23 +186,6 @@ where
         }
     }
     matched_old_new_keyed
-}
-
-fn build_node_idx_new_elements<'a, NS, TAG, ATT, VAL>(
-    new_element: &'a Element<NS, TAG, ATT, VAL>,
-) -> BTreeMap<usize, &'a Node<NS, TAG, ATT, VAL>>
-where
-    NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
-    ATT: PartialEq + Clone + Debug,
-    VAL: PartialEq + Clone + Debug,
-{
-    let mut node_idx_new_elements = BTreeMap::new();
-
-    for (i, new_child) in new_element.get_children().iter().enumerate() {
-        node_idx_new_elements.insert(i, new_child);
-    }
-    node_idx_new_elements
 }
 
 /// Reconciliation of keyed elements
@@ -251,17 +225,15 @@ where
     // we can not use VAL as the key, since it is not Hash
     let old_keyed_elements = build_keyed_elements(old_element, key);
 
-    let node_idx_new_elements = build_node_idx_new_elements(new_element);
-
     let new_keyed_elements: BTreeMap<
         usize,
-        (Vec<&VAL>, (usize, &Node<NS, TAG, ATT, VAL>)),
+        (Vec<&VAL>, &Node<NS, TAG, ATT, VAL>),
     > = BTreeMap::from_iter(
-        node_idx_new_elements.iter().enumerate().filter_map(
-            |(new_idx, (new_element_node_idx, new_child))| {
-                new_child.get_attribute_value(key).map(|new_key| {
-                    (new_idx, (new_key, (*new_element_node_idx, *new_child)))
-                })
+        new_element.get_children().iter().enumerate().filter_map(
+            |(new_idx, new_child)| {
+                new_child
+                    .get_attribute_value(key)
+                    .map(|new_key| (new_idx, (new_key, new_child)))
             },
         ),
     );
@@ -276,16 +248,12 @@ where
         get_matched_old_new_idx(&matched_old_new_keyed);
 
     // these are the new children that didn't matched in the keyed elements pass
-    let mut unmatched_new_child: Vec<(
-        usize,
-        (usize, &'a Node<NS, TAG, ATT, VAL>),
-    )> = vec![];
+    let mut unmatched_new_child: Vec<(usize, &'a Node<NS, TAG, ATT, VAL>)> =
+        vec![];
 
-    for (idx, (node_idx, new_element)) in
-        node_idx_new_elements.iter().enumerate()
-    {
+    for (idx, new_element) in new_element.get_children().iter().enumerate() {
         if !matched_new_idx.contains(&idx) {
-            unmatched_new_child.push((idx, (*node_idx, new_element)));
+            unmatched_new_child.push((idx, new_element));
         }
     }
 
@@ -298,10 +266,7 @@ where
     // matched old and new element, not necessarily keyed
     let matched_old_new: BTreeMap<
         (usize, usize),
-        (
-            &'a Node<NS, TAG, ATT, VAL>,
-            (usize, &'a Node<NS, TAG, ATT, VAL>),
-        ),
+        (&'a Node<NS, TAG, ATT, VAL>, &'a Node<NS, TAG, ATT, VAL>),
     > = BTreeMap::from_iter(
         // try to match unmatched new child from the unmatched old child
         // using the their idx, most likely aligned nodes (ie: old and new node in the same index)
@@ -339,15 +304,9 @@ where
         usize,
         &Node<NS, TAG, ATT, VAL>,
     )> = vec![];
-    for (idx, (new_element_node_idx, new_child)) in
-        node_idx_new_elements.iter().enumerate()
-    {
+    for (idx, new_child) in new_element.get_children().iter().enumerate() {
         if !matched_new_idx_pass2.contains(&idx) {
-            unmatched_new_child_pass2.push((
-                idx,
-                *new_element_node_idx,
-                new_child,
-            ));
+            unmatched_new_child_pass2.push((idx, idx, new_child));
         }
     }
 
@@ -369,7 +328,7 @@ where
         let mut child_cur_path = cur_path.clone();
         child_cur_path.push(old_idx);
 
-        if let Some((new_idx, (_new_child_node_idx, new_child))) =
+        if let Some((new_idx, new_child)) =
             find_matched_new_child(&all_matched_elements, old_idx)
         {
             // insert unmatched new_child that is less than the matched new_idx
