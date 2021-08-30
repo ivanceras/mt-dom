@@ -48,7 +48,7 @@ mod keyed_elements;
 ///     diff,
 ///     vec![RemoveNode::new(
 ///         Some(&"div"),
-///         TreePath::new(1, vec![0, 0]),
+///         TreePath::new(vec![0, 0]),
 ///     )
 ///     .into()]
 /// );
@@ -317,10 +317,6 @@ where
     for index in 0..min_count {
         let mut cur_child_path = cur_path.clone();
         cur_child_path.push(index);
-        println!(
-            "\t we just added index: {} ... cur_child_path is now: {:?}",
-            index, cur_child_path
-        );
 
         let old_child = &old_element
             .children
