@@ -26,32 +26,48 @@ mod tree_path;
 /// This diff operation will generate `Vec<Patch>` with zero or more patches that, when
 /// applied to your real DOM, will make your real DOM look like your new virtual dom.
 ///
-/// Each Patch has a usize node index that helps us identify the real DOM node that it applies to.
+/// Each of the Patch contains `TreePath` which contains an array of indexes for each node
+/// that we need to traverse to get the target element.
 ///
-/// Our old virtual dom's nodes are indexed depth first, as shown in this illustration
-/// (0 being the root node, 1 being it's first child, 2 being it's first child's first child).
+/// Consider the following html:
 ///
-/// ```text
-///             .─.
-///            ( 0 )
-///             `-'
-///            /   \
-///           /     \
-///          /       \
-///         ▼         ▼
-///        .─.         .─.
-///       ( 1 )       ( 4 )
-///        `-'         `-'
-///       /  \          | \ '.
-///      /    \         |  \  '.
-///     ▼      ▼        |   \   '.
-///   .─.      .─.      ▼    ▼     ▼
-///  ( 2 )    ( 3 )    .─.   .─.   .─.
-///   `─'      `─'    ( 5 ) ( 6 ) ( 7 )
-///                    `─'   `─'   `─'
+/// ```html
+/// <body>
+///     <main>
+///         <input type="text"/>
+///         <img src="pic.jpg"/>
+///     </main>
+///     <footer>
+///         <a>Link</a>
+///         <nav/>
+///     </footer>
+/// </body>
 /// ```
-///
-///
+/// The corresponding DOM tree would be
+/// ```bob
+///              .─.
+///             ( 0 )  <body>
+///              `-'
+///             /   \
+///            /     \
+///           /       \
+///          ▼         ▼
+///  <main> .─.         .─. <footer>
+///        ( 0 )       ( 1 )
+///         `-'         `-'
+///        /  \          | \ '.
+///       /    \         |  \  '.
+///      ▼      ▼        |   \   '.
+///    .─.      .─.      ▼    ▼     ▼
+///   ( 0 )    ( 1 )    .─.   .─.   .─.
+///    `─'      `─'    ( 0 ) ( 1 ) ( 2 )
+///  <input> <img>      `─'   `─'   `─'
+///                    <a>  <Text>   <nav>
+/// ```
+/// To traverse to the `<nav>` element we follow the TreePath([0,1,2]).
+/// 0 - is the root element which is always zero.
+/// 1 - is the `footer` element since it is the 2nd element of the body.
+/// 2 - is the `nav` element since it is the 3rd node in the `footer` element.
 #[derive(Clone, Debug, PartialEq)]
 pub enum Patch<'a, NS, TAG, ATT, VAL>
 where
