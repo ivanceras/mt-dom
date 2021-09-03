@@ -1,11 +1,15 @@
 # Changelog
 
-# 0.11.0
+## 0.11.1
+- doc-comment updates
+- removal of unused-code
+
+## 0.11.0
 - **breaking** Remove the use of `node_idx` and use `TreePath` alone
 - Simplify the code in `diff_keyed_elements`
 - **breaking** Remove unused `new_path`.
 
-# 0.10.0
+## 0.10.0
 - Added `safe_html` to `Text` node, this indicated whether to render as text node or as innerHTML of its parent element.
 - Remove function `increment_node_idx_to_descendant_count` and use a more elegent method in Node `descendant_node_count`
     - modify count_recursive to not use mutable counter passed around
