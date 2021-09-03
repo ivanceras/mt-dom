@@ -30,4 +30,3 @@ pub use patch::{Patch, TreePath};
 pub mod diff;
 mod node;
 pub mod patch;
-mod zipper;
