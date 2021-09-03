@@ -208,7 +208,7 @@ pub fn diff_keyed_elements<'a, 'b, NS, TAG, ATT, VAL, SKIP, REP>(
     old_element: &'a Element<NS, TAG, ATT, VAL>,
     new_element: &'a Element<NS, TAG, ATT, VAL>,
     key: &ATT,
-    cur_path: &[usize],
+    path: &[usize],
     skip: &SKIP,
     rep: &REP,
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL>>
@@ -306,8 +306,8 @@ where
     let mut already_inserted = vec![];
 
     for (old_idx, old_child) in old_element.children.iter().enumerate() {
-        let mut child_cur_path = cur_path.to_vec();
-        child_cur_path.push(old_idx);
+        let mut child_path = path.to_vec();
+        child_path.push(old_idx);
 
         if let Some((new_idx, new_child)) =
             find_matched_new_child(&all_matched_elements, old_idx)
@@ -318,13 +318,13 @@ where
                 &mut already_inserted,
                 &unmatched_new_child_pass2,
                 new_idx,
-                &child_cur_path,
+                &child_path,
             ));
 
             matched_keyed_element_patches.extend(diff_recursive(
                 old_child,
                 new_child,
-                &child_cur_path,
+                &child_path,
                 key,
                 skip,
                 rep,
@@ -333,7 +333,7 @@ where
             remove_node_patches.push(
                 RemoveNode::new(
                     old_child.tag(),
-                    TreePath::new(child_cur_path.to_vec()),
+                    TreePath::new(child_path.to_vec()),
                 )
                 .into(),
             );
@@ -346,11 +346,11 @@ where
         old_element,
         &mut already_inserted,
         &unmatched_new_child_pass2,
-        cur_path,
+        path,
     );
 
     let attributes_patches =
-        create_attribute_patches(old_element, new_element, cur_path);
+        create_attribute_patches(old_element, new_element, path);
 
     // patch order matters here
     // apply changes to the matched element first,
@@ -368,7 +368,7 @@ fn create_insert_node_patches<'a, NS, TAG, ATT, VAL>(
     already_inserted: &mut Vec<usize>,
     unmatched_new_child_pass2: &[(usize, usize, &'a Node<NS, TAG, ATT, VAL>)],
     new_idx: usize,
-    child_cur_path: &[usize],
+    child_path: &[usize],
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL>>
 where
     NS: PartialEq + Clone + Debug,
@@ -385,7 +385,7 @@ where
             insert_node_patches.push(
                 InsertNode::new(
                     Some(&old_element.tag),
-                    TreePath::new(child_cur_path.to_vec()),
+                    TreePath::new(child_path.to_vec()),
                     unmatched,
                 )
                 .into(),
@@ -401,7 +401,7 @@ fn create_append_children_patches<'a, NS, TAG, ATT, VAL>(
     old_element: &'a Element<NS, TAG, ATT, VAL>,
     already_inserted: &mut Vec<usize>,
     unmatched_new_child_pass2: &[(usize, usize, &'a Node<NS, TAG, ATT, VAL>)],
-    cur_path: &[usize],
+    path: &[usize],
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL>>
 where
     NS: PartialEq + Clone + Debug,
@@ -417,7 +417,7 @@ where
             append_children_patches.push(
                 AppendChildren::new(
                     &old_element.tag,
-                    TreePath::new(cur_path.to_vec()),
+                    TreePath::new(path.to_vec()),
                     vec![new_child],
                 )
                 .into(),
