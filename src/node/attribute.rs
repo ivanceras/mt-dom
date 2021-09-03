@@ -1,3 +1,4 @@
+#![allow(clippy::type_complexity)]
 use std::fmt::Debug;
 
 /// These are the plain attributes of an element
@@ -131,9 +132,9 @@ where
 
 /// group attributes of the same name
 #[doc(hidden)]
-pub fn group_attributes_per_name<'a, NS, ATT, VAL>(
-    attributes: &'a [Attribute<NS, ATT, VAL>],
-) -> Vec<(&'a ATT, Vec<&'a Attribute<NS, ATT, VAL>>)>
+pub fn group_attributes_per_name<NS, ATT, VAL>(
+    attributes: &[Attribute<NS, ATT, VAL>],
+) -> Vec<(&ATT, Vec<&Attribute<NS, ATT, VAL>>)>
 where
     NS: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,

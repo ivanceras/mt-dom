@@ -1,16 +1,17 @@
+#![allow(clippy::type_complexity)]
 use super::{create_attribute_patches, diff_recursive};
 use crate::{
     patch::{AppendChildren, InsertNode, RemoveNode},
     Element, Node, Patch, TreePath,
 };
+use std::collections::BTreeMap;
 use std::fmt::Debug;
-use std::{collections::BTreeMap, iter::FromIterator};
 
 /// find the element and its node_idx which has this key
 /// and its node_idx not in `not_in`
 fn find_node_with_key<'a, NS, TAG, ATT, VAL>(
     hay_stack: &BTreeMap<usize, (Vec<&'a VAL>, &'a Node<NS, TAG, ATT, VAL>)>,
-    find_key: &Vec<&'a VAL>,
+    find_key: &[&'a VAL],
     last_matched_node_idx: Option<usize>,
 ) -> Option<(usize, &'a Node<NS, TAG, ATT, VAL>)>
 where
@@ -64,7 +65,7 @@ where
 
 /// find the old_child which has this old_idx
 fn find_child_node_with_idx<'a, NS, TAG, ATT, VAL>(
-    haystack: &Vec<(usize, &'a Node<NS, TAG, ATT, VAL>)>,
+    haystack: &[(usize, &'a Node<NS, TAG, ATT, VAL>)],
     node_idx: usize,
 ) -> Option<(usize, &'a Node<NS, TAG, ATT, VAL>)>
 where
@@ -102,10 +103,10 @@ where
 }
 
 /// return the node_idx and node where it's node idx is not in the arg `matched_id`
-fn get_unmatched_children_node_idx<'a, NS, TAG, ATT, VAL>(
-    child_nodes: &'a [Node<NS, TAG, ATT, VAL>],
+fn get_unmatched_children_node_idx<NS, TAG, ATT, VAL>(
+    child_nodes: &[Node<NS, TAG, ATT, VAL>],
     matched_idx: Vec<usize>,
-) -> Vec<(usize, &'a Node<NS, TAG, ATT, VAL>)>
+) -> Vec<(usize, &Node<NS, TAG, ATT, VAL>)>
 where
     NS: PartialEq + Clone + Debug,
     TAG: PartialEq + Clone + Debug,
@@ -115,7 +116,7 @@ where
     child_nodes
         .iter()
         .enumerate()
-        .filter(|(idx, _node)| !matched_idx.contains(&idx))
+        .filter(|(idx, _node)| !matched_idx.contains(idx))
         .collect()
 }
 
@@ -129,15 +130,16 @@ where
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
 {
-    BTreeMap::from_iter(element.get_children().iter().enumerate().filter_map(
-        |(idx, child)| {
-            if let Some(child_key) = child.get_attribute_value(key) {
-                Some((idx, (child_key, child)))
-            } else {
-                None
-            }
-        },
-    ))
+    element
+        .get_children()
+        .iter()
+        .enumerate()
+        .filter_map(|(idx, child)| {
+            child
+                .get_attribute_value(key)
+                .map(|child_key| (idx, (child_key, child)))
+        })
+        .collect()
 }
 
 fn build_matched_old_new_keyed<'a, NS, TAG, ATT, VAL>(
@@ -167,7 +169,7 @@ where
         // find the old element which has a key value which is the same with the new element key
         // `new_key`
         if let Some((old_idx, old_element)) = find_node_with_key(
-            &old_keyed_elements,
+            old_keyed_elements,
             new_key,
             last_matched_old_idx,
         ) {
@@ -206,7 +208,7 @@ pub fn diff_keyed_elements<'a, 'b, NS, TAG, ATT, VAL, SKIP, REP>(
     old_element: &'a Element<NS, TAG, ATT, VAL>,
     new_element: &'a Element<NS, TAG, ATT, VAL>,
     key: &ATT,
-    cur_path: &Vec<usize>,
+    cur_path: &[usize],
     skip: &SKIP,
     rep: &REP,
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL>>
@@ -254,7 +256,7 @@ where
     let matched_old_new: BTreeMap<
         (usize, usize),
         (&'a Node<NS, TAG, ATT, VAL>, &'a Node<NS, TAG, ATT, VAL>),
-    > = BTreeMap::from_iter(
+    > =
         // try to match unmatched new child from the unmatched old child
         // using the their idx, most likely aligned nodes (ie: old and new node in the same index)
         unmatched_new_child
@@ -267,8 +269,7 @@ where
                 } else {
                     None
                 }
-            }),
-    );
+            }).collect();
 
     // This is named all_matched_elements
     // since it both contains keyed and the not-necessarily keyed
@@ -305,7 +306,7 @@ where
     let mut already_inserted = vec![];
 
     for (old_idx, old_child) in old_element.children.iter().enumerate() {
-        let mut child_cur_path = cur_path.clone();
+        let mut child_cur_path = cur_path.to_vec();
         child_cur_path.push(old_idx);
 
         if let Some((new_idx, new_child)) =
@@ -332,7 +333,7 @@ where
             remove_node_patches.push(
                 RemoveNode::new(
                     old_child.tag(),
-                    TreePath::new(child_cur_path.clone()),
+                    TreePath::new(child_cur_path.to_vec()),
                 )
                 .into(),
             );
@@ -345,7 +346,7 @@ where
         old_element,
         &mut already_inserted,
         &unmatched_new_child_pass2,
-        &cur_path,
+        cur_path,
     );
 
     let attributes_patches =
@@ -365,13 +366,9 @@ where
 fn create_insert_node_patches<'a, NS, TAG, ATT, VAL>(
     old_element: &'a Element<NS, TAG, ATT, VAL>,
     already_inserted: &mut Vec<usize>,
-    unmatched_new_child_pass2: &Vec<(
-        usize,
-        usize,
-        &'a Node<NS, TAG, ATT, VAL>,
-    )>,
+    unmatched_new_child_pass2: &[(usize, usize, &'a Node<NS, TAG, ATT, VAL>)],
     new_idx: usize,
-    child_cur_path: &Vec<usize>,
+    child_cur_path: &[usize],
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL>>
 where
     NS: PartialEq + Clone + Debug,
@@ -388,7 +385,7 @@ where
             insert_node_patches.push(
                 InsertNode::new(
                     Some(&old_element.tag),
-                    TreePath::new(child_cur_path.clone()),
+                    TreePath::new(child_cur_path.to_vec()),
                     unmatched,
                 )
                 .into(),
@@ -403,12 +400,8 @@ where
 fn create_append_children_patches<'a, NS, TAG, ATT, VAL>(
     old_element: &'a Element<NS, TAG, ATT, VAL>,
     already_inserted: &mut Vec<usize>,
-    unmatched_new_child_pass2: &Vec<(
-        usize,
-        usize,
-        &'a Node<NS, TAG, ATT, VAL>,
-    )>,
-    cur_path: &Vec<usize>,
+    unmatched_new_child_pass2: &[(usize, usize, &'a Node<NS, TAG, ATT, VAL>)],
+    cur_path: &[usize],
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL>>
 where
     NS: PartialEq + Clone + Debug,
@@ -420,11 +413,11 @@ where
     for (new_idx, _new_element_node_idx, new_child) in
         unmatched_new_child_pass2.iter()
     {
-        if !already_inserted.contains(&new_idx) {
+        if !already_inserted.contains(new_idx) {
             append_children_patches.push(
                 AppendChildren::new(
                     &old_element.tag,
-                    TreePath::new(cur_path.clone()),
+                    TreePath::new(cur_path.to_vec()),
                     vec![new_child],
                 )
                 .into(),

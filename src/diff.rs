@@ -1,5 +1,5 @@
 //! provides diffing algorithm which returns patches
-//!
+#![allow(clippy::type_complexity)]
 use crate::{
     node::attribute::group_attributes_per_name,
     patch::{
@@ -67,7 +67,7 @@ where
     diff_recursive(
         old_node,
         new_node,
-        &vec![0],
+        &[0],
         key,
         &|_old, _new| false,
         &|_old, _new| false,
@@ -101,12 +101,12 @@ where
     SKIP: Fn(&'a Node<NS, TAG, ATT, VAL>, &'a Node<NS, TAG, ATT, VAL>) -> bool,
     REP: Fn(&'a Node<NS, TAG, ATT, VAL>, &'a Node<NS, TAG, ATT, VAL>) -> bool,
 {
-    diff_recursive(old_node, new_node, &vec![0], key, skip, rep)
+    diff_recursive(old_node, new_node, &[0], key, skip, rep)
 }
 
 /// returns true if any of the node children has key in their attributes
-fn is_any_children_keyed<'a, NS, TAG, ATT, VAL>(
-    element: &'a Element<NS, TAG, ATT, VAL>,
+fn is_any_children_keyed<NS, TAG, ATT, VAL>(
+    element: &Element<NS, TAG, ATT, VAL>,
     key: &ATT,
 ) -> bool
 where
@@ -122,8 +122,8 @@ where
 }
 
 /// returns true any attributes of this node attribute has key in it
-fn is_keyed_node<'a, NS, TAG, ATT, VAL>(
-    node: &'a Node<NS, TAG, ATT, VAL>,
+fn is_keyed_node<NS, TAG, ATT, VAL>(
+    node: &Node<NS, TAG, ATT, VAL>,
     key: &ATT,
 ) -> bool
 where
@@ -163,16 +163,13 @@ where
     }
 
     // replace if the old key does not match the new key
-    match (
-        old_node.get_attribute_value(&key),
-        new_node.get_attribute_value(&key),
+    if let (Some(old_key), Some(new_key)) = (
+        old_node.get_attribute_value(key),
+        new_node.get_attribute_value(key),
     ) {
-        (Some(old_key), Some(new_key)) => {
-            if old_key != new_key {
-                return true;
-            }
+        if old_key != new_key {
+            return true;
         }
-        _ => (),
     }
     // replace if they have different element tag
     if let (Node::Element(old_element), Node::Element(new_element)) =
@@ -189,7 +186,7 @@ where
 fn diff_recursive<'a, 'b, NS, TAG, ATT, VAL, SKIP, REP>(
     old_node: &'a Node<NS, TAG, ATT, VAL>,
     new_node: &'a Node<NS, TAG, ATT, VAL>,
-    cur_path: &Vec<usize>,
+    cur_path: &[usize],
     key: &ATT,
     skip: &SKIP,
     rep: &REP,
@@ -215,7 +212,7 @@ where
         patches.push(
             ReplaceNode::new(
                 old_node.tag(),
-                TreePath::new(cur_path.clone()),
+                TreePath::new(cur_path.to_vec()),
                 new_node,
             )
             .into(),
@@ -232,7 +229,7 @@ where
             if old_text != new_text {
                 let ct = ChangeText::new(
                     old_text,
-                    TreePath::new(cur_path.clone()),
+                    TreePath::new(cur_path.to_vec()),
                     new_text,
                 );
                 patches.push(Patch::ChangeText(ct));
@@ -292,7 +289,7 @@ fn diff_non_keyed_elements<'a, 'b, NS, TAG, ATT, VAL, SKIP, REP>(
     old_element: &'a Element<NS, TAG, ATT, VAL>,
     new_element: &'a Element<NS, TAG, ATT, VAL>,
     key: &ATT,
-    cur_path: &Vec<usize>,
+    cur_path: &[usize],
     skip: &SKIP,
     rep: &REP,
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL>>
@@ -304,7 +301,7 @@ where
     SKIP: Fn(&'a Node<NS, TAG, ATT, VAL>, &'a Node<NS, TAG, ATT, VAL>) -> bool,
     REP: Fn(&'a Node<NS, TAG, ATT, VAL>, &'a Node<NS, TAG, ATT, VAL>) -> bool,
 {
-    let this_cur_path = cur_path.clone();
+    let this_cur_path = cur_path.to_vec();
     let mut patches = vec![];
     let attributes_patches =
         create_attribute_patches(old_element, new_element, cur_path);
@@ -315,7 +312,7 @@ where
 
     let min_count = cmp::min(old_child_count, new_child_count);
     for index in 0..min_count {
-        let mut cur_child_path = cur_path.clone();
+        let mut cur_child_path = cur_path.to_vec();
         cur_child_path.push(index);
 
         let old_child = &old_element
@@ -356,7 +353,7 @@ where
     patches
 }
 
-fn create_append_children_patch<'a, 'b, NS, TAG, ATT, VAL>(
+fn create_append_children_patch<'a, NS, TAG, ATT, VAL>(
     old_element: &'a Element<NS, TAG, ATT, VAL>,
     new_element: &'a Element<NS, TAG, ATT, VAL>,
     this_cur_path: Vec<usize>,
@@ -376,16 +373,16 @@ where
 
     AppendChildren::new(
         &old_element.tag,
-        TreePath::new(this_cur_path.clone()),
+        TreePath::new(this_cur_path.to_vec()),
         append_patch,
     )
     .into()
 }
 
-fn create_remove_node_patch<'a, 'b, NS, TAG, ATT, VAL>(
+fn create_remove_node_patch<'a, NS, TAG, ATT, VAL>(
     old_element: &'a Element<NS, TAG, ATT, VAL>,
     new_element: &'a Element<NS, TAG, ATT, VAL>,
-    cur_path: &Vec<usize>,
+    cur_path: &[usize],
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL>>
 where
     NS: PartialEq + Clone + Debug,
@@ -401,7 +398,7 @@ where
         .skip(new_child_count)
         .enumerate()
     {
-        let mut child_cur_path = cur_path.clone();
+        let mut child_cur_path = cur_path.to_vec();
         child_cur_path.push(new_child_count + i);
         let remove_node_patch =
             RemoveNode::new(old_child.tag(), TreePath::new(child_cur_path));
@@ -414,10 +411,10 @@ where
 /// Note: The performance bottlenecks
 ///     - allocating new vec
 ///     - merging attributes of the same name
-fn create_attribute_patches<'a, 'b, NS, TAG, ATT, VAL>(
+fn create_attribute_patches<'a, NS, TAG, ATT, VAL>(
     old_element: &'a Element<NS, TAG, ATT, VAL>,
     new_element: &'a Element<NS, TAG, ATT, VAL>,
-    cur_path: &Vec<usize>,
+    cur_path: &[usize],
 ) -> Vec<Patch<'a, NS, TAG, ATT, VAL>>
 where
     NS: PartialEq + Clone + Debug,
@@ -482,7 +479,7 @@ where
         patches.push(
             AddAttributes::new(
                 &old_element.tag,
-                TreePath::new(cur_path.clone()),
+                TreePath::new(cur_path.to_vec()),
                 add_attributes,
             )
             .into(),
@@ -492,7 +489,7 @@ where
         patches.push(
             RemoveAttributes::new(
                 &old_element.tag,
-                TreePath::new(cur_path.clone()),
+                TreePath::new(cur_path.to_vec()),
                 remove_attributes,
             )
             .into(),

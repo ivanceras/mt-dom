@@ -91,7 +91,7 @@ impl TreePath {
         ATT: PartialEq + Clone + Debug,
         VAL: PartialEq + Clone + Debug,
     {
-        find_node_by_path(node, &self)
+        find_node_by_path(node, self)
     }
 }
 
