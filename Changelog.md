@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.12.0
+- **breaking** Make `Comment` a variant of `Node`, so we can move the hacks to the DOM tree rather than in the apply_patches
+- We'll git back to the rearranged keyed-node bug in the future
+- rename cur_path to path and cur_child_path to child_path since we remove new_path and new_child_path already
+- Make clippy happy
+
 ## 0.11.1
 - doc-comment updates
 - removal of unused-code
