@@ -1,6 +1,7 @@
 //! patch module
 pub use add_attributes::AddAttributes;
 pub use append_children::AppendChildren;
+pub use change_comment::ChangeComment;
 pub use change_text::ChangeText;
 pub use insert_node::InsertNode;
 pub use remove_attributes::RemoveAttributes;
@@ -11,6 +12,7 @@ pub use tree_path::TreePath;
 
 mod add_attributes;
 mod append_children;
+mod change_comment;
 mod change_text;
 mod insert_node;
 mod remove_attributes;
@@ -95,6 +97,8 @@ where
     RemoveAttributes(RemoveAttributes<'a, NS, TAG, ATT, VAL>),
     /// Change the text of a Text node.
     ChangeText(ChangeText<'a>),
+    /// Change comment content of a Comment node
+    ChangeComment(ChangeComment<'a>),
 }
 
 impl<'a, NS, TAG, ATT, VAL> Patch<'a, NS, TAG, ATT, VAL>
@@ -114,6 +118,7 @@ where
             Patch::AddAttributes(at) => &at.patch_path.path,
             Patch::RemoveAttributes(rt) => &rt.patch_path.path,
             Patch::ChangeText(ct) => &ct.patch_path.path,
+            Patch::ChangeComment(cc) => &cc.patch_path.path,
         }
     }
 
@@ -127,6 +132,7 @@ where
             Patch::AddAttributes(at) => Some(at.tag),
             Patch::RemoveAttributes(rt) => Some(rt.tag),
             Patch::ChangeText(_) => None,
+            Patch::ChangeComment(_) => None,
         }
     }
 }
@@ -141,6 +147,19 @@ where
 {
     fn from(ct: ChangeText<'a>) -> Self {
         Patch::ChangeText(ct)
+    }
+}
+
+impl<'a, NS, TAG, ATT, VAL> From<ChangeComment<'a>>
+    for Patch<'a, NS, TAG, ATT, VAL>
+where
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+{
+    fn from(ct: ChangeComment<'a>) -> Self {
+        Patch::ChangeComment(ct)
     }
 }
 

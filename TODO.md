@@ -84,11 +84,8 @@
     - no have it's dedicated function `should_replace`
 - [X] Remove `new_node_idx` and `new_path`, since they are not really pointing to the correct object after patch is applied
     and will eventually point to wrong element as more patches are applied
-
+- [ ] Add Comment variant for Node
 
 ## Optimization
 - Create a data structure which has old_element and its node_idx and the new_element with its node_idx
  that way, referencing to a node with the node_idx is very straigh forward way to diff.
-
-- [ ] If there are lot of children nodes to be replaced in a node, just replace the node altogether.
-    - When there aer too many replace node in one patch, things are breaking

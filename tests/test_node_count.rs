@@ -15,7 +15,8 @@ fn node_count1() {
 fn node_count3() {
     let old: MyNode = element("div", vec![], vec![text("0"), text("1")]);
 
-    assert_eq!(3, old.node_count());
+    // 4 instead of 3, because we automatically inserted a separator in between 2 sibling texts
+    assert_eq!(4, old.node_count());
 }
 
 #[test]

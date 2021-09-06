@@ -30,6 +30,8 @@ where
     Element(Element<NS, TAG, ATT, VAL>),
     /// Text variant of a virtual node
     Text(Text),
+    /// A comment node
+    Comment(String),
 }
 
 /// Text node
@@ -76,8 +78,16 @@ where
     /// returns true if this a text node
     pub fn is_text(&self) -> bool {
         match self {
-            Node::Element(_) => false,
             Node::Text(_) => true,
+            _ => false,
+        }
+    }
+
+    /// returns true if this is a safe html text node
+    pub fn is_safe_html(&self) -> bool {
+        match self {
+            Node::Text(text) => text.safe_html,
+            _ => false,
         }
     }
 
@@ -86,7 +96,7 @@ where
     pub fn take_element(self) -> Option<Element<NS, TAG, ATT, VAL>> {
         match self {
             Node::Element(element) => Some(element),
-            Node::Text(_) => None,
+            _ => None,
         }
     }
 
@@ -96,7 +106,7 @@ where
     ) -> Option<&mut Element<NS, TAG, ATT, VAL>> {
         match *self {
             Node::Element(ref mut element) => Some(element),
-            Node::Text(_) => None,
+            _ => None,
         }
     }
 
@@ -104,7 +114,7 @@ where
     pub fn as_element_ref(&self) -> Option<&Element<NS, TAG, ATT, VAL>> {
         match *self {
             Node::Element(ref element) => Some(element),
-            Node::Text(_) => None,
+            _ => None,
         }
     }
 
@@ -166,7 +176,7 @@ where
     pub fn get_attributes(&self) -> Option<&[Attribute<NS, ATT, VAL>]> {
         match *self {
             Node::Element(ref element) => Some(element.get_attributes()),
-            Node::Text(_) => None,
+            _ => None,
         }
     }
 
@@ -184,7 +194,7 @@ where
     pub fn text(&self) -> Option<&str> {
         match self {
             Node::Text(t) => Some(&t.text),
-            Node::Element(_) => None,
+            _ => None,
         }
     }
 
@@ -229,7 +239,7 @@ where
     ) -> Node<NS, TAG, ATT, VAL> {
         match self {
             Node::Element(element) => element.swap_remove_child(index),
-            Node::Text(_) => panic!("text has no child"),
+            _ => panic!("text has no child"),
         }
     }
 
@@ -245,7 +255,7 @@ where
     pub fn swap_children(&mut self, a: usize, b: usize) {
         match self {
             Node::Element(element) => element.swap_children(a, b),
-            Node::Text(_) => panic!("text has no child"),
+            _ => panic!("text has no child"),
         }
     }
 
@@ -259,12 +269,12 @@ where
     pub fn descendant_node_count(&self) -> usize {
         let mut cnt = 0;
         match self {
-            Node::Text(_) => (),
             Node::Element(element) => {
                 for child in element.children.iter() {
                     cnt += child.node_count();
                 }
             }
+            _ => (),
         }
         cnt
     }
@@ -296,6 +306,15 @@ where
             elm.get_attribute_value(name)
         } else {
             None
+        }
+    }
+
+    /// unwrap the text, panics if it is not a text element
+    #[track_caller]
+    pub fn unwrap_text(&self) -> &Text {
+        match self {
+            Node::Text(ref text) => text,
+            _ => panic!("node is not a text"),
         }
     }
 }
@@ -396,4 +415,16 @@ where
     VAL: PartialEq + Clone + Debug,
 {
     Node::Text(Text::safe_html(s))
+}
+
+/// create a comment node
+pub fn comment<S, NS, TAG, ATT, VAL>(s: S) -> Node<NS, TAG, ATT, VAL>
+where
+    S: ToString,
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+{
+    Node::Comment(s.to_string())
 }

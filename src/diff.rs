@@ -3,8 +3,8 @@
 use crate::{
     node::attribute::group_attributes_per_name,
     patch::{
-        AddAttributes, AppendChildren, ChangeText, RemoveAttributes,
-        RemoveNode, ReplaceNode,
+        AddAttributes, AppendChildren, ChangeComment, ChangeText,
+        RemoveAttributes, RemoveNode, ReplaceNode,
     },
     Attribute, Element, Node, Patch, TreePath,
 };
@@ -235,6 +235,16 @@ where
                 patches.push(Patch::ChangeText(ct));
             }
         }
+        (Node::Comment(old_comment), Node::Comment(new_comment)) => {
+            if old_comment != new_comment {
+                let ct = ChangeComment::new(
+                    old_comment,
+                    TreePath::new(path.to_vec()),
+                    new_comment,
+                );
+                patches.push(Patch::ChangeComment(ct));
+            }
+        }
 
         // We're comparing two element nodes
         (Node::Element(old_element), Node::Element(new_element)) => {
@@ -264,8 +274,7 @@ where
                 patches.extend(non_keyed_patches);
             }
         }
-        (Node::Text(_), Node::Element(_))
-        | (Node::Element(_), Node::Text(_)) => {
+        _ => {
             unreachable!("Unequal variant discriminants should already have been handled");
         }
     };

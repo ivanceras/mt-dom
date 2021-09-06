@@ -1,3 +1,4 @@
+use crate::comment;
 use crate::node::{Attribute, Node};
 use std::fmt::Debug;
 
@@ -50,13 +51,15 @@ where
         children: Vec<Node<NS, TAG, ATT, VAL>>,
         self_closing: bool,
     ) -> Self {
-        Element {
+        let mut element = Element {
             namespace,
             tag,
             attrs,
-            children,
+            children: vec![],
             self_closing,
-        }
+        };
+        element.add_children(children);
+        element
     }
 
     /// add attributes to this element
@@ -64,9 +67,24 @@ where
         self.attrs.extend(attrs)
     }
 
+    /// add a child node on this element, if the last added element
+    /// was a text node, and the child to be added is also a text node, we automatically add a comment node to prevent the browser
+    /// from merging the text nodes into one node
+    pub fn add_child(&mut self, child: Node<NS, TAG, ATT, VAL>) {
+        if let Some(last) = self.children.last() {
+            if last.is_text() && child.is_text() {
+                log::warn!("last child was a text.. adding a comment node");
+                self.children.push(comment("separator"))
+            }
+        }
+        self.children.push(child);
+    }
+
     /// add children virtual node to this element
     pub fn add_children(&mut self, children: Vec<Node<NS, TAG, ATT, VAL>>) {
-        self.children.extend(children);
+        for child in children {
+            self.add_child(child);
+        }
     }
 
     /// returns a refernce to the children of this node
