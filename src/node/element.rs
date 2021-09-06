@@ -73,7 +73,6 @@ where
     pub fn add_child(&mut self, child: Node<NS, TAG, ATT, VAL>) {
         if let Some(last) = self.children.last() {
             if last.is_text() && child.is_text() {
-                log::warn!("last child was a text.. adding a comment node");
                 self.children.push(comment("separator"))
             }
         }
