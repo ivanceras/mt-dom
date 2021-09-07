@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.12.1
+- Remove stray `log::trace`
+
 ## 0.12.0
 - **breaking** Make `Comment` a variant of `Node`, so we can move the hacks to the DOM tree rather than in the apply_patches
 - We'll git back to the rearranged keyed-node bug in the future
