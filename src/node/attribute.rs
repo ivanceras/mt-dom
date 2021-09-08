@@ -39,11 +39,11 @@ where
     pub fn with_multiple_values(
         namespace: Option<NS>,
         name: ATT,
-        value: Vec<VAL>,
+        value: impl IntoIterator<Item = VAL>,
     ) -> Self {
         Attribute {
             name,
-            value,
+            value: value.into_iter().collect(),
             namespace,
         }
     }
