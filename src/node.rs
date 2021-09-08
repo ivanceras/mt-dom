@@ -123,7 +123,7 @@ where
     /// This is used in building the nodes in a builder pattern
     pub fn add_children(
         mut self,
-        children: Vec<Node<NS, TAG, ATT, VAL>>,
+        children: impl IntoIterator<Item = Node<NS, TAG, ATT, VAL>>,
     ) -> Self {
         if let Some(element) = self.as_element_mut() {
             element.add_children(children);
@@ -136,7 +136,7 @@ where
     /// add children but not consume self
     pub fn add_children_ref_mut(
         &mut self,
-        children: Vec<Node<NS, TAG, ATT, VAL>>,
+        children: impl IntoIterator<Item = Node<NS, TAG, ATT, VAL>>,
     ) {
         if let Some(element) = self.as_element_mut() {
             element.add_children(children);
@@ -149,7 +149,7 @@ where
     /// this is used in view building
     pub fn add_attributes(
         mut self,
-        attributes: Vec<Attribute<NS, ATT, VAL>>,
+        attributes: impl IntoIterator<Item = Attribute<NS, ATT, VAL>>,
     ) -> Self {
         if let Some(elm) = self.as_element_mut() {
             elm.add_attributes(attributes);
@@ -162,7 +162,7 @@ where
     /// add attributes using a mutable reference to self
     pub fn add_attributes_ref_mut(
         &mut self,
-        attributes: Vec<Attribute<NS, ATT, VAL>>,
+        attributes: impl IntoIterator<Item = Attribute<NS, ATT, VAL>>,
     ) {
         if let Some(elm) = self.as_element_mut() {
             elm.add_attributes(attributes);
@@ -282,7 +282,7 @@ where
     /// remove the existing attributes and set with the new value
     pub fn set_attributes_ref_mut(
         &mut self,
-        attributes: Vec<Attribute<NS, ATT, VAL>>,
+        attributes: impl IntoIterator<Item = Attribute<NS, ATT, VAL>>,
     ) {
         if let Some(elm) = self.as_element_mut() {
             elm.set_attributes(attributes);
@@ -292,7 +292,7 @@ where
     /// merge to existing attributes if the attribute name already exist
     pub fn merge_attributes(
         mut self,
-        attributes: Vec<Attribute<NS, ATT, VAL>>,
+        attributes: impl IntoIterator<Item = Attribute<NS, ATT, VAL>>,
     ) -> Self {
         if let Some(elm) = self.as_element_mut() {
             elm.merge_attributes(attributes);
@@ -334,8 +334,8 @@ where
 #[inline]
 pub fn element<NS, TAG, ATT, VAL>(
     tag: TAG,
-    attrs: Vec<Attribute<NS, ATT, VAL>>,
-    children: Vec<Node<NS, TAG, ATT, VAL>>,
+    attrs: impl IntoIterator<Item = Attribute<NS, ATT, VAL>>,
+    children: impl IntoIterator<Item = Node<NS, TAG, ATT, VAL>>,
 ) -> Node<NS, TAG, ATT, VAL>
 where
     NS: PartialEq + Clone + Debug,
@@ -363,8 +363,8 @@ where
 pub fn element_ns<NS, TAG, ATT, VAL>(
     namespace: Option<NS>,
     tag: TAG,
-    attrs: Vec<Attribute<NS, ATT, VAL>>,
-    children: Vec<Node<NS, TAG, ATT, VAL>>,
+    attrs: impl IntoIterator<Item = Attribute<NS, ATT, VAL>>,
+    children: impl IntoIterator<Item = Node<NS, TAG, ATT, VAL>>,
     self_closing: bool,
 ) -> Node<NS, TAG, ATT, VAL>
 where
