@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.12.3
+- More conversion of IntoIterator
+
 ## 0.12.2
 - Use impl IntoIterator to allow array or vec of attributes and children.
     This provides a much cleaner syntax when building a view code.
