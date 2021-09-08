@@ -47,14 +47,14 @@ where
     pub fn new(
         namespace: Option<NS>,
         tag: TAG,
-        attrs: Vec<Attribute<NS, ATT, VAL>>,
-        children: Vec<Node<NS, TAG, ATT, VAL>>,
+        attrs: impl IntoIterator<Item = Attribute<NS, ATT, VAL>>,
+        children: impl IntoIterator<Item = Node<NS, TAG, ATT, VAL>>,
         self_closing: bool,
     ) -> Self {
         let mut element = Element {
             namespace,
             tag,
-            attrs,
+            attrs: attrs.into_iter().collect(),
             children: vec![],
             self_closing,
         };
@@ -63,7 +63,10 @@ where
     }
 
     /// add attributes to this element
-    pub fn add_attributes(&mut self, attrs: Vec<Attribute<NS, ATT, VAL>>) {
+    pub fn add_attributes(
+        &mut self,
+        attrs: impl IntoIterator<Item = Attribute<NS, ATT, VAL>>,
+    ) {
         self.attrs.extend(attrs)
     }
 
@@ -80,7 +83,10 @@ where
     }
 
     /// add children virtual node to this element
-    pub fn add_children(&mut self, children: Vec<Node<NS, TAG, ATT, VAL>>) {
+    pub fn add_children(
+        &mut self,
+        children: impl IntoIterator<Item = Node<NS, TAG, ATT, VAL>>,
+    ) {
         for child in children {
             self.add_child(child);
         }
@@ -165,17 +171,20 @@ where
 
     /// remove the existing values of this attribute
     /// and add the new values
-    pub fn set_attributes(&mut self, attrs: Vec<Attribute<NS, ATT, VAL>>) {
-        attrs
-            .iter()
-            .for_each(|att| self.remove_attribute(&att.name));
-        self.add_attributes(attrs);
+    pub fn set_attributes(
+        &mut self,
+        attrs: impl IntoIterator<Item = Attribute<NS, ATT, VAL>>,
+    ) {
+        for attr in attrs {
+            self.remove_attribute(&attr.name);
+            self.attrs.push(attr);
+        }
     }
 
     /// merge to existing attributes if it exist
     pub fn merge_attributes(
         &mut self,
-        new_attrs: Vec<Attribute<NS, ATT, VAL>>,
+        new_attrs: impl IntoIterator<Item = Attribute<NS, ATT, VAL>>,
     ) {
         for new_att in new_attrs {
             if let Some(existing_attr) =
