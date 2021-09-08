@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.12.2
+- Use impl IntoIterator to allow array or vec of attributes and children.
+    This provides a much cleaner syntax when building a view code.
+
 ## 0.12.1
 - Remove stray `log::trace`
 
