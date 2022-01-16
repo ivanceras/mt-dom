@@ -84,7 +84,31 @@
     - no have it's dedicated function `should_replace`
 - [X] Remove `new_node_idx` and `new_path`, since they are not really pointing to the correct object after patch is applied
     and will eventually point to wrong element as more patches are applied
-- [ ] Add Comment variant for Node
+- [X] Add Comment variant for Node
+- [ ] Collapse the struct in each of the underlying variant of the Patch into enum struct inside of Patch.
+    - Instead of using
+    ```rust
+    enum Patch{
+        InsertNode(InsertNode<'a, NS, TAG, ATT, VAL>),
+        ...
+    }
+    struct InsertNode{
+        pub tag: Option<&'a TAG>,
+        pub patch_path: TreePath,
+        pub node: &'a Node<NS, TAG, ATT, VAL>,
+    }
+    ```
+    - We use:
+    ```rust
+    enum Patch{
+        InsertNode{
+            pub tag: Option<&'a TAG>,
+            pub patch_path: TreePath,
+            pub node: &'a Node<NS, TAG, ATT, VAL>,
+        }
+        ...
+    }
+    ```
 
 ## Optimization
 - Create a data structure which has old_element and its node_idx and the new_element with its node_idx
