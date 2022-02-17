@@ -34,13 +34,14 @@
 - [X] Add skip mechanism to skip diffing nodes marked with this.
 - [X] Make the Node::Text variant to be a struct.
     - This is pre-requisite for adding additional fields such as real dom link
-- [ ] Add a field `link` for Element and TextNode which points
+~~- [ ] Add a field `link` for Element and TextNode which points
     to the actual dom when it is created. This will be used directly for patching
     instead of using the `NodeIdx` traversal in patches which has a 0(n) complexity
     and take 40ms to update in a dom tree with 2k nodes.
      - [ ] Patch will now contain the real dom Node, so applying will not have to search for it.
         - Issue: can not link the real dom, since it requires a mutable reference to the patches
         which will have numerous mutable references which is impossible to do.
+~~
 - [X] Make the `key` a closure like `skip`.
 - [X] Move `Callback` into sauron.
 - [X] Move algorithmns to sauron such as `map_msg` since it handles the Callback
@@ -85,7 +86,7 @@
 - [X] Remove `new_node_idx` and `new_path`, since they are not really pointing to the correct object after patch is applied
     and will eventually point to wrong element as more patches are applied
 - [X] Add Comment variant for Node
-- [ ] Collapse the struct in each of the underlying variant of the Patch into enum struct inside of Patch.
+- [X] Collapse the struct in each of the underlying variant of the Patch into enum struct inside of Patch.
     - Instead of using
     ```rust
     enum Patch{
@@ -107,6 +108,21 @@
             pub node: &'a Node<NS, TAG, ATT, VAL>,
         }
         ...
+    }
+    ```
+- [ ] (Highly tentative): Make mt-dom even more generic by not assuming Text and Comment is the variant that can be in a leaf node.
+    - Sauron will then have
+    ```rust
+    enum VNode{
+        Text(Text),
+        Comment(String),
+    }
+    type HtmlNode = Node<VNode,..>;
+    ```
+    ```rust
+    enum Node{
+        Element{..}
+        Leaf(T),
     }
     ```
 
