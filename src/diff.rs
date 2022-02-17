@@ -1,12 +1,8 @@
 //! provides diffing algorithm which returns patches
 #![allow(clippy::type_complexity)]
 use crate::{
-    node::attribute::group_attributes_per_name,
-    patch::{
-        AddAttributes, AppendChildren, ChangeComment, ChangeText,
-        RemoveAttributes, RemoveNode, ReplaceNode,
-    },
-    Attribute, Element, Node, Patch, TreePath,
+    node::attribute::group_attributes_per_name, Attribute, Element, Node,
+    Patch, TreePath,
 };
 use keyed_elements::diff_keyed_elements;
 use std::fmt::Debug;
@@ -46,11 +42,11 @@ mod keyed_elements;
 /// let diff = diff_with_key(&old, &new, &"key");
 /// assert_eq!(
 ///     diff,
-///     vec![RemoveNode::new(
+///     vec![Patch::remove_node(
 ///         Some(&"div"),
 ///         TreePath::new(vec![0, 0]),
 ///     )
-///     .into()]
+///     ]
 /// );
 /// ```
 pub fn diff_with_key<'a, NS, TAG, ATT, VAL>(
@@ -209,14 +205,11 @@ where
     let mut patches = vec![];
 
     if replace {
-        patches.push(
-            ReplaceNode::new(
-                old_node.tag(),
-                TreePath::new(path.to_vec()),
-                new_node,
-            )
-            .into(),
-        );
+        patches.push(Patch::replace_node(
+            old_node.tag(),
+            TreePath::new(path.to_vec()),
+            new_node,
+        ));
         return patches;
     }
 
@@ -227,22 +220,22 @@ where
         // We're comparing two text nodes
         (Node::Text(old_text), Node::Text(new_text)) => {
             if old_text != new_text {
-                let ct = ChangeText::new(
-                    old_text,
+                let ct = Patch::change_text(
                     TreePath::new(path.to_vec()),
+                    old_text,
                     new_text,
                 );
-                patches.push(Patch::ChangeText(ct));
+                patches.push(ct);
             }
         }
         (Node::Comment(old_comment), Node::Comment(new_comment)) => {
             if old_comment != new_comment {
-                let ct = ChangeComment::new(
-                    old_comment,
+                let ct = Patch::change_comment(
                     TreePath::new(path.to_vec()),
+                    old_comment,
                     new_comment,
                 );
-                patches.push(Patch::ChangeComment(ct));
+                patches.push(ct);
             }
         }
 
@@ -380,12 +373,11 @@ where
         append_patch.push(append_child);
     }
 
-    AppendChildren::new(
+    Patch::append_children(
         &old_element.tag,
         TreePath::new(this_cur_path.to_vec()),
         append_patch,
     )
-    .into()
 }
 
 fn create_remove_node_patch<'a, NS, TAG, ATT, VAL>(
@@ -410,8 +402,8 @@ where
         let mut child_path = path.to_vec();
         child_path.push(new_child_count + i);
         let remove_node_patch =
-            RemoveNode::new(old_child.tag(), TreePath::new(child_path));
-        patches.push(remove_node_patch.into());
+            Patch::remove_node(old_child.tag(), TreePath::new(child_path));
+        patches.push(remove_node_patch);
     }
     patches
 }
@@ -485,24 +477,18 @@ where
     }
 
     if !add_attributes.is_empty() {
-        patches.push(
-            AddAttributes::new(
-                &old_element.tag,
-                TreePath::new(path.to_vec()),
-                add_attributes,
-            )
-            .into(),
-        );
+        patches.push(Patch::add_attributes(
+            &old_element.tag,
+            TreePath::new(path.to_vec()),
+            add_attributes,
+        ));
     }
     if !remove_attributes.is_empty() {
-        patches.push(
-            RemoveAttributes::new(
-                &old_element.tag,
-                TreePath::new(path.to_vec()),
-                remove_attributes,
-            )
-            .into(),
-        );
+        patches.push(Patch::remove_attributes(
+            &old_element.tag,
+            TreePath::new(path.to_vec()),
+            remove_attributes,
+        ));
     }
     patches
 }

@@ -1,23 +1,11 @@
 //! patch module
-pub use add_attributes::AddAttributes;
-pub use append_children::AppendChildren;
-pub use change_comment::ChangeComment;
-pub use change_text::ChangeText;
-pub use insert_node::InsertNode;
-pub use remove_attributes::RemoveAttributes;
-pub use remove_node::RemoveNode;
-pub use replace_node::ReplaceNode;
+
+use crate::node::Text;
+use crate::{Attribute, Node};
 use std::fmt::Debug;
+
 pub use tree_path::TreePath;
 
-mod add_attributes;
-mod append_children;
-mod change_comment;
-mod change_text;
-mod insert_node;
-mod remove_attributes;
-mod remove_node;
-mod replace_node;
 mod tree_path;
 
 /// A Patch encodes an operation that modifies a real DOM element or native UI element
@@ -81,24 +69,86 @@ where
     /// Insert a vector of child nodes to the current node being patch.
     /// The usize is the index of of the children of the node to be
     /// patch to insert to. The new children will be inserted before this usize
-    InsertNode(InsertNode<'a, NS, TAG, ATT, VAL>),
+    InsertNode {
+        /// the tag of the target node we insert this node into
+        tag: Option<&'a TAG>,
+        /// the path to traverse to get to the target element of which our node will be inserted before it.
+        patch_path: TreePath,
+        /// the node to be inserted
+        node: &'a Node<NS, TAG, ATT, VAL>,
+    },
+
     /// Append a vector of child nodes to a parent node id.
-    AppendChildren(AppendChildren<'a, NS, TAG, ATT, VAL>),
+    AppendChildren {
+        /// the tag of the node we are appending the children into
+        tag: &'a TAG,
+        /// index of the node we are going to append the children into
+        patch_path: TreePath,
+        /// children nodes to be appended and their corresponding new_node_idx
+        children: Vec<&'a Node<NS, TAG, ATT, VAL>>,
+    },
     /// remove node
-    RemoveNode(RemoveNode<'a, TAG>),
+    RemoveNode {
+        /// The tag of the node that is to be removed.
+        /// This is only used for additional check where are removing the correct node.
+        tag: Option<&'a TAG>,
+        /// the node_idx of the node to be removed
+        patch_path: TreePath,
+    },
     /// ReplaceNode a node with another node. This typically happens when a node's tag changes.
     /// ex: <div> becomes <span>
-    ReplaceNode(ReplaceNode<'a, NS, TAG, ATT, VAL>),
+    ReplaceNode {
+        /// The tag of the node we are going to replace.
+        /// This is only used for additional checking that we are removing the correct node.
+        tag: Option<&'a TAG>,
+        /// the traversal path of the node we are going to replace
+        patch_path: TreePath,
+        /// the node that will replace the target node
+        replacement: &'a Node<NS, TAG, ATT, VAL>,
+    },
     /// Add attributes that the new node has that the old node does not
     /// Note: the attributes is not a reference since attributes of same
     /// name are merged to produce a new unify attribute
-    AddAttributes(AddAttributes<'a, NS, TAG, ATT, VAL>),
+    AddAttributes {
+        /// node tag
+        /// use for verifying that the we are patching the correct node which
+        /// should match the same tag
+        tag: &'a TAG,
+        /// the path to traverse to get to the target lement of which we add the attributes.
+        patch_path: TreePath,
+        /// the attributes to be patched into the target node
+        attrs: Vec<&'a Attribute<NS, ATT, VAL>>,
+    },
     /// Remove attributes that the old node had that the new node doesn't
-    RemoveAttributes(RemoveAttributes<'a, NS, TAG, ATT, VAL>),
+    RemoveAttributes {
+        /// The tag of the node we are removing the attributes from.
+        /// This is only used for additional check that we are patching the correct node
+        tag: &'a TAG,
+        /// the path to traverse to get to the target lement of which we remove the attributes
+        patch_path: TreePath,
+        /// attributes that are to be removed from this target node
+        attrs: Vec<&'a Attribute<NS, ATT, VAL>>,
+    },
     /// Change the text of a Text node.
-    ChangeText(ChangeText<'a>),
+    ChangeText {
+        /// the target element to be patch can be traverse using this patch path
+        patch_path: TreePath,
+        /// the old text is not really needed for applying the patch.
+        /// but it is useful for debugging purposed, that we are changing the intended target text by
+        /// visual inspection
+        old: &'a Text,
+        /// the neew text patch
+        new: &'a Text,
+    },
     /// Change comment content of a Comment node
-    ChangeComment(ChangeComment<'a>),
+    ChangeComment {
+        /// the target element to be patch can be traverse using this patch path
+        patch_path: TreePath,
+        /// old comment
+        old: &'a String,
+        /// new comment
+        new: &'a String,
+    },
 }
 
 impl<'a, NS, TAG, ATT, VAL> Patch<'a, NS, TAG, ATT, VAL>
@@ -111,132 +161,130 @@ where
     /// return the path to traverse for this patch to get to the target Node
     pub fn path(&self) -> &[usize] {
         match self {
-            Patch::InsertNode(ic) => &ic.patch_path.path,
-            Patch::AppendChildren(ac) => &ac.patch_path.path,
-            Patch::RemoveNode(rn) => &rn.patch_path.path,
-            Patch::ReplaceNode(rn) => &rn.patch_path.path,
-            Patch::AddAttributes(at) => &at.patch_path.path,
-            Patch::RemoveAttributes(rt) => &rt.patch_path.path,
-            Patch::ChangeText(ct) => &ct.patch_path.path,
-            Patch::ChangeComment(cc) => &cc.patch_path.path,
+            Patch::InsertNode { patch_path, .. } => &patch_path.path,
+            Patch::AppendChildren { patch_path, .. } => &patch_path.path,
+            Patch::RemoveNode { patch_path, .. } => &patch_path.path,
+            Patch::ReplaceNode { patch_path, .. } => &patch_path.path,
+            Patch::AddAttributes { patch_path, .. } => &patch_path.path,
+            Patch::RemoveAttributes { patch_path, .. } => &patch_path.path,
+            Patch::ChangeText { patch_path, .. } => &patch_path.path,
+            Patch::ChangeComment { patch_path, .. } => &patch_path.path,
         }
     }
 
     /// return the tag of this patch
     pub fn tag(&self) -> Option<&TAG> {
         match self {
-            Patch::InsertNode(ic) => ic.tag,
-            Patch::AppendChildren(ac) => Some(ac.tag),
-            Patch::RemoveNode(rn) => rn.tag,
-            Patch::ReplaceNode(rn) => rn.tag,
-            Patch::AddAttributes(at) => Some(at.tag),
-            Patch::RemoveAttributes(rt) => Some(rt.tag),
-            Patch::ChangeText(_) => None,
-            Patch::ChangeComment(_) => None,
+            Patch::InsertNode { tag, .. } => *tag,
+            Patch::AppendChildren { tag, .. } => Some(tag),
+            Patch::RemoveNode { tag, .. } => *tag,
+            Patch::ReplaceNode { tag, .. } => *tag,
+            Patch::AddAttributes { tag, .. } => Some(tag),
+            Patch::RemoveAttributes { tag, .. } => Some(tag),
+            Patch::ChangeText { .. } => None,
+            Patch::ChangeComment { .. } => None,
         }
     }
-}
 
-impl<'a, NS, TAG, ATT, VAL> From<ChangeText<'a>>
-    for Patch<'a, NS, TAG, ATT, VAL>
-where
-    NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
-    ATT: PartialEq + Clone + Debug,
-    VAL: PartialEq + Clone + Debug,
-{
-    fn from(ct: ChangeText<'a>) -> Self {
-        Patch::ChangeText(ct)
+    /// create an InsertNode patch
+    pub fn insert_node(
+        tag: Option<&'a TAG>,
+        patch_path: TreePath,
+        node: &'a Node<NS, TAG, ATT, VAL>,
+    ) -> Patch<'a, NS, TAG, ATT, VAL> {
+        Patch::InsertNode {
+            tag,
+            patch_path,
+            node,
+        }
     }
-}
 
-impl<'a, NS, TAG, ATT, VAL> From<ChangeComment<'a>>
-    for Patch<'a, NS, TAG, ATT, VAL>
-where
-    NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
-    ATT: PartialEq + Clone + Debug,
-    VAL: PartialEq + Clone + Debug,
-{
-    fn from(ct: ChangeComment<'a>) -> Self {
-        Patch::ChangeComment(ct)
+    /// create a patch where we add children to the target node
+    pub fn append_children(
+        tag: &'a TAG,
+        patch_path: TreePath,
+        children: Vec<&'a Node<NS, TAG, ATT, VAL>>,
+    ) -> Patch<'a, NS, TAG, ATT, VAL> {
+        Patch::AppendChildren {
+            tag,
+            patch_path,
+            children,
+        }
     }
-}
 
-impl<'a, NS, TAG, ATT, VAL> From<InsertNode<'a, NS, TAG, ATT, VAL>>
-    for Patch<'a, NS, TAG, ATT, VAL>
-where
-    NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
-    ATT: PartialEq + Clone + Debug,
-    VAL: PartialEq + Clone + Debug,
-{
-    fn from(ic: InsertNode<'a, NS, TAG, ATT, VAL>) -> Self {
-        Patch::InsertNode(ic)
+    /// create a patch where the target element that can be traverse
+    /// using the patch path will be remove
+    pub fn remove_node(
+        tag: Option<&'a TAG>,
+        patch_path: TreePath,
+    ) -> Patch<'a, NS, TAG, ATT, VAL> {
+        Patch::RemoveNode { tag, patch_path }
     }
-}
 
-impl<'a, NS, TAG, ATT, VAL> From<AppendChildren<'a, NS, TAG, ATT, VAL>>
-    for Patch<'a, NS, TAG, ATT, VAL>
-where
-    NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
-    ATT: PartialEq + Clone + Debug,
-    VAL: PartialEq + Clone + Debug,
-{
-    fn from(ac: AppendChildren<'a, NS, TAG, ATT, VAL>) -> Self {
-        Patch::AppendChildren(ac)
+    /// create a patch where a node is replaced by the `replacement` node.
+    /// The target node to be replace is traverse using the `patch_path`
+    pub fn replace_node(
+        tag: Option<&'a TAG>,
+        patch_path: TreePath,
+        replacement: &'a Node<NS, TAG, ATT, VAL>,
+    ) -> Patch<'a, NS, TAG, ATT, VAL> {
+        Patch::ReplaceNode {
+            tag,
+            patch_path,
+            replacement,
+        }
     }
-}
 
-impl<'a, NS, TAG, ATT, VAL> From<RemoveNode<'a, TAG>>
-    for Patch<'a, NS, TAG, ATT, VAL>
-where
-    NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
-    ATT: PartialEq + Clone + Debug,
-    VAL: PartialEq + Clone + Debug,
-{
-    fn from(rc: RemoveNode<'a, TAG>) -> Self {
-        Patch::RemoveNode(rc)
+    /// create a patch where a new attribute is added to the target element
+    pub fn add_attributes(
+        tag: &'a TAG,
+        patch_path: TreePath,
+        attrs: Vec<&'a Attribute<NS, ATT, VAL>>,
+    ) -> Patch<'a, NS, TAG, ATT, VAL> {
+        Patch::AddAttributes {
+            tag,
+            patch_path,
+            attrs,
+        }
     }
-}
 
-impl<'a, NS, TAG, ATT, VAL> From<ReplaceNode<'a, NS, TAG, ATT, VAL>>
-    for Patch<'a, NS, TAG, ATT, VAL>
-where
-    NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
-    ATT: PartialEq + Clone + Debug,
-    VAL: PartialEq + Clone + Debug,
-{
-    fn from(rn: ReplaceNode<'a, NS, TAG, ATT, VAL>) -> Self {
-        Patch::ReplaceNode(rn)
+    /// create patch where it remove attributes of the target element that can be traversed by the
+    /// patch_path.
+    pub fn remove_attributes(
+        tag: &'a TAG,
+        patch_path: TreePath,
+        attrs: Vec<&'a Attribute<NS, ATT, VAL>>,
+    ) -> Patch<'a, NS, TAG, ATT, VAL> {
+        Patch::RemoveAttributes {
+            tag,
+            patch_path,
+            attrs,
+        }
     }
-}
 
-impl<'a, NS, TAG, ATT, VAL> From<AddAttributes<'a, NS, TAG, ATT, VAL>>
-    for Patch<'a, NS, TAG, ATT, VAL>
-where
-    NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
-    ATT: PartialEq + Clone + Debug,
-    VAL: PartialEq + Clone + Debug,
-{
-    fn from(at: AddAttributes<'a, NS, TAG, ATT, VAL>) -> Self {
-        Patch::AddAttributes(at)
+    /// create a patch where the text content of a text node is changed
+    pub fn change_text(
+        patch_path: TreePath,
+        old: &'a Text,
+        new: &'a Text,
+    ) -> Patch<'a, NS, TAG, ATT, VAL> {
+        Patch::ChangeText {
+            patch_path,
+            old,
+            new,
+        }
     }
-}
 
-impl<'a, NS, TAG, ATT, VAL> From<RemoveAttributes<'a, NS, TAG, ATT, VAL>>
-    for Patch<'a, NS, TAG, ATT, VAL>
-where
-    NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
-    ATT: PartialEq + Clone + Debug,
-    VAL: PartialEq + Clone + Debug,
-{
-    fn from(rt: RemoveAttributes<'a, NS, TAG, ATT, VAL>) -> Self {
-        Patch::RemoveAttributes(rt)
+    /// A patch where the comment node is changed
+    pub fn change_comment(
+        patch_path: TreePath,
+        old: &'a String,
+        new: &'a String,
+    ) -> Patch<'a, NS, TAG, ATT, VAL> {
+        Patch::ChangeComment {
+            patch_path,
+            old,
+            new,
+        }
     }
 }

@@ -1,9 +1,6 @@
 #![allow(clippy::type_complexity)]
 use super::{create_attribute_patches, diff_recursive};
-use crate::{
-    patch::{AppendChildren, InsertNode, RemoveNode},
-    Element, Node, Patch, TreePath,
-};
+use crate::{Element, Node, Patch, TreePath};
 use std::collections::BTreeMap;
 use std::fmt::Debug;
 
@@ -330,13 +327,10 @@ where
                 rep,
             ));
         } else {
-            remove_node_patches.push(
-                RemoveNode::new(
-                    old_child.tag(),
-                    TreePath::new(child_path.to_vec()),
-                )
-                .into(),
-            );
+            remove_node_patches.push(Patch::remove_node(
+                old_child.tag(),
+                TreePath::new(child_path.to_vec()),
+            ));
         }
     }
 
@@ -382,14 +376,11 @@ where
         .filter(|(idx, _, _)| *idx < new_idx)
     {
         if !already_inserted.contains(idx) {
-            insert_node_patches.push(
-                InsertNode::new(
-                    Some(&old_element.tag),
-                    TreePath::new(child_path.to_vec()),
-                    unmatched,
-                )
-                .into(),
-            );
+            insert_node_patches.push(Patch::insert_node(
+                Some(&old_element.tag),
+                TreePath::new(child_path.to_vec()),
+                unmatched,
+            ));
             already_inserted.push(*idx);
         }
     }
@@ -414,14 +405,11 @@ where
         unmatched_new_child_pass2.iter()
     {
         if !already_inserted.contains(new_idx) {
-            append_children_patches.push(
-                AppendChildren::new(
-                    &old_element.tag,
-                    TreePath::new(path.to_vec()),
-                    vec![new_child],
-                )
-                .into(),
-            );
+            append_children_patches.push(Patch::append_children(
+                &old_element.tag,
+                TreePath::new(path.to_vec()),
+                vec![new_child],
+            ));
             already_inserted.push(*new_idx);
         }
     }

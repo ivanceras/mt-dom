@@ -57,18 +57,16 @@ fn mixed_key_and_no_key_with_2_matched() {
     assert_eq!(
         diff,
         vec![
-            ChangeText::new(
-                &Text::new("2"),
+            Patch::change_text(
                 TreePath::new(vec![0, 1, 0]),
-                &Text::new("1")
-            )
-            .into(),
-            ChangeText::new(
                 &Text::new("2"),
+                &Text::new("1")
+            ),
+            Patch::change_text(
                 TreePath::new(vec![0, 2, 0]),
+                &Text::new("2"),
                 &Text::new("3")
             )
-            .into()
         ]
     );
 }
@@ -103,13 +101,12 @@ fn mixed_key_and_no_key_with_misordered_2_matched() {
     assert_eq!(
         diff,
         vec![
-            InsertNode::new(
+            Patch::insert_node(
                 Some(&"main"),
                 TreePath::new(vec![0, 0]),
                 &element("div", vec![], vec![text(1)]),
-            )
-            .into(),
-            RemoveNode::new(Some(&"div"), TreePath::new(vec![0, 1]),).into(),
+            ),
+            Patch::remove_node(Some(&"div"), TreePath::new(vec![0, 1]),),
         ]
     );
 }

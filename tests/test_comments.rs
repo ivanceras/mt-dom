@@ -9,12 +9,11 @@ fn comment_nodes() {
     let diff = diff_with_key(&old, &new, &"key");
     assert_eq!(
         diff,
-        vec![ChangeComment::new(
-            &"hello".to_string(),
+        vec![Patch::change_comment(
             TreePath::new(vec![0]),
+            &"hello".to_string(),
             &"hi".to_string()
-        )
-        .into()]
+        )]
     );
 }
 

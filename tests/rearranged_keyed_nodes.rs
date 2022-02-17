@@ -35,7 +35,7 @@ fn text_changed_non_keyed() {
     assert_eq!(
         diff,
         vec![
-            AppendChildren::new(
+            Patch::append_children(
                 &"main",
                 TreePath::new(vec![0]),
                 vec![&element(
@@ -43,9 +43,8 @@ fn text_changed_non_keyed() {
                     vec![attr("key", "2")],
                     vec![text("line2")]
                 ),]
-            )
-            .into(),
-            AppendChildren::new(
+            ),
+            Patch::append_children(
                 &"main",
                 TreePath::new(vec![0]),
                 vec![&element(
@@ -53,10 +52,9 @@ fn text_changed_non_keyed() {
                     vec![attr("key", "1")],
                     vec![text("line1")]
                 )]
-            )
-            .into(),
-            RemoveNode::new(Some(&"div"), TreePath::new(vec![0, 0])).into(),
-            RemoveNode::new(Some(&"div"), TreePath::new(vec![0, 1])).into(),
+            ),
+            Patch::remove_node(Some(&"div"), TreePath::new(vec![0, 0])),
+            Patch::remove_node(Some(&"div"), TreePath::new(vec![0, 1])),
         ]
     );
 }
