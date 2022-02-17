@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.13.0
+- refactor: collapse the Patches variant into enum struct to make it more compact and coherent in one place
+
 ## 0.12.3
 - More conversion of IntoIterator
 
