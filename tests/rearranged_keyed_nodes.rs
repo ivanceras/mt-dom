@@ -1,6 +1,7 @@
 use mt_dom::{diff::*, patch::*, *};
 
-pub type MyNode = Node<&'static str, &'static str, &'static str, &'static str>;
+pub type MyNode =
+    Node<&'static str, &'static str, &'static str, &'static str, &'static str>;
 
 #[test]
 #[should_panic]
@@ -10,9 +11,9 @@ fn text_changed_non_keyed() {
         "main",
         vec![attr("class", "container"), attr("key", "container")],
         vec![
-            element("div", vec![attr("key", "1")], vec![text("line1")]),
-            element("div", vec![attr("key", "2")], vec![text("line2")]),
-            element("div", vec![attr("key", "3")], vec![text("line3")]),
+            element("div", vec![attr("key", "1")], vec![leaf("line1")]),
+            element("div", vec![attr("key", "2")], vec![leaf("line2")]),
+            element("div", vec![attr("key", "3")], vec![leaf("line3")]),
         ],
     );
 
@@ -20,9 +21,9 @@ fn text_changed_non_keyed() {
         "main",
         vec![attr("class", "container"), attr("key", "container")],
         vec![
-            element("div", vec![attr("key", "3")], vec![text("line3")]),
-            element("div", vec![attr("key", "2")], vec![text("line2")]),
-            element("div", vec![attr("key", "1")], vec![text("line1")]),
+            element("div", vec![attr("key", "3")], vec![leaf("line3")]),
+            element("div", vec![attr("key", "2")], vec![leaf("line2")]),
+            element("div", vec![attr("key", "1")], vec![leaf("line1")]),
         ],
     );
 
@@ -41,7 +42,7 @@ fn text_changed_non_keyed() {
                 vec![&element(
                     "div",
                     vec![attr("key", "2")],
-                    vec![text("line2")]
+                    vec![leaf("line2")]
                 ),]
             ),
             Patch::append_children(
@@ -50,7 +51,7 @@ fn text_changed_non_keyed() {
                 vec![&element(
                     "div",
                     vec![attr("key", "1")],
-                    vec![text("line1")]
+                    vec![leaf("line1")]
                 )]
             ),
             Patch::remove_node(Some(&"div"), TreePath::new(vec![0, 0])),

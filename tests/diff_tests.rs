@@ -1,7 +1,8 @@
 #![deny(warnings)]
 use mt_dom::{patch::*, *};
 
-pub type MyNode = Node<&'static str, &'static str, &'static str, &'static str>;
+pub type MyNode =
+    Node<&'static str, &'static str, &'static str, &'static str, &'static str>;
 
 #[test]
 fn test_replace_node() {
@@ -21,7 +22,7 @@ fn test_replace_node() {
 
 #[test]
 fn test_replace_text_node() {
-    let old: MyNode = text("hello");
+    let old: MyNode = leaf("hello");
     let new = element("span", vec![], vec![]);
 
     let diff = diff_with_key(&old, &new, &"key");
@@ -151,27 +152,27 @@ fn test_class_changed() {
 }
 
 #[test]
-fn text_node_changed() {
+fn leaf_node_changed() {
     let old: MyNode = element(
         "div",
         vec![attr("id", "some-id"), attr("class", "some-class")],
-        vec![text("text1")],
+        vec![leaf("text1")],
     );
 
     let new = element(
         "div",
         vec![attr("id", "some-id"), attr("class", "some-class")],
-        vec![text("text2")],
+        vec![leaf("text2")],
     );
 
     let diff = diff_with_key(&old, &new, &"key");
     dbg!(&diff);
     assert_eq!(
         diff,
-        vec![Patch::change_text(
+        vec![Patch::replace_leaf(
             TreePath::new(vec![0, 0]),
-            &Text::new("text1"),
-            &Text::new("text2")
+            &"text1",
+            &"text2"
         )]
     )
 }
@@ -279,15 +280,15 @@ fn test_append() {
     let old: MyNode = element(
         "div",
         vec![attr("id", "some-id"), attr("class", "some-class")],
-        vec![element("div", vec![], vec![text(1)])],
+        vec![element("div", vec![], vec![leaf("1")])],
     );
 
     let new: MyNode = element(
         "div",
         vec![attr("id", "some-id"), attr("class", "some-class")],
         vec![
-            element("div", vec![], vec![text(1)]),
-            element("div", vec![], vec![text(2)]),
+            element("div", vec![], vec![leaf("1")]),
+            element("div", vec![], vec![leaf("2")]),
         ],
     );
 
@@ -297,7 +298,7 @@ fn test_append() {
         vec![Patch::append_children(
             &"div",
             TreePath::new(vec![0]),
-            vec![&element("div", vec![], vec![text(2)])],
+            vec![&element("div", vec![], vec![leaf("2")])],
         )]
     )
 }
@@ -307,16 +308,16 @@ fn test_append_more() {
     let old: MyNode = element(
         "div",
         vec![attr("id", "some-id"), attr("class", "some-class")],
-        vec![element("div", vec![], vec![text(1)])],
+        vec![element("div", vec![], vec![leaf("1")])],
     );
 
     let new: MyNode = element(
         "div",
         vec![attr("id", "some-id"), attr("class", "some-class")],
         vec![
-            element("div", vec![], vec![text(1)]),
-            element("div", vec![], vec![text(2)]),
-            element("div", vec![], vec![text(3)]),
+            element("div", vec![], vec![leaf("1")]),
+            element("div", vec![], vec![leaf("2")]),
+            element("div", vec![], vec![leaf("3")]),
         ],
     );
 
@@ -327,8 +328,8 @@ fn test_append_more() {
             &"div",
             TreePath::new(vec![0]),
             vec![
-                &element("div", vec![], vec![text(2)]),
-                &element("div", vec![], vec![text(3)])
+                &element("div", vec![], vec![leaf("2")]),
+                &element("div", vec![], vec![leaf("3")])
             ],
         )]
     )
@@ -342,7 +343,7 @@ fn test_append_at_sub_level() {
         vec![element(
             "main",
             vec![],
-            vec![element("div", vec![], vec![text(1)])],
+            vec![element("div", vec![], vec![leaf("1")])],
         )],
     );
 
@@ -353,9 +354,9 @@ fn test_append_at_sub_level() {
             "main",
             vec![],
             vec![
-                element("div", vec![], vec![text(1)]),
-                element("div", vec![], vec![text(2)]),
-                element("div", vec![], vec![text(3)]),
+                element("div", vec![], vec![leaf("1")]),
+                element("div", vec![], vec![leaf("2")]),
+                element("div", vec![], vec![leaf("3")]),
             ],
         )],
     );
@@ -368,8 +369,8 @@ fn test_append_at_sub_level() {
             &"main",
             TreePath::new(vec![0, 0]),
             vec![
-                &element("div", vec![], vec![text(2)]),
-                &element("div", vec![], vec![text(3)])
+                &element("div", vec![], vec![leaf("2")]),
+                &element("div", vec![], vec![leaf("3")])
             ],
         )]
     )

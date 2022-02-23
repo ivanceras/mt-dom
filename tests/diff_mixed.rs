@@ -1,6 +1,7 @@
 use mt_dom::{diff::*, patch::*, *};
 
-pub type MyNode = Node<&'static str, &'static str, &'static str, &'static str>;
+pub type MyNode =
+    Node<&'static str, &'static str, &'static str, &'static str, &'static str>;
 // should have no changes
 #[test]
 fn mixed_key_and_no_key_with_no_change() {
@@ -8,9 +9,9 @@ fn mixed_key_and_no_key_with_no_change() {
         "main",
         vec![attr("class", "container")],
         vec![
-            element("div", vec![], vec![text(1)]),
-            element("div", vec![attr("key", "2")], vec![text(2)]),
-            element("div", vec![], vec![text(3)]),
+            element("div", vec![], vec![leaf("1")]),
+            element("div", vec![attr("key", "2")], vec![leaf("2")]),
+            element("div", vec![], vec![leaf("3")]),
         ],
     );
 
@@ -18,9 +19,9 @@ fn mixed_key_and_no_key_with_no_change() {
         "main",
         vec![attr("class", "container")],
         vec![
-            element("div", vec![], vec![text(1)]),
-            element("div", vec![attr("key", "2")], vec![text(2)]),
-            element("div", vec![], vec![text(3)]),
+            element("div", vec![], vec![leaf("1")]),
+            element("div", vec![attr("key", "2")], vec![leaf("2")]),
+            element("div", vec![], vec![leaf("3")]),
         ],
     );
 
@@ -34,10 +35,10 @@ fn mixed_key_and_no_key_with_2_matched() {
         "main",
         vec![attr("class", "container")],
         vec![
-            element("div", vec![], vec![text(1)]),
-            element("div", vec![attr("key", "2")], vec![text(2)]),
-            element("div", vec![attr("key", "2")], vec![text(2)]),
-            element("div", vec![], vec![text(3)]),
+            element("div", vec![], vec![leaf("1")]),
+            element("div", vec![attr("key", "2")], vec![leaf("2")]),
+            element("div", vec![attr("key", "2")], vec![leaf("2")]),
+            element("div", vec![], vec![leaf("3")]),
         ],
     );
 
@@ -45,10 +46,10 @@ fn mixed_key_and_no_key_with_2_matched() {
         "main",
         vec![attr("class", "container")],
         vec![
-            element("div", vec![], vec![text(1)]),
-            element("div", vec![attr("key", "2")], vec![text(1)]),
-            element("div", vec![attr("key", "2")], vec![text(3)]),
-            element("div", vec![], vec![text(3)]),
+            element("div", vec![], vec![leaf("1")]),
+            element("div", vec![attr("key", "2")], vec![leaf("1")]),
+            element("div", vec![attr("key", "2")], vec![leaf("3")]),
+            element("div", vec![], vec![leaf("3")]),
         ],
     );
 
@@ -57,16 +58,8 @@ fn mixed_key_and_no_key_with_2_matched() {
     assert_eq!(
         diff,
         vec![
-            Patch::change_text(
-                TreePath::new(vec![0, 1, 0]),
-                &Text::new("2"),
-                &Text::new("1")
-            ),
-            Patch::change_text(
-                TreePath::new(vec![0, 2, 0]),
-                &Text::new("2"),
-                &Text::new("3")
-            )
+            Patch::replace_leaf(TreePath::new(vec![0, 1, 0]), &"2", &"1"),
+            Patch::replace_leaf(TreePath::new(vec![0, 2, 0]), &"2", &"3")
         ]
     );
 }
@@ -77,10 +70,10 @@ fn mixed_key_and_no_key_with_misordered_2_matched() {
         "main",
         vec![attr("class", "container")],
         vec![
-            element("div", vec![attr("key", "2")], vec![text(2)]),
-            element("div", vec![], vec![text(1)]),
-            element("div", vec![attr("key", "2")], vec![text(2)]),
-            element("div", vec![], vec![text(3)]),
+            element("div", vec![attr("key", "2")], vec![leaf("2")]),
+            element("div", vec![], vec![leaf("1")]),
+            element("div", vec![attr("key", "2")], vec![leaf("2")]),
+            element("div", vec![], vec![leaf("3")]),
         ],
     );
 
@@ -88,10 +81,10 @@ fn mixed_key_and_no_key_with_misordered_2_matched() {
         "main",
         vec![attr("class", "container")],
         vec![
-            element("div", vec![], vec![text(1)]),
-            element("div", vec![attr("key", "2")], vec![text(2)]),
-            element("div", vec![attr("key", "2")], vec![text(2)]),
-            element("div", vec![], vec![text(3)]),
+            element("div", vec![], vec![leaf("1")]),
+            element("div", vec![attr("key", "2")], vec![leaf("2")]),
+            element("div", vec![attr("key", "2")], vec![leaf("2")]),
+            element("div", vec![], vec![leaf("3")]),
         ],
     );
 
@@ -104,7 +97,7 @@ fn mixed_key_and_no_key_with_misordered_2_matched() {
             Patch::insert_node(
                 Some(&"main"),
                 TreePath::new(vec![0, 0]),
-                &element("div", vec![], vec![text(1)]),
+                &element("div", vec![], vec![leaf("1")]),
             ),
             Patch::remove_node(Some(&"div"), TreePath::new(vec![0, 1]),),
         ]

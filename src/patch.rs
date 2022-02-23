@@ -1,6 +1,6 @@
 //! patch module
 
-use crate::node::Text;
+//use crate::node::Text;
 use crate::{Attribute, Node};
 use std::fmt::Debug;
 
@@ -59,10 +59,11 @@ mod tree_path;
 /// 1 - is the `footer` element since it is the 2nd element of the body.
 /// 2 - is the `nav` element since it is the 3rd node in the `footer` element.
 #[derive(Clone, Debug, PartialEq)]
-pub enum Patch<'a, NS, TAG, ATT, VAL>
+pub enum Patch<'a, NS, TAG, LEAF, ATT, VAL>
 where
     NS: PartialEq + Clone + Debug,
     TAG: PartialEq + Clone + Debug,
+    LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
 {
@@ -75,7 +76,7 @@ where
         /// the path to traverse to get to the target element of which our node will be inserted before it.
         patch_path: TreePath,
         /// the node to be inserted
-        node: &'a Node<NS, TAG, ATT, VAL>,
+        node: &'a Node<NS, TAG, LEAF, ATT, VAL>,
     },
 
     /// Append a vector of child nodes to a parent node id.
@@ -85,7 +86,7 @@ where
         /// index of the node we are going to append the children into
         patch_path: TreePath,
         /// children nodes to be appended and their corresponding new_node_idx
-        children: Vec<&'a Node<NS, TAG, ATT, VAL>>,
+        children: Vec<&'a Node<NS, TAG, LEAF, ATT, VAL>>,
     },
     /// remove node
     RemoveNode {
@@ -104,7 +105,7 @@ where
         /// the traversal path of the node we are going to replace
         patch_path: TreePath,
         /// the node that will replace the target node
-        replacement: &'a Node<NS, TAG, ATT, VAL>,
+        replacement: &'a Node<NS, TAG, LEAF, ATT, VAL>,
     },
     /// Add attributes that the new node has that the old node does not
     /// Note: the attributes is not a reference since attributes of same
@@ -129,32 +130,24 @@ where
         /// attributes that are to be removed from this target node
         attrs: Vec<&'a Attribute<NS, ATT, VAL>>,
     },
-    /// Change the text of a Text node.
-    ChangeText {
-        /// the target element to be patch can be traverse using this patch path
+    /// Replace the old leaf with a new leaf
+    ReplaceLeaf {
+        /// the path to be traverse in order to replace this leaf
         patch_path: TreePath,
-        /// the old text is not really needed for applying the patch.
-        /// but it is useful for debugging purposed, that we are changing the intended target text by
-        /// visual inspection
-        old: &'a Text,
-        /// the neew text patch
-        new: &'a Text,
-    },
-    /// Change comment content of a Comment node
-    ChangeComment {
-        /// the target element to be patch can be traverse using this patch path
-        patch_path: TreePath,
-        /// old comment
-        old: &'a String,
-        /// new comment
-        new: &'a String,
+        /// the old leaf that will be replace,
+        /// this is for debugging and assertion purposes that we are
+        /// changing the matching old LEAF content in the vdom and the real dom
+        old: &'a LEAF,
+        /// the new leaf for replacement
+        new: &'a LEAF,
     },
 }
 
-impl<'a, NS, TAG, ATT, VAL> Patch<'a, NS, TAG, ATT, VAL>
+impl<'a, NS, TAG, LEAF, ATT, VAL> Patch<'a, NS, TAG, LEAF, ATT, VAL>
 where
     NS: PartialEq + Clone + Debug,
     TAG: PartialEq + Clone + Debug,
+    LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
 {
@@ -167,8 +160,7 @@ where
             Patch::ReplaceNode { patch_path, .. } => &patch_path.path,
             Patch::AddAttributes { patch_path, .. } => &patch_path.path,
             Patch::RemoveAttributes { patch_path, .. } => &patch_path.path,
-            Patch::ChangeText { patch_path, .. } => &patch_path.path,
-            Patch::ChangeComment { patch_path, .. } => &patch_path.path,
+            Patch::ReplaceLeaf { patch_path, .. } => &patch_path.path,
         }
     }
 
@@ -181,8 +173,7 @@ where
             Patch::ReplaceNode { tag, .. } => *tag,
             Patch::AddAttributes { tag, .. } => Some(tag),
             Patch::RemoveAttributes { tag, .. } => Some(tag),
-            Patch::ChangeText { .. } => None,
-            Patch::ChangeComment { .. } => None,
+            Patch::ReplaceLeaf { .. } => None,
         }
     }
 
@@ -190,8 +181,8 @@ where
     pub fn insert_node(
         tag: Option<&'a TAG>,
         patch_path: TreePath,
-        node: &'a Node<NS, TAG, ATT, VAL>,
-    ) -> Patch<'a, NS, TAG, ATT, VAL> {
+        node: &'a Node<NS, TAG, LEAF, ATT, VAL>,
+    ) -> Patch<'a, NS, TAG, LEAF, ATT, VAL> {
         Patch::InsertNode {
             tag,
             patch_path,
@@ -203,8 +194,8 @@ where
     pub fn append_children(
         tag: &'a TAG,
         patch_path: TreePath,
-        children: Vec<&'a Node<NS, TAG, ATT, VAL>>,
-    ) -> Patch<'a, NS, TAG, ATT, VAL> {
+        children: Vec<&'a Node<NS, TAG, LEAF, ATT, VAL>>,
+    ) -> Patch<'a, NS, TAG, LEAF, ATT, VAL> {
         Patch::AppendChildren {
             tag,
             patch_path,
@@ -217,7 +208,7 @@ where
     pub fn remove_node(
         tag: Option<&'a TAG>,
         patch_path: TreePath,
-    ) -> Patch<'a, NS, TAG, ATT, VAL> {
+    ) -> Patch<'a, NS, TAG, LEAF, ATT, VAL> {
         Patch::RemoveNode { tag, patch_path }
     }
 
@@ -226,8 +217,8 @@ where
     pub fn replace_node(
         tag: Option<&'a TAG>,
         patch_path: TreePath,
-        replacement: &'a Node<NS, TAG, ATT, VAL>,
-    ) -> Patch<'a, NS, TAG, ATT, VAL> {
+        replacement: &'a Node<NS, TAG, LEAF, ATT, VAL>,
+    ) -> Patch<'a, NS, TAG, LEAF, ATT, VAL> {
         Patch::ReplaceNode {
             tag,
             patch_path,
@@ -240,7 +231,7 @@ where
         tag: &'a TAG,
         patch_path: TreePath,
         attrs: Vec<&'a Attribute<NS, ATT, VAL>>,
-    ) -> Patch<'a, NS, TAG, ATT, VAL> {
+    ) -> Patch<'a, NS, TAG, LEAF, ATT, VAL> {
         Patch::AddAttributes {
             tag,
             patch_path,
@@ -254,7 +245,7 @@ where
         tag: &'a TAG,
         patch_path: TreePath,
         attrs: Vec<&'a Attribute<NS, ATT, VAL>>,
-    ) -> Patch<'a, NS, TAG, ATT, VAL> {
+    ) -> Patch<'a, NS, TAG, LEAF, ATT, VAL> {
         Patch::RemoveAttributes {
             tag,
             patch_path,
@@ -262,26 +253,13 @@ where
         }
     }
 
-    /// create a patch where the text content of a text node is changed
-    pub fn change_text(
+    /// create a patch where the old leaf is replaced with a new one
+    pub fn replace_leaf(
         patch_path: TreePath,
-        old: &'a Text,
-        new: &'a Text,
-    ) -> Patch<'a, NS, TAG, ATT, VAL> {
-        Patch::ChangeText {
-            patch_path,
-            old,
-            new,
-        }
-    }
-
-    /// A patch where the comment node is changed
-    pub fn change_comment(
-        patch_path: TreePath,
-        old: &'a String,
-        new: &'a String,
-    ) -> Patch<'a, NS, TAG, ATT, VAL> {
-        Patch::ChangeComment {
+        old: &'a LEAF,
+        new: &'a LEAF,
+    ) -> Patch<'a, NS, TAG, LEAF, ATT, VAL> {
+        Patch::ReplaceLeaf {
             patch_path,
             old,
             new,

@@ -22,7 +22,7 @@ mod keyed_elements;
 /// use mt_dom::{diff::*, patch::*, *};
 ///
 /// pub type MyNode =
-///    Node<&'static str, &'static str, &'static str, &'static str>;
+///    Node<&'static str, &'static str, &'static str, &'static str, &'static str>;
 ///
 /// let old: MyNode = element(
 ///     "main",
@@ -49,14 +49,15 @@ mod keyed_elements;
 ///     ]
 /// );
 /// ```
-pub fn diff_with_key<'a, NS, TAG, ATT, VAL>(
-    old_node: &'a Node<NS, TAG, ATT, VAL>,
-    new_node: &'a Node<NS, TAG, ATT, VAL>,
+pub fn diff_with_key<'a, NS, TAG, LEAF, ATT, VAL>(
+    old_node: &'a Node<NS, TAG, LEAF, ATT, VAL>,
+    new_node: &'a Node<NS, TAG, LEAF, ATT, VAL>,
     key: &ATT,
-) -> Vec<Patch<'a, NS, TAG, ATT, VAL>>
+) -> Vec<Patch<'a, NS, TAG, LEAF, ATT, VAL>>
 where
     NS: PartialEq + Clone + Debug,
     TAG: PartialEq + Clone + Debug,
+    LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
 {
@@ -81,33 +82,41 @@ where
 /// REP fn stands for replace function which decides if the new element should
 /// just replace the old element without diffing
 ///
-pub fn diff_with_functions<'a, NS, TAG, ATT, VAL, SKIP, REP>(
-    old_node: &'a Node<NS, TAG, ATT, VAL>,
-    new_node: &'a Node<NS, TAG, ATT, VAL>,
+pub fn diff_with_functions<'a, NS, TAG, LEAF, ATT, VAL, SKIP, REP>(
+    old_node: &'a Node<NS, TAG, LEAF, ATT, VAL>,
+    new_node: &'a Node<NS, TAG, LEAF, ATT, VAL>,
     key: &ATT,
     skip: &SKIP,
     rep: &REP,
-) -> Vec<Patch<'a, NS, TAG, ATT, VAL>>
+) -> Vec<Patch<'a, NS, TAG, LEAF, ATT, VAL>>
 where
     NS: PartialEq + Clone + Debug,
     TAG: PartialEq + Clone + Debug,
+    LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
 
-    SKIP: Fn(&'a Node<NS, TAG, ATT, VAL>, &'a Node<NS, TAG, ATT, VAL>) -> bool,
-    REP: Fn(&'a Node<NS, TAG, ATT, VAL>, &'a Node<NS, TAG, ATT, VAL>) -> bool,
+    SKIP: Fn(
+        &'a Node<NS, TAG, LEAF, ATT, VAL>,
+        &'a Node<NS, TAG, LEAF, ATT, VAL>,
+    ) -> bool,
+    REP: Fn(
+        &'a Node<NS, TAG, LEAF, ATT, VAL>,
+        &'a Node<NS, TAG, LEAF, ATT, VAL>,
+    ) -> bool,
 {
     diff_recursive(old_node, new_node, &[0], key, skip, rep)
 }
 
 /// returns true if any of the node children has key in their attributes
-fn is_any_children_keyed<NS, TAG, ATT, VAL>(
-    element: &Element<NS, TAG, ATT, VAL>,
+fn is_any_children_keyed<NS, TAG, LEAF, ATT, VAL>(
+    element: &Element<NS, TAG, LEAF, ATT, VAL>,
     key: &ATT,
 ) -> bool
 where
     NS: PartialEq + Clone + Debug,
     TAG: PartialEq + Clone + Debug,
+    LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
 {
@@ -118,13 +127,14 @@ where
 }
 
 /// returns true any attributes of this node attribute has key in it
-fn is_keyed_node<NS, TAG, ATT, VAL>(
-    node: &Node<NS, TAG, ATT, VAL>,
+fn is_keyed_node<NS, TAG, LEAF, ATT, VAL>(
+    node: &Node<NS, TAG, LEAF, ATT, VAL>,
     key: &ATT,
 ) -> bool
 where
     NS: PartialEq + Clone + Debug,
     TAG: PartialEq + Clone + Debug,
+    LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
 {
@@ -135,18 +145,22 @@ where
     }
 }
 
-fn should_replace<'a, 'b, NS, TAG, ATT, VAL, REP>(
-    old_node: &'a Node<NS, TAG, ATT, VAL>,
-    new_node: &'a Node<NS, TAG, ATT, VAL>,
+fn should_replace<'a, 'b, NS, TAG, LEAF, ATT, VAL, REP>(
+    old_node: &'a Node<NS, TAG, LEAF, ATT, VAL>,
+    new_node: &'a Node<NS, TAG, LEAF, ATT, VAL>,
     key: &ATT,
     rep: &REP,
 ) -> bool
 where
     NS: PartialEq + Clone + Debug,
     TAG: PartialEq + Clone + Debug,
+    LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
-    REP: Fn(&'a Node<NS, TAG, ATT, VAL>, &'a Node<NS, TAG, ATT, VAL>) -> bool,
+    REP: Fn(
+        &'a Node<NS, TAG, LEAF, ATT, VAL>,
+        &'a Node<NS, TAG, LEAF, ATT, VAL>,
+    ) -> bool,
 {
     // replace if they have different enum variants
     if mem::discriminant(old_node) != mem::discriminant(new_node) {
@@ -179,21 +193,28 @@ where
     false
 }
 
-fn diff_recursive<'a, 'b, NS, TAG, ATT, VAL, SKIP, REP>(
-    old_node: &'a Node<NS, TAG, ATT, VAL>,
-    new_node: &'a Node<NS, TAG, ATT, VAL>,
+fn diff_recursive<'a, 'b, NS, TAG, LEAF, ATT, VAL, SKIP, REP>(
+    old_node: &'a Node<NS, TAG, LEAF, ATT, VAL>,
+    new_node: &'a Node<NS, TAG, LEAF, ATT, VAL>,
     path: &[usize],
     key: &ATT,
     skip: &SKIP,
     rep: &REP,
-) -> Vec<Patch<'a, NS, TAG, ATT, VAL>>
+) -> Vec<Patch<'a, NS, TAG, LEAF, ATT, VAL>>
 where
     NS: PartialEq + Clone + Debug,
+    LEAF: PartialEq + Clone + Debug,
     TAG: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
-    SKIP: Fn(&'a Node<NS, TAG, ATT, VAL>, &'a Node<NS, TAG, ATT, VAL>) -> bool,
-    REP: Fn(&'a Node<NS, TAG, ATT, VAL>, &'a Node<NS, TAG, ATT, VAL>) -> bool,
+    SKIP: Fn(
+        &'a Node<NS, TAG, LEAF, ATT, VAL>,
+        &'a Node<NS, TAG, LEAF, ATT, VAL>,
+    ) -> bool,
+    REP: Fn(
+        &'a Node<NS, TAG, LEAF, ATT, VAL>,
+        &'a Node<NS, TAG, LEAF, ATT, VAL>,
+    ) -> bool,
 {
     // skip diffing if the function evaluates to true
     if skip(old_node, new_node) {
@@ -217,28 +238,16 @@ where
     // cases have already been handled above by comparing variant
     // discriminants.
     match (old_node, new_node) {
-        // We're comparing two text nodes
-        (Node::Text(old_text), Node::Text(new_text)) => {
-            if old_text != new_text {
-                let ct = Patch::change_text(
+        (Node::Leaf(old_leaf), Node::Leaf(new_leaf)) => {
+            if old_leaf != new_leaf {
+                let ct = Patch::replace_leaf(
                     TreePath::new(path.to_vec()),
-                    old_text,
-                    new_text,
+                    old_leaf,
+                    new_leaf,
                 );
                 patches.push(ct);
             }
         }
-        (Node::Comment(old_comment), Node::Comment(new_comment)) => {
-            if old_comment != new_comment {
-                let ct = Patch::change_comment(
-                    TreePath::new(path.to_vec()),
-                    old_comment,
-                    new_comment,
-                );
-                patches.push(ct);
-            }
-        }
-
         // We're comparing two element nodes
         (Node::Element(old_element), Node::Element(new_element)) => {
             if is_any_children_keyed(old_element, key)
@@ -287,21 +296,28 @@ where
 ///  it will be all appended in the old_element.
 ///
 ///
-fn diff_non_keyed_elements<'a, 'b, NS, TAG, ATT, VAL, SKIP, REP>(
-    old_element: &'a Element<NS, TAG, ATT, VAL>,
-    new_element: &'a Element<NS, TAG, ATT, VAL>,
+fn diff_non_keyed_elements<'a, 'b, NS, TAG, LEAF, ATT, VAL, SKIP, REP>(
+    old_element: &'a Element<NS, TAG, LEAF, ATT, VAL>,
+    new_element: &'a Element<NS, TAG, LEAF, ATT, VAL>,
     key: &ATT,
     path: &[usize],
     skip: &SKIP,
     rep: &REP,
-) -> Vec<Patch<'a, NS, TAG, ATT, VAL>>
+) -> Vec<Patch<'a, NS, TAG, LEAF, ATT, VAL>>
 where
     NS: PartialEq + Clone + Debug,
+    LEAF: PartialEq + Clone + Debug,
     TAG: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
-    SKIP: Fn(&'a Node<NS, TAG, ATT, VAL>, &'a Node<NS, TAG, ATT, VAL>) -> bool,
-    REP: Fn(&'a Node<NS, TAG, ATT, VAL>, &'a Node<NS, TAG, ATT, VAL>) -> bool,
+    SKIP: Fn(
+        &'a Node<NS, TAG, LEAF, ATT, VAL>,
+        &'a Node<NS, TAG, LEAF, ATT, VAL>,
+    ) -> bool,
+    REP: Fn(
+        &'a Node<NS, TAG, LEAF, ATT, VAL>,
+        &'a Node<NS, TAG, LEAF, ATT, VAL>,
+    ) -> bool,
 {
     let this_cur_path = path.to_vec();
     let mut patches = vec![];
@@ -355,19 +371,20 @@ where
     patches
 }
 
-fn create_append_children_patch<'a, NS, TAG, ATT, VAL>(
-    old_element: &'a Element<NS, TAG, ATT, VAL>,
-    new_element: &'a Element<NS, TAG, ATT, VAL>,
+fn create_append_children_patch<'a, NS, TAG, LEAF, ATT, VAL>(
+    old_element: &'a Element<NS, TAG, LEAF, ATT, VAL>,
+    new_element: &'a Element<NS, TAG, LEAF, ATT, VAL>,
     this_cur_path: Vec<usize>,
-) -> Patch<'a, NS, TAG, ATT, VAL>
+) -> Patch<'a, NS, TAG, LEAF, ATT, VAL>
 where
     NS: PartialEq + Clone + Debug,
+    LEAF: PartialEq + Clone + Debug,
     TAG: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
 {
     let old_child_count = old_element.children.len();
-    let mut append_patch: Vec<&'a Node<NS, TAG, ATT, VAL>> = vec![];
+    let mut append_patch: Vec<&'a Node<NS, TAG, LEAF, ATT, VAL>> = vec![];
 
     for append_child in new_element.children.iter().skip(old_child_count) {
         append_patch.push(append_child);
@@ -380,13 +397,14 @@ where
     )
 }
 
-fn create_remove_node_patch<'a, NS, TAG, ATT, VAL>(
-    old_element: &'a Element<NS, TAG, ATT, VAL>,
-    new_element: &'a Element<NS, TAG, ATT, VAL>,
+fn create_remove_node_patch<'a, NS, TAG, LEAF, ATT, VAL>(
+    old_element: &'a Element<NS, TAG, LEAF, ATT, VAL>,
+    new_element: &'a Element<NS, TAG, LEAF, ATT, VAL>,
     path: &[usize],
-) -> Vec<Patch<'a, NS, TAG, ATT, VAL>>
+) -> Vec<Patch<'a, NS, TAG, LEAF, ATT, VAL>>
 where
     NS: PartialEq + Clone + Debug,
+    LEAF: PartialEq + Clone + Debug,
     TAG: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
@@ -412,13 +430,14 @@ where
 /// Note: The performance bottlenecks
 ///     - allocating new vec
 ///     - merging attributes of the same name
-fn create_attribute_patches<'a, NS, TAG, ATT, VAL>(
-    old_element: &'a Element<NS, TAG, ATT, VAL>,
-    new_element: &'a Element<NS, TAG, ATT, VAL>,
+fn create_attribute_patches<'a, NS, TAG, LEAF, ATT, VAL>(
+    old_element: &'a Element<NS, TAG, LEAF, ATT, VAL>,
+    new_element: &'a Element<NS, TAG, LEAF, ATT, VAL>,
     path: &[usize],
-) -> Vec<Patch<'a, NS, TAG, ATT, VAL>>
+) -> Vec<Patch<'a, NS, TAG, LEAF, ATT, VAL>>
 where
     NS: PartialEq + Clone + Debug,
+    LEAF: PartialEq + Clone + Debug,
     TAG: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,

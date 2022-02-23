@@ -1,14 +1,15 @@
 use mt_dom::{diff::*, patch::*, *};
 
-pub type MyNode = Node<&'static str, &'static str, &'static str, &'static str>;
+pub type MyNode =
+    Node<&'static str, &'static str, &'static str, &'static str, &'static str>;
 #[test]
 fn insert_on_deep_level_keyed() {
     let old: MyNode = element(
         "main",
         vec![attr("key", "container")],
         vec![
-            element("div", vec![attr("key", "1")], vec![text(0)]),
-            element("div", vec![attr("key", "3")], vec![text(2)]),
+            element("div", vec![attr("key", "1")], vec![leaf("0")]),
+            element("div", vec![attr("key", "3")], vec![leaf("2")]),
         ],
     );
 
@@ -16,9 +17,9 @@ fn insert_on_deep_level_keyed() {
         "main",
         vec![attr("key", "container")],
         vec![
-            element("div", vec![attr("key", "1")], vec![text(0)]),
-            element("div", vec![attr("key", "2")], vec![text(1)]),
-            element("div", vec![attr("key", "3")], vec![text(2)]),
+            element("div", vec![attr("key", "1")], vec![leaf("0")]),
+            element("div", vec![attr("key", "2")], vec![leaf("1")]),
+            element("div", vec![attr("key", "3")], vec![leaf("2")]),
         ],
     );
 
@@ -31,7 +32,7 @@ fn insert_on_deep_level_keyed() {
         vec![Patch::insert_node(
             Some(&"main"),
             TreePath::new(vec![0, 1]),
-            &element("div", vec![attr("key", "2")], vec![text(1)])
+            &element("div", vec![attr("key", "2")], vec![leaf("1")])
         ),]
     );
 }
@@ -42,7 +43,7 @@ fn insert_on_deep_multi_level_level_keyed() {
         "main",
         vec![attr("key", "container")],
         vec![
-            element("div", vec![attr("key", "1")], vec![text(0)]),
+            element("div", vec![attr("key", "1")], vec![leaf("0")]),
             element(
                 "div",
                 vec![attr("key", "2")],
@@ -58,7 +59,7 @@ fn insert_on_deep_multi_level_level_keyed() {
         "main",
         vec![attr("key", "container")],
         vec![
-            element("div", vec![attr("key", "1")], vec![text(0)]),
+            element("div", vec![attr("key", "1")], vec![leaf("0")]),
             element(
                 "div",
                 vec![attr("key", "2")],
@@ -91,7 +92,7 @@ fn insert_on_deep_multi_level_keyed_non_keyed_keyed() {
         "main",
         vec![attr("key", "container")],
         vec![
-            element("div", vec![], vec![text(0)]),
+            element("div", vec![], vec![leaf("0")]),
             element(
                 "div",
                 vec![attr("key", "2")],
@@ -107,7 +108,7 @@ fn insert_on_deep_multi_level_keyed_non_keyed_keyed() {
         "main",
         vec![attr("key", "container")],
         vec![
-            element("div", vec![], vec![text(0)]),
+            element("div", vec![], vec![leaf("0")]),
             element(
                 "div",
                 vec![attr("key", "2")],
@@ -140,8 +141,8 @@ fn insert_on_deep_level_non_keyed_container() {
         "main",
         vec![],
         vec![
-            element("div", vec![attr("key", "1")], vec![text(0)]),
-            element("div", vec![attr("key", "3")], vec![text(2)]),
+            element("div", vec![attr("key", "1")], vec![leaf("0")]),
+            element("div", vec![attr("key", "3")], vec![leaf("2")]),
         ],
     );
 
@@ -149,9 +150,9 @@ fn insert_on_deep_level_non_keyed_container() {
         "main",
         vec![],
         vec![
-            element("div", vec![attr("key", "1")], vec![text(0)]),
-            element("div", vec![attr("key", "2")], vec![text(1)]),
-            element("div", vec![attr("key", "3")], vec![text(2)]),
+            element("div", vec![attr("key", "1")], vec![leaf("0")]),
+            element("div", vec![attr("key", "2")], vec![leaf("1")]),
+            element("div", vec![attr("key", "3")], vec![leaf("2")]),
         ],
     );
 
@@ -164,7 +165,7 @@ fn insert_on_deep_level_non_keyed_container() {
         vec![Patch::insert_node(
             Some(&"main"),
             TreePath::new(vec![0, 1]),
-            &element("div", vec![attr("key", "2")], vec![text(1)])
+            &element("div", vec![attr("key", "2")], vec![leaf("1")])
         ),]
     );
 }
