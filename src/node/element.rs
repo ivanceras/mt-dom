@@ -52,15 +52,13 @@ where
         children: impl IntoIterator<Item = Node<NS, TAG, LEAF, ATT, VAL>>,
         self_closing: bool,
     ) -> Self {
-        let mut element = Element {
+        Self {
             namespace,
             tag,
             attrs: attrs.into_iter().collect(),
-            children: vec![],
+            children: children.into_iter().collect(),
             self_closing,
-        };
-        element.add_children(children);
-        element
+        }
     }
 
     /// add attributes to this element
@@ -71,21 +69,14 @@ where
         self.attrs.extend(attrs)
     }
 
-    /// add a child node on this element, if the last added element
-    /// was a text node, and the child to be added is also a text node, we automatically add a comment node to prevent the browser
-    /// from merging the text nodes into one node
-    pub fn add_child(&mut self, child: Node<NS, TAG, LEAF, ATT, VAL>) {
-        self.children.push(child);
-    }
-
     /// add children virtual node to this element
     pub fn add_children(
         &mut self,
         children: impl IntoIterator<Item = Node<NS, TAG, LEAF, ATT, VAL>>,
     ) {
-        for child in children {
-            self.add_child(child);
-        }
+        let mut new_children: Vec<Node<NS, TAG, LEAF, ATT, VAL>> =
+            children.into_iter().collect();
+        self.children.append(&mut new_children);
     }
 
     /// returns a refernce to the children of this node
