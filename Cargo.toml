@@ -1,6 +1,6 @@
 [package]
 name = "mt-dom"
-version = "0.13.0"
+version = "0.14.0"
 authors = [ "Jovansonlee Cesar <ivanceras@gmail.com>" ]
 license = "MIT"
 description = "A library for generating patches as a result diffing virtual DOM tree"
