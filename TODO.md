@@ -110,14 +110,14 @@
         ...
     }
     ```
-- [ ] (Highly tentative): Make mt-dom even more generic by not assuming Text and Comment is the variant that can be in a leaf node.
+- [X] Make mt-dom even more generic by not assuming Text and Comment is the variant that can be in a leaf node.
     - Sauron will then have
     ```rust
-    enum VNode{
+    enum Leaf{
         Text(Text),
         Comment(String),
     }
-    type HtmlNode = Node<VNode,..>;
+    type Node = Node<Leaf,..>;
     ```
     ```rust
     enum Node{

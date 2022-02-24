@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.14.0
+- Make mt-dom more generic by using a generic variant for the leaf node value.
+
 ## 0.13.0
 - refactor: collapse the Patches variant into enum struct to make it more compact and coherent in one place
 
