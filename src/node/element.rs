@@ -1,4 +1,3 @@
-use crate::comment;
 use crate::node::{Attribute, Node};
 use std::fmt::Debug;
 
@@ -16,10 +15,11 @@ use std::fmt::Debug;
 /// The namespace is also needed in attributes where namespace are necessary such as `xlink:href`
 /// where the namespace `xlink` is needed in order for the linked element in an svg image to work.
 #[derive(Clone, Debug, PartialEq, Default)]
-pub struct Element<NS, TAG, ATT, VAL>
+pub struct Element<NS, TAG, LEAF, ATT, VAL>
 where
     NS: PartialEq + Clone + Debug,
     TAG: PartialEq + Clone + Debug,
+    LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
 {
@@ -31,15 +31,16 @@ where
     /// attributes for this element
     pub attrs: Vec<Attribute<NS, ATT, VAL>>,
     /// children elements of this element
-    pub children: Vec<Node<NS, TAG, ATT, VAL>>,
+    pub children: Vec<Node<NS, TAG, LEAF, ATT, VAL>>,
     /// is the element has a self closing tag
     pub self_closing: bool,
 }
 
-impl<NS, TAG, ATT, VAL> Element<NS, TAG, ATT, VAL>
+impl<NS, TAG, LEAF, ATT, VAL> Element<NS, TAG, LEAF, ATT, VAL>
 where
     NS: PartialEq + Clone + Debug,
     TAG: PartialEq + Clone + Debug,
+    LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
 {
@@ -48,18 +49,16 @@ where
         namespace: Option<NS>,
         tag: TAG,
         attrs: impl IntoIterator<Item = Attribute<NS, ATT, VAL>>,
-        children: impl IntoIterator<Item = Node<NS, TAG, ATT, VAL>>,
+        children: impl IntoIterator<Item = Node<NS, TAG, LEAF, ATT, VAL>>,
         self_closing: bool,
     ) -> Self {
-        let mut element = Element {
+        Self {
             namespace,
             tag,
             attrs: attrs.into_iter().collect(),
-            children: vec![],
+            children: children.into_iter().collect(),
             self_closing,
-        };
-        element.add_children(children);
-        element
+        }
     }
 
     /// add attributes to this element
@@ -70,35 +69,23 @@ where
         self.attrs.extend(attrs)
     }
 
-    /// add a child node on this element, if the last added element
-    /// was a text node, and the child to be added is also a text node, we automatically add a comment node to prevent the browser
-    /// from merging the text nodes into one node
-    pub fn add_child(&mut self, child: Node<NS, TAG, ATT, VAL>) {
-        if let Some(last) = self.children.last() {
-            if last.is_text() && child.is_text() {
-                self.children.push(comment("separator"))
-            }
-        }
-        self.children.push(child);
-    }
-
     /// add children virtual node to this element
     pub fn add_children(
         &mut self,
-        children: impl IntoIterator<Item = Node<NS, TAG, ATT, VAL>>,
+        children: impl IntoIterator<Item = Node<NS, TAG, LEAF, ATT, VAL>>,
     ) {
-        for child in children {
-            self.add_child(child);
-        }
+        let mut new_children: Vec<Node<NS, TAG, LEAF, ATT, VAL>> =
+            children.into_iter().collect();
+        self.children.append(&mut new_children);
     }
 
     /// returns a refernce to the children of this node
-    pub fn get_children(&self) -> &[Node<NS, TAG, ATT, VAL>] {
+    pub fn get_children(&self) -> &[Node<NS, TAG, LEAF, ATT, VAL>] {
         &self.children
     }
 
     /// returns a mutable reference to the children of this node
-    pub fn children_mut(&mut self) -> &mut [Node<NS, TAG, ATT, VAL>] {
+    pub fn children_mut(&mut self) -> &mut [Node<NS, TAG, LEAF, ATT, VAL>] {
         &mut self.children
     }
 
@@ -112,7 +99,7 @@ where
     pub fn swap_remove_child(
         &mut self,
         index: usize,
-    ) -> Node<NS, TAG, ATT, VAL> {
+    ) -> Node<NS, TAG, LEAF, ATT, VAL> {
         self.children.swap_remove(index)
     }
 
@@ -130,7 +117,7 @@ where
     }
 
     /// consume self and return the children
-    pub fn take_children(self) -> Vec<Node<NS, TAG, ATT, VAL>> {
+    pub fn take_children(self) -> Vec<Node<NS, TAG, LEAF, ATT, VAL>> {
         self.children
     }
 

@@ -1,6 +1,7 @@
 use mt_dom::{diff::*, patch::*, *};
 
-pub type MyNode = Node<&'static str, &'static str, &'static str, &'static str>;
+pub type MyNode =
+    Node<&'static str, &'static str, &'static str, &'static str, &'static str>;
 
 #[test]
 fn key_inserted_at_start() {
@@ -8,15 +9,15 @@ fn key_inserted_at_start() {
         "main",
         vec![attr("class", "container")],
         vec![
-            element("div", vec![attr("key", "1")], vec![text("line1")]),
-            element("div", vec![attr("key", "2")], vec![text("line2")]),
-            element("div", vec![attr("key", "3")], vec![text("line3")]),
-            element("div", vec![attr("key", "4")], vec![text("line4")]),
-            element("div", vec![attr("key", "5")], vec![text("line5")]),
-            element("div", vec![attr("key", "6")], vec![text("line6")]),
-            element("div", vec![attr("key", "7")], vec![text("line7")]),
-            element("div", vec![attr("key", "8")], vec![text("line8")]),
-            element("div", vec![attr("key", "9")], vec![text("line9")]),
+            element("div", vec![attr("key", "1")], vec![leaf("line1")]),
+            element("div", vec![attr("key", "2")], vec![leaf("line2")]),
+            element("div", vec![attr("key", "3")], vec![leaf("line3")]),
+            element("div", vec![attr("key", "4")], vec![leaf("line4")]),
+            element("div", vec![attr("key", "5")], vec![leaf("line5")]),
+            element("div", vec![attr("key", "6")], vec![leaf("line6")]),
+            element("div", vec![attr("key", "7")], vec![leaf("line7")]),
+            element("div", vec![attr("key", "8")], vec![leaf("line8")]),
+            element("div", vec![attr("key", "9")], vec![leaf("line9")]),
         ],
     );
 
@@ -24,16 +25,16 @@ fn key_inserted_at_start() {
         "main",
         vec![attr("class", "container")],
         vec![
-            element("div", vec![attr("key", "XXX")], vec![text("lineXXX")]),
-            element("div", vec![attr("key", "1")], vec![text("line1")]),
-            element("div", vec![attr("key", "2")], vec![text("line2")]),
-            element("div", vec![attr("key", "3")], vec![text("line3")]),
-            element("div", vec![attr("key", "4")], vec![text("line4")]),
-            element("div", vec![attr("key", "5")], vec![text("line5")]),
-            element("div", vec![attr("key", "6")], vec![text("line6")]),
-            element("div", vec![attr("key", "7")], vec![text("line7")]),
-            element("div", vec![attr("key", "8")], vec![text("line8")]),
-            element("div", vec![attr("key", "9")], vec![text("line9")]),
+            element("div", vec![attr("key", "XXX")], vec![leaf("lineXXX")]),
+            element("div", vec![attr("key", "1")], vec![leaf("line1")]),
+            element("div", vec![attr("key", "2")], vec![leaf("line2")]),
+            element("div", vec![attr("key", "3")], vec![leaf("line3")]),
+            element("div", vec![attr("key", "4")], vec![leaf("line4")]),
+            element("div", vec![attr("key", "5")], vec![leaf("line5")]),
+            element("div", vec![attr("key", "6")], vec![leaf("line6")]),
+            element("div", vec![attr("key", "7")], vec![leaf("line7")]),
+            element("div", vec![attr("key", "8")], vec![leaf("line8")]),
+            element("div", vec![attr("key", "9")], vec![leaf("line9")]),
         ],
     );
 
@@ -43,7 +44,7 @@ fn key_inserted_at_start() {
         vec![Patch::insert_node(
             Some(&"main"),
             TreePath::new(vec![0, 0]),
-            &element("div", vec![attr("key", "XXX")], vec![text("lineXXX")])
+            &element("div", vec![attr("key", "XXX")], vec![leaf("lineXXX")])
         )]
     );
 }
@@ -55,15 +56,15 @@ fn key_inserted_at_middle() {
         "main",
         vec![attr("class", "container")],
         vec![
-            element("div", vec![attr("key", "1")], vec![text("line1")]),
-            element("div", vec![attr("key", "2")], vec![text("line2")]),
-            element("div", vec![attr("key", "3")], vec![text("line3")]),
-            element("div", vec![attr("key", "4")], vec![text("line4")]),
-            element("div", vec![attr("key", "5")], vec![text("line5")]),
-            element("div", vec![attr("key", "6")], vec![text("line6")]),
-            element("div", vec![attr("key", "7")], vec![text("line7")]),
-            element("div", vec![attr("key", "8")], vec![text("line8")]),
-            element("div", vec![attr("key", "9")], vec![text("line9")]),
+            element("div", vec![attr("key", "1")], vec![leaf("line1")]),
+            element("div", vec![attr("key", "2")], vec![leaf("line2")]),
+            element("div", vec![attr("key", "3")], vec![leaf("line3")]),
+            element("div", vec![attr("key", "4")], vec![leaf("line4")]),
+            element("div", vec![attr("key", "5")], vec![leaf("line5")]),
+            element("div", vec![attr("key", "6")], vec![leaf("line6")]),
+            element("div", vec![attr("key", "7")], vec![leaf("line7")]),
+            element("div", vec![attr("key", "8")], vec![leaf("line8")]),
+            element("div", vec![attr("key", "9")], vec![leaf("line9")]),
         ],
     );
 
@@ -71,16 +72,16 @@ fn key_inserted_at_middle() {
         "main",
         vec![attr("class", "container")],
         vec![
-            element("div", vec![attr("key", "1")], vec![text("line1")]),
-            element("div", vec![attr("key", "2")], vec![text("line2")]),
-            element("div", vec![attr("key", "3")], vec![text("line3")]),
-            element("div", vec![attr("key", "4")], vec![text("line4")]),
-            element("div", vec![attr("key", "5")], vec![text("line5")]),
-            element("div", vec![attr("key", "XXX")], vec![text("lineXXX")]),
-            element("div", vec![attr("key", "6")], vec![text("line6")]),
-            element("div", vec![attr("key", "7")], vec![text("line7")]),
-            element("div", vec![attr("key", "8")], vec![text("line8")]),
-            element("div", vec![attr("key", "9")], vec![text("line9")]),
+            element("div", vec![attr("key", "1")], vec![leaf("line1")]),
+            element("div", vec![attr("key", "2")], vec![leaf("line2")]),
+            element("div", vec![attr("key", "3")], vec![leaf("line3")]),
+            element("div", vec![attr("key", "4")], vec![leaf("line4")]),
+            element("div", vec![attr("key", "5")], vec![leaf("line5")]),
+            element("div", vec![attr("key", "XXX")], vec![leaf("lineXXX")]),
+            element("div", vec![attr("key", "6")], vec![leaf("line6")]),
+            element("div", vec![attr("key", "7")], vec![leaf("line7")]),
+            element("div", vec![attr("key", "8")], vec![leaf("line8")]),
+            element("div", vec![attr("key", "9")], vec![leaf("line9")]),
         ],
     );
 
@@ -92,7 +93,7 @@ fn key_inserted_at_middle() {
         vec![Patch::insert_node(
             Some(&"main"),
             TreePath::new(vec![0, 5]),
-            &element("div", vec![attr("key", "XXX")], vec![text("lineXXX")])
+            &element("div", vec![attr("key", "XXX")], vec![leaf("lineXXX")])
         )]
     );
 }
@@ -107,15 +108,15 @@ fn wrapped_elements() {
             "main",
             vec![attr("class", "container")],
             vec![
-                element("div", vec![attr("key", "1")], vec![text("line1")]),
-                element("div", vec![attr("key", "2")], vec![text("line2")]),
-                element("div", vec![attr("key", "3")], vec![text("line3")]),
-                element("div", vec![attr("key", "4")], vec![text("line4")]),
-                element("div", vec![attr("key", "5")], vec![text("line5")]),
-                element("div", vec![attr("key", "6")], vec![text("line6")]),
-                element("div", vec![attr("key", "7")], vec![text("line7")]),
-                element("div", vec![attr("key", "8")], vec![text("line8")]),
-                element("div", vec![attr("key", "9")], vec![text("line9")]),
+                element("div", vec![attr("key", "1")], vec![leaf("line1")]),
+                element("div", vec![attr("key", "2")], vec![leaf("line2")]),
+                element("div", vec![attr("key", "3")], vec![leaf("line3")]),
+                element("div", vec![attr("key", "4")], vec![leaf("line4")]),
+                element("div", vec![attr("key", "5")], vec![leaf("line5")]),
+                element("div", vec![attr("key", "6")], vec![leaf("line6")]),
+                element("div", vec![attr("key", "7")], vec![leaf("line7")]),
+                element("div", vec![attr("key", "8")], vec![leaf("line8")]),
+                element("div", vec![attr("key", "9")], vec![leaf("line9")]),
             ],
         )],
     );
@@ -127,16 +128,16 @@ fn wrapped_elements() {
             "main",
             vec![attr("class", "container")],
             vec![
-                element("div", vec![attr("key", "1")], vec![text("line1")]),
-                element("div", vec![attr("key", "2")], vec![text("line2")]),
-                element("div", vec![attr("key", "3")], vec![text("line3")]),
-                element("div", vec![attr("key", "4")], vec![text("line4")]),
-                element("div", vec![attr("key", "5")], vec![text("line5")]),
-                element("div", vec![attr("key", "XXX")], vec![text("lineXXX")]),
-                element("div", vec![attr("key", "6")], vec![text("line6")]),
-                element("div", vec![attr("key", "7")], vec![text("line7")]),
-                element("div", vec![attr("key", "8")], vec![text("line8")]),
-                element("div", vec![attr("key", "9")], vec![text("line9")]),
+                element("div", vec![attr("key", "1")], vec![leaf("line1")]),
+                element("div", vec![attr("key", "2")], vec![leaf("line2")]),
+                element("div", vec![attr("key", "3")], vec![leaf("line3")]),
+                element("div", vec![attr("key", "4")], vec![leaf("line4")]),
+                element("div", vec![attr("key", "5")], vec![leaf("line5")]),
+                element("div", vec![attr("key", "XXX")], vec![leaf("lineXXX")]),
+                element("div", vec![attr("key", "6")], vec![leaf("line6")]),
+                element("div", vec![attr("key", "7")], vec![leaf("line7")]),
+                element("div", vec![attr("key", "8")], vec![leaf("line8")]),
+                element("div", vec![attr("key", "9")], vec![leaf("line9")]),
             ],
         )],
     );
@@ -148,7 +149,7 @@ fn wrapped_elements() {
         vec![Patch::insert_node(
             Some(&"main"),
             TreePath::new(vec![0, 0, 5]),
-            &element("div", vec![attr("key", "XXX")], vec![text("lineXXX")])
+            &element("div", vec![attr("key", "XXX")], vec![leaf("lineXXX")])
         )]
     );
 }
@@ -163,15 +164,15 @@ fn text_changed() {
             "main",
             vec![attr("class", "container")],
             vec![
-                element("div", vec![attr("key", "1")], vec![text("line1")]),
-                element("div", vec![attr("key", "2")], vec![text("line2")]),
-                element("div", vec![attr("key", "3")], vec![text("line3")]),
-                element("div", vec![attr("key", "4")], vec![text("line4")]),
-                element("div", vec![attr("key", "5")], vec![text("line5")]),
-                element("div", vec![attr("key", "6")], vec![text("line6")]),
-                element("div", vec![attr("key", "7")], vec![text("line7")]),
-                element("div", vec![attr("key", "8")], vec![text("line8")]),
-                element("div", vec![attr("key", "9")], vec![text("line9")]),
+                element("div", vec![attr("key", "1")], vec![leaf("line1")]),
+                element("div", vec![attr("key", "2")], vec![leaf("line2")]),
+                element("div", vec![attr("key", "3")], vec![leaf("line3")]),
+                element("div", vec![attr("key", "4")], vec![leaf("line4")]),
+                element("div", vec![attr("key", "5")], vec![leaf("line5")]),
+                element("div", vec![attr("key", "6")], vec![leaf("line6")]),
+                element("div", vec![attr("key", "7")], vec![leaf("line7")]),
+                element("div", vec![attr("key", "8")], vec![leaf("line8")]),
+                element("div", vec![attr("key", "9")], vec![leaf("line9")]),
             ],
         )],
     );
@@ -183,19 +184,19 @@ fn text_changed() {
             "main",
             vec![attr("class", "container")],
             vec![
-                element("div", vec![attr("key", "1")], vec![text("line1")]),
-                element("div", vec![attr("key", "2")], vec![text("line2")]),
-                element("div", vec![attr("key", "3")], vec![text("line3")]),
-                element("div", vec![attr("key", "4")], vec![text("line4")]),
-                element("div", vec![attr("key", "5")], vec![text("line5")]),
-                element("div", vec![attr("key", "6")], vec![text("line6")]),
+                element("div", vec![attr("key", "1")], vec![leaf("line1")]),
+                element("div", vec![attr("key", "2")], vec![leaf("line2")]),
+                element("div", vec![attr("key", "3")], vec![leaf("line3")]),
+                element("div", vec![attr("key", "4")], vec![leaf("line4")]),
+                element("div", vec![attr("key", "5")], vec![leaf("line5")]),
+                element("div", vec![attr("key", "6")], vec![leaf("line6")]),
                 element(
                     "div",
                     vec![attr("key", "7")],
-                    vec![text("line7_changed")],
+                    vec![leaf("line7_changed")],
                 ),
-                element("div", vec![attr("key", "8")], vec![text("line8")]),
-                element("div", vec![attr("key", "9")], vec![text("line9")]),
+                element("div", vec![attr("key", "8")], vec![leaf("line8")]),
+                element("div", vec![attr("key", "9")], vec![leaf("line9")]),
             ],
         )],
     );
@@ -204,10 +205,10 @@ fn text_changed() {
     dbg!(&diff);
     assert_eq!(
         diff,
-        vec![Patch::change_text(
+        vec![Patch::replace_leaf(
             TreePath::new(vec![0, 0, 6, 0]),
-            &Text::new("line7"),
-            &Text::new("line7_changed")
+            &"line7",
+            &"line7_changed"
         )]
     );
 }
@@ -222,15 +223,15 @@ fn text_changed_non_keyed() {
             "main",
             vec![attr("class", "container")],
             vec![
-                element("div", vec![], vec![text("line1")]),
-                element("div", vec![], vec![text("line2")]),
-                element("div", vec![], vec![text("line3")]),
-                element("div", vec![], vec![text("line4")]),
-                element("div", vec![], vec![text("line5")]),
-                element("div", vec![], vec![text("line6")]),
-                element("div", vec![], vec![text("line7")]),
-                element("div", vec![], vec![text("line8")]),
-                element("div", vec![], vec![text("line9")]),
+                element("div", vec![], vec![leaf("line1")]),
+                element("div", vec![], vec![leaf("line2")]),
+                element("div", vec![], vec![leaf("line3")]),
+                element("div", vec![], vec![leaf("line4")]),
+                element("div", vec![], vec![leaf("line5")]),
+                element("div", vec![], vec![leaf("line6")]),
+                element("div", vec![], vec![leaf("line7")]),
+                element("div", vec![], vec![leaf("line8")]),
+                element("div", vec![], vec![leaf("line9")]),
             ],
         )],
     );
@@ -242,15 +243,15 @@ fn text_changed_non_keyed() {
             "main",
             vec![attr("class", "container")],
             vec![
-                element("div", vec![], vec![text("line1")]),
-                element("div", vec![], vec![text("line2")]),
-                element("div", vec![], vec![text("line3")]),
-                element("div", vec![], vec![text("line4")]),
-                element("div", vec![], vec![text("line5")]),
-                element("div", vec![], vec![text("line6")]),
-                element("div", vec![], vec![text("line7_changed")]),
-                element("div", vec![], vec![text("line8")]),
-                element("div", vec![], vec![text("line9")]),
+                element("div", vec![], vec![leaf("line1")]),
+                element("div", vec![], vec![leaf("line2")]),
+                element("div", vec![], vec![leaf("line3")]),
+                element("div", vec![], vec![leaf("line4")]),
+                element("div", vec![], vec![leaf("line5")]),
+                element("div", vec![], vec![leaf("line6")]),
+                element("div", vec![], vec![leaf("line7_changed")]),
+                element("div", vec![], vec![leaf("line8")]),
+                element("div", vec![], vec![leaf("line9")]),
             ],
         )],
     );
@@ -260,10 +261,10 @@ fn text_changed_non_keyed() {
 
     assert_eq!(
         diff,
-        vec![Patch::change_text(
+        vec![Patch::replace_leaf(
             TreePath::new(vec![0, 0, 6, 0]),
-            &Text::new("line7"),
-            &Text::new("line7_changed")
+            &"line7",
+            &"line7_changed"
         )]
     );
 }
@@ -282,24 +283,24 @@ fn insert_one_line_at_start() {
                     "div",
                     vec![attr("key", "hash1")],
                     vec![
-                        element("div", vec![], vec![text(1)]),
-                        element("div", vec![], vec![text("line1")]),
+                        element("div", vec![], vec![leaf("1")]),
+                        element("div", vec![], vec![leaf("line1")]),
                     ],
                 ),
                 element(
                     "div",
                     vec![attr("key", "hash2")],
                     vec![
-                        element("div", vec![], vec![text(2)]),
-                        element("div", vec![], vec![text("line3")]),
+                        element("div", vec![], vec![leaf("2")]),
+                        element("div", vec![], vec![leaf("line3")]),
                     ],
                 ),
                 element(
                     "div",
                     vec![attr("key", "hash3")],
                     vec![
-                        element("div", vec![], vec![text(3)]),
-                        element("div", vec![], vec![text("line3")]),
+                        element("div", vec![], vec![leaf("3")]),
+                        element("div", vec![], vec![leaf("line3")]),
                     ],
                 ),
             ],
@@ -317,32 +318,32 @@ fn insert_one_line_at_start() {
                     "div",
                     vec![attr("key", "hashXXX")],
                     vec![
-                        element("div", vec![], vec![text(1)]),
-                        element("div", vec![], vec![text("XXX")]),
+                        element("div", vec![], vec![leaf("1")]),
+                        element("div", vec![], vec![leaf("XXX")]),
                     ],
                 ),
                 element(
                     "div",
                     vec![attr("key", "hash1")],
                     vec![
-                        element("div", vec![], vec![text(2)]),
-                        element("div", vec![], vec![text("line1")]),
+                        element("div", vec![], vec![leaf("2")]),
+                        element("div", vec![], vec![leaf("line1")]),
                     ],
                 ),
                 element(
                     "div",
                     vec![attr("key", "hash2")],
                     vec![
-                        element("div", vec![], vec![text(3)]),
-                        element("div", vec![], vec![text("line3")]),
+                        element("div", vec![], vec![leaf("3")]),
+                        element("div", vec![], vec![leaf("line3")]),
                     ],
                 ),
                 element(
                     "div",
                     vec![attr("key", "hash3")],
                     vec![
-                        element("div", vec![], vec![text(4)]),
-                        element("div", vec![], vec![text("line3")]),
+                        element("div", vec![], vec![leaf("4")]),
+                        element("div", vec![], vec![leaf("line3")]),
                     ],
                 ),
             ],
@@ -354,21 +355,9 @@ fn insert_one_line_at_start() {
     assert_eq!(
         diff,
         vec![
-            Patch::change_text(
-                TreePath::new(vec![0, 0, 0, 0, 0]),
-                &Text::new("1"),
-                &Text::new("2")
-            ),
-            Patch::change_text(
-                TreePath::new(vec![0, 0, 1, 0, 0]),
-                &Text::new("2"),
-                &Text::new("3")
-            ),
-            Patch::change_text(
-                TreePath::new(vec![0, 0, 2, 0, 0]),
-                &Text::new("3"),
-                &Text::new("4")
-            ),
+            Patch::replace_leaf(TreePath::new(vec![0, 0, 0, 0, 0]), &"1", &"2"),
+            Patch::replace_leaf(TreePath::new(vec![0, 0, 1, 0, 0]), &"2", &"3"),
+            Patch::replace_leaf(TreePath::new(vec![0, 0, 2, 0, 0]), &"3", &"4"),
             Patch::insert_node(
                 Some(&"main"),
                 TreePath::new(vec![0, 0, 0]),
@@ -376,8 +365,8 @@ fn insert_one_line_at_start() {
                     "div",
                     vec![attr("key", "hashXXX")],
                     vec![
-                        element("div", vec![], vec![text(1)]),
-                        element("div", vec![], vec![text("XXX")]),
+                        element("div", vec![], vec![leaf("1")]),
+                        element("div", vec![], vec![leaf("XXX")]),
                     ],
                 ),
             )
@@ -399,24 +388,24 @@ fn insert_two_lines_at_start() {
                     "div",
                     vec![attr("key", "hash1")],
                     vec![
-                        element("div", vec![], vec![text(1)]),
-                        element("div", vec![], vec![text("line1")]),
+                        element("div", vec![], vec![leaf("1")]),
+                        element("div", vec![], vec![leaf("line1")]),
                     ],
                 ),
                 element(
                     "div",
                     vec![attr("key", "hash2")],
                     vec![
-                        element("div", vec![], vec![text(2)]),
-                        element("div", vec![], vec![text("line2")]),
+                        element("div", vec![], vec![leaf("2")]),
+                        element("div", vec![], vec![leaf("line2")]),
                     ],
                 ),
                 element(
                     "div",
                     vec![attr("key", "hash3")],
                     vec![
-                        element("div", vec![], vec![text(2)]),
-                        element("div", vec![], vec![text("line3")]),
+                        element("div", vec![], vec![leaf("2")]),
+                        element("div", vec![], vec![leaf("line3")]),
                     ],
                 ),
             ],
@@ -434,40 +423,40 @@ fn insert_two_lines_at_start() {
                     "div",
                     vec![attr("key", "hashXXX")],
                     vec![
-                        element("div", vec![], vec![text(1)]),
-                        element("div", vec![], vec![text("XXX")]),
+                        element("div", vec![], vec![leaf("1")]),
+                        element("div", vec![], vec![leaf("XXX")]),
                     ],
                 ),
                 element(
                     "div",
                     vec![attr("key", "hashYYY")],
                     vec![
-                        element("div", vec![], vec![text(2)]),
-                        element("div", vec![], vec![text("YYY")]),
+                        element("div", vec![], vec![leaf("2")]),
+                        element("div", vec![], vec![leaf("YYY")]),
                     ],
                 ),
                 element(
                     "div",
                     vec![attr("key", "hash1")],
                     vec![
-                        element("div", vec![], vec![text(3)]),
-                        element("div", vec![], vec![text("line1")]),
+                        element("div", vec![], vec![leaf("3")]),
+                        element("div", vec![], vec![leaf("line1")]),
                     ],
                 ),
                 element(
                     "div",
                     vec![attr("key", "hash2")],
                     vec![
-                        element("div", vec![], vec![text(4)]),
-                        element("div", vec![], vec![text("line2")]),
+                        element("div", vec![], vec![leaf("4")]),
+                        element("div", vec![], vec![leaf("line2")]),
                     ],
                 ),
                 element(
                     "div",
                     vec![attr("key", "hash3")],
                     vec![
-                        element("div", vec![], vec![text(5)]),
-                        element("div", vec![], vec![text("line3")]),
+                        element("div", vec![], vec![leaf("5")]),
+                        element("div", vec![], vec![leaf("line3")]),
                     ],
                 ),
             ],
@@ -480,21 +469,9 @@ fn insert_two_lines_at_start() {
     assert_eq!(
         diff,
         vec![
-            Patch::change_text(
-                TreePath::new(vec![0, 0, 0, 0, 0]),
-                &Text::new("1"),
-                &Text::new("3")
-            ),
-            Patch::change_text(
-                TreePath::new(vec![0, 0, 1, 0, 0]),
-                &Text::new("2"),
-                &Text::new("4")
-            ),
-            Patch::change_text(
-                TreePath::new(vec![0, 0, 2, 0, 0]),
-                &Text::new("2"),
-                &Text::new("5")
-            ),
+            Patch::replace_leaf(TreePath::new(vec![0, 0, 0, 0, 0]), &"1", &"3"),
+            Patch::replace_leaf(TreePath::new(vec![0, 0, 1, 0, 0]), &"2", &"4"),
+            Patch::replace_leaf(TreePath::new(vec![0, 0, 2, 0, 0]), &"2", &"5"),
             Patch::insert_node(
                 Some(&"main"),
                 TreePath::new(vec![0, 0, 0]),
@@ -502,8 +479,8 @@ fn insert_two_lines_at_start() {
                     "div",
                     vec![attr("key", "hashXXX")],
                     vec![
-                        element("div", vec![], vec![text(1)]),
-                        element("div", vec![], vec![text("XXX")]),
+                        element("div", vec![], vec![leaf("1")]),
+                        element("div", vec![], vec![leaf("XXX")]),
                     ],
                 ),
             ),
@@ -514,8 +491,8 @@ fn insert_two_lines_at_start() {
                     "div",
                     vec![attr("key", "hashYYY")],
                     vec![
-                        element("div", vec![], vec![text(2)]),
-                        element("div", vec![], vec![text("YYY")]),
+                        element("div", vec![], vec![leaf("2")]),
+                        element("div", vec![], vec![leaf("YYY")]),
                     ],
                 )
             ),

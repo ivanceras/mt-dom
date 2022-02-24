@@ -81,13 +81,14 @@ impl TreePath {
     }
 
     /// find the node using the path of this tree path
-    pub fn find_node_by_path<'a, NS, TAG, ATT, VAL>(
+    pub fn find_node_by_path<'a, NS, TAG, LEAF, ATT, VAL>(
         &self,
-        node: &'a Node<NS, TAG, ATT, VAL>,
-    ) -> Option<&'a Node<NS, TAG, ATT, VAL>>
+        node: &'a Node<NS, TAG, LEAF, ATT, VAL>,
+    ) -> Option<&'a Node<NS, TAG, LEAF, ATT, VAL>>
     where
         NS: PartialEq + Clone + Debug,
         TAG: PartialEq + Clone + Debug,
+        LEAF: PartialEq + Clone + Debug,
         ATT: PartialEq + Clone + Debug,
         VAL: PartialEq + Clone + Debug,
     {
@@ -95,13 +96,14 @@ impl TreePath {
     }
 }
 
-fn traverse_node_by_path<'a, NS, TAG, ATT, VAL>(
-    node: &'a Node<NS, TAG, ATT, VAL>,
+fn traverse_node_by_path<'a, NS, TAG, LEAF, ATT, VAL>(
+    node: &'a Node<NS, TAG, LEAF, ATT, VAL>,
     path: &mut TreePath,
-) -> Option<&'a Node<NS, TAG, ATT, VAL>>
+) -> Option<&'a Node<NS, TAG, LEAF, ATT, VAL>>
 where
     NS: PartialEq + Clone + Debug,
     TAG: PartialEq + Clone + Debug,
+    LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
 {
@@ -121,13 +123,14 @@ where
     }
 }
 
-fn find_node_by_path<'a, NS, TAG, ATT, VAL>(
-    node: &'a Node<NS, TAG, ATT, VAL>,
+fn find_node_by_path<'a, NS, TAG, LEAF, ATT, VAL>(
+    node: &'a Node<NS, TAG, LEAF, ATT, VAL>,
     path: &TreePath,
-) -> Option<&'a Node<NS, TAG, ATT, VAL>>
+) -> Option<&'a Node<NS, TAG, LEAF, ATT, VAL>>
 where
     NS: PartialEq + Clone + Debug,
     TAG: PartialEq + Clone + Debug,
+    LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
 {
@@ -142,7 +145,13 @@ mod tests {
     use super::*;
     use crate::*;
 
-    type MyNode = Node<&'static str, &'static str, &'static str, &'static str>;
+    type MyNode = Node<
+        &'static str,
+        &'static str,
+        &'static str,
+        &'static str,
+        &'static str,
+    >;
 
     fn sample_node() -> MyNode {
         let node: MyNode = element(

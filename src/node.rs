@@ -19,81 +19,31 @@ mod element;
 /// VAL - is the type for the value of the attribute, this will be String, f64, or just another
 /// generics that suits the implementing library which used mt-dom for just dom-diffing purposes
 #[derive(Clone, Debug, PartialEq)]
-pub enum Node<NS, TAG, ATT, VAL>
+pub enum Node<NS, TAG, LEAF, ATT, VAL>
 where
     NS: PartialEq + Clone + Debug,
     TAG: PartialEq + Clone + Debug,
+    LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
 {
     /// Element variant of a virtual node
-    Element(Element<NS, TAG, ATT, VAL>),
-    /// Text variant of a virtual node
-    Text(Text),
-    /// A comment node
-    Comment(String),
+    Element(Element<NS, TAG, LEAF, ATT, VAL>),
+    /// A Leaf node
+    Leaf(LEAF),
 }
 
-/// Text node
-#[derive(PartialEq, Default, Debug, Clone)]
-pub struct Text {
-    /// text node value
-    pub text: String,
-    /// if true, then this text content will be injected as inner_html, otherwise it will be a text
-    /// node
-    pub safe_html: bool,
-}
-
-impl Text {
-    /// create a new text node
-    pub fn new(txt: impl ToString) -> Self {
-        Text {
-            text: txt.to_string(),
-            safe_html: false,
-        }
-    }
-
-    /// Create a text node which is intended to be used as inner html for its
-    /// parent node
-    pub fn safe_html(txt: impl ToString) -> Self {
-        Text {
-            text: txt.to_string(),
-            safe_html: true,
-        }
-    }
-
-    /// set the text node value
-    pub fn set_text(&mut self, txt: impl ToString) {
-        self.text = txt.to_string();
-    }
-}
-
-impl<NS, TAG, ATT, VAL> Node<NS, TAG, ATT, VAL>
+impl<NS, TAG, LEAF, ATT, VAL> Node<NS, TAG, LEAF, ATT, VAL>
 where
     NS: PartialEq + Clone + Debug,
     TAG: PartialEq + Clone + Debug,
+    LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
 {
-    /// returns true if this a text node
-    pub fn is_text(&self) -> bool {
-        match self {
-            Node::Text(_) => true,
-            _ => false,
-        }
-    }
-
-    /// returns true if this is a safe html text node
-    pub fn is_safe_html(&self) -> bool {
-        match self {
-            Node::Text(text) => text.safe_html,
-            _ => false,
-        }
-    }
-
     /// consume self and return the element if it is an element variant
     /// None if it is a text node
-    pub fn take_element(self) -> Option<Element<NS, TAG, ATT, VAL>> {
+    pub fn take_element(self) -> Option<Element<NS, TAG, LEAF, ATT, VAL>> {
         match self {
             Node::Element(element) => Some(element),
             _ => None,
@@ -103,7 +53,7 @@ where
     /// Get a mutable reference to the element, if this node is an element node
     pub fn as_element_mut(
         &mut self,
-    ) -> Option<&mut Element<NS, TAG, ATT, VAL>> {
+    ) -> Option<&mut Element<NS, TAG, LEAF, ATT, VAL>> {
         match *self {
             Node::Element(ref mut element) => Some(element),
             _ => None,
@@ -111,7 +61,7 @@ where
     }
 
     /// returns a reference to the element if this is an element node
-    pub fn as_element_ref(&self) -> Option<&Element<NS, TAG, ATT, VAL>> {
+    pub fn as_element_ref(&self) -> Option<&Element<NS, TAG, LEAF, ATT, VAL>> {
         match *self {
             Node::Element(ref element) => Some(element),
             _ => None,
@@ -123,7 +73,7 @@ where
     /// This is used in building the nodes in a builder pattern
     pub fn add_children(
         mut self,
-        children: impl IntoIterator<Item = Node<NS, TAG, ATT, VAL>>,
+        children: impl IntoIterator<Item = Node<NS, TAG, LEAF, ATT, VAL>>,
     ) -> Self {
         if let Some(element) = self.as_element_mut() {
             element.add_children(children);
@@ -136,7 +86,7 @@ where
     /// add children but not consume self
     pub fn add_children_ref_mut(
         &mut self,
-        children: impl IntoIterator<Item = Node<NS, TAG, ATT, VAL>>,
+        children: impl IntoIterator<Item = Node<NS, TAG, LEAF, ATT, VAL>>,
     ) {
         if let Some(element) = self.as_element_mut() {
             element.add_children(children);
@@ -190,17 +140,9 @@ where
         }
     }
 
-    /// returns the text content if it is a text node
-    pub fn text(&self) -> Option<&str> {
-        match self {
-            Node::Text(t) => Some(&t.text),
-            _ => None,
-        }
-    }
-
     /// return the children of this node if it is an element
     /// returns None if it is a text node
-    pub fn get_children(&self) -> Option<&[Node<NS, TAG, ATT, VAL>]> {
+    pub fn get_children(&self) -> Option<&[Node<NS, TAG, LEAF, ATT, VAL>]> {
         if let Some(element) = self.as_element_ref() {
             Some(element.get_children())
         } else {
@@ -219,7 +161,9 @@ where
 
     /// return the children of this node if it is an element
     /// returns None if it is a text node
-    pub fn children_mut(&mut self) -> Option<&mut [Node<NS, TAG, ATT, VAL>]> {
+    pub fn children_mut(
+        &mut self,
+    ) -> Option<&mut [Node<NS, TAG, LEAF, ATT, VAL>]> {
         if let Some(element) = self.as_element_mut() {
             Some(element.children_mut())
         } else {
@@ -236,7 +180,7 @@ where
     pub fn swap_remove_child(
         &mut self,
         index: usize,
-    ) -> Node<NS, TAG, ATT, VAL> {
+    ) -> Node<NS, TAG, LEAF, ATT, VAL> {
         match self {
             Node::Element(element) => element.swap_remove_child(index),
             _ => panic!("text has no child"),
@@ -308,15 +252,6 @@ where
             None
         }
     }
-
-    /// unwrap the text, panics if it is not a text element
-    #[track_caller]
-    pub fn unwrap_text(&self) -> &Text {
-        match self {
-            Node::Text(ref text) => text,
-            _ => panic!("node is not a text"),
-        }
-    }
 }
 
 /// create a virtual node with tag, attrs and children
@@ -324,7 +259,7 @@ where
 /// ```rust
 /// use mt_dom::{Node,element,attr};
 ///
-/// let div:Node<&'static str, &'static str, &'static str, &'static str> =
+/// let div:Node<&'static str, &'static str, &'static str, &'static str, &'static str> =
 ///     element(
 ///          "div",
 ///          vec![attr("class", "container")],
@@ -332,14 +267,15 @@ where
 ///      );
 /// ```
 #[inline]
-pub fn element<NS, TAG, ATT, VAL>(
+pub fn element<NS, TAG, LEAF, ATT, VAL>(
     tag: TAG,
     attrs: impl IntoIterator<Item = Attribute<NS, ATT, VAL>>,
-    children: impl IntoIterator<Item = Node<NS, TAG, ATT, VAL>>,
-) -> Node<NS, TAG, ATT, VAL>
+    children: impl IntoIterator<Item = Node<NS, TAG, LEAF, ATT, VAL>>,
+) -> Node<NS, TAG, LEAF, ATT, VAL>
 where
     NS: PartialEq + Clone + Debug,
     TAG: PartialEq + Clone + Debug,
+    LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
 {
@@ -351,7 +287,7 @@ where
 /// ```rust
 /// use mt_dom::{Node,element_ns,attr};
 ///
-/// let svg:Node<&'static str, &'static str, &'static str, &'static str> =
+/// let svg:Node<&'static str, &'static str, (), &'static str, &'static str> =
 ///     element_ns(
 ///         Some("http://www.w3.org/2000/svg"),
 ///          "svg",
@@ -360,71 +296,33 @@ where
 ///          false
 ///      );
 /// ```
-pub fn element_ns<NS, TAG, ATT, VAL>(
+pub fn element_ns<NS, TAG, LEAF, ATT, VAL>(
     namespace: Option<NS>,
     tag: TAG,
     attrs: impl IntoIterator<Item = Attribute<NS, ATT, VAL>>,
-    children: impl IntoIterator<Item = Node<NS, TAG, ATT, VAL>>,
+    children: impl IntoIterator<Item = Node<NS, TAG, LEAF, ATT, VAL>>,
     self_closing: bool,
-) -> Node<NS, TAG, ATT, VAL>
+) -> Node<NS, TAG, LEAF, ATT, VAL>
 where
     NS: PartialEq + Clone + Debug,
     TAG: PartialEq + Clone + Debug,
+    LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
 {
     Node::Element(Element::new(namespace, tag, attrs, children, self_closing))
 }
 
-/// Create a text node element
-/// # Example
-/// ```rust
-/// use mt_dom::{Node,text};
-///
-/// let txt:Node<&'static str, &'static str, &'static str, &'static str> =
-///     text("This is a text node");
-/// ```
-pub fn text<S, NS, TAG, ATT, VAL>(s: S) -> Node<NS, TAG, ATT, VAL>
+/// create a leaf node
+pub fn leaf<NS, TAG, LEAF, ATT, VAL>(
+    leaf: LEAF,
+) -> Node<NS, TAG, LEAF, ATT, VAL>
 where
-    S: ToString,
     NS: PartialEq + Clone + Debug,
     TAG: PartialEq + Clone + Debug,
+    LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
 {
-    Node::Text(Text::new(s))
-}
-
-/// Create an html and instruct the DOM renderer and/or DOM patcher that the operation is safe.
-///
-/// Note: this operation doesn't sanitize the html code. It is your responsibility
-/// as a programmer to sanitize the input here.
-/// # Example
-/// ```rust
-/// use mt_dom::{Node,safe_html};
-///
-/// let html: Node<&'static str, &'static str, &'static str, &'static str> =
-///     safe_html("This contains safe html and it&#x27;s solid &nbsp should work correctly");
-/// ```
-pub fn safe_html<S, NS, TAG, ATT, VAL>(s: S) -> Node<NS, TAG, ATT, VAL>
-where
-    S: ToString,
-    NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
-    ATT: PartialEq + Clone + Debug,
-    VAL: PartialEq + Clone + Debug,
-{
-    Node::Text(Text::safe_html(s))
-}
-
-/// create a comment node
-pub fn comment<S, NS, TAG, ATT, VAL>(s: S) -> Node<NS, TAG, ATT, VAL>
-where
-    S: ToString,
-    NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
-    ATT: PartialEq + Clone + Debug,
-    VAL: PartialEq + Clone + Debug,
-{
-    Node::Comment(s.to_string())
+    Node::Leaf(leaf)
 }
