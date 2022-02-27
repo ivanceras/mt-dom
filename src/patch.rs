@@ -79,7 +79,7 @@ where
         node: &'a Node<NS, TAG, LEAF, ATT, VAL>,
     },
 
-    /// Append a vector of child nodes to a parent node id.
+    /// Append a vector of child nodes to a parent node id at patch_path
     AppendChildren {
         /// the tag of the node we are appending the children into
         tag: &'a TAG,
