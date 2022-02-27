@@ -74,9 +74,7 @@ where
         &mut self,
         children: impl IntoIterator<Item = Node<NS, TAG, LEAF, ATT, VAL>>,
     ) {
-        let mut new_children: Vec<Node<NS, TAG, LEAF, ATT, VAL>> =
-            children.into_iter().collect();
-        self.children.append(&mut new_children);
+        self.children.extend(children.into_iter());
     }
 
     /// returns a refernce to the children of this node
