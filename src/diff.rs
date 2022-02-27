@@ -110,6 +110,7 @@ where
 }
 
 /// returns true if all of the node children has key in their attributes
+#[allow(unused)]
 fn is_all_children_keyed<NS, TAG, LEAF, ATT, VAL>(
     element: &Element<NS, TAG, LEAF, ATT, VAL>,
     key: &ATT,
@@ -125,6 +126,23 @@ where
         .get_children()
         .iter()
         .all(|child| is_keyed_node(child, key))
+}
+
+fn is_any_children_keyed<NS, TAG, LEAF, ATT, VAL>(
+    element: &Element<NS, TAG, LEAF, ATT, VAL>,
+    key: &ATT,
+) -> bool
+where
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Clone + Debug,
+    LEAF: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+{
+    element
+        .get_children()
+        .iter()
+        .any(|child| is_keyed_node(child, key))
 }
 
 /// returns true any attributes of this node attribute has key in it
@@ -249,8 +267,12 @@ where
         }
         // We're comparing two element nodes
         (Node::Element(old_element), Node::Element(new_element)) => {
+            /*
             if is_all_children_keyed(old_element, key)
                 && is_all_children_keyed(new_element, key)
+            */
+            if is_any_children_keyed(old_element, key)
+                || is_any_children_keyed(new_element, key)
             {
                 // use diff_keyed_elements if the any of the old_element or new_element
                 // wer are comparing contains a key as an attribute
@@ -318,7 +340,6 @@ where
         &'a Node<NS, TAG, LEAF, ATT, VAL>,
     ) -> bool,
 {
-    let this_cur_path = path.to_vec();
     let mut patches = vec![];
     let attributes_patches =
         create_attribute_patches(old_element, new_element, path);
@@ -329,8 +350,8 @@ where
 
     let min_count = cmp::min(old_child_count, new_child_count);
     for index in 0..min_count {
-        let mut cur_child_path = path.to_vec();
-        cur_child_path.push(index);
+        let mut child_path = path.to_vec();
+        child_path.push(index);
 
         let old_child = &old_element
             .children
@@ -339,25 +360,16 @@ where
         let new_child =
             &new_element.children.get(index).expect("No new chold node");
 
-        let more_patches = diff_recursive(
-            old_child,
-            new_child,
-            &cur_child_path,
-            key,
-            skip,
-            rep,
-        );
+        let more_patches =
+            diff_recursive(old_child, new_child, &child_path, key, skip, rep);
         patches.extend(more_patches);
     }
 
     // If there are more new child than old_node child, we make a patch to append the excess element
     // starting from old_child_count to the last item of the new_elements
     if new_child_count > old_child_count {
-        let append_children_patch = create_append_children_patch(
-            old_element,
-            new_element,
-            this_cur_path,
-        );
+        let append_children_patch =
+            create_append_children_patch(old_element, new_element, path);
         patches.push(append_children_patch);
     }
 
@@ -373,7 +385,7 @@ where
 fn create_append_children_patch<'a, NS, TAG, LEAF, ATT, VAL>(
     old_element: &'a Element<NS, TAG, LEAF, ATT, VAL>,
     new_element: &'a Element<NS, TAG, LEAF, ATT, VAL>,
-    this_cur_path: Vec<usize>,
+    path: &[usize],
 ) -> Patch<'a, NS, TAG, LEAF, ATT, VAL>
 where
     NS: PartialEq + Clone + Debug,
@@ -391,7 +403,7 @@ where
 
     Patch::append_children(
         &old_element.tag,
-        TreePath::new(this_cur_path.to_vec()),
+        TreePath::new(path.to_vec()),
         append_patch,
     )
 }
