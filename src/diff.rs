@@ -8,6 +8,7 @@ use keyed_elements::diff_keyed_elements;
 use std::fmt::Debug;
 use std::{cmp, mem};
 
+mod diff_keyed;
 mod keyed_elements;
 
 /// Return the patches needed for `old_node` to have the same DOM as `new_node`
@@ -108,8 +109,8 @@ where
     diff_recursive(old_node, new_node, &[0], key, skip, rep)
 }
 
-/// returns true if any of the node children has key in their attributes
-fn is_any_children_keyed<NS, TAG, LEAF, ATT, VAL>(
+/// returns true if all of the node children has key in their attributes
+fn is_all_children_keyed<NS, TAG, LEAF, ATT, VAL>(
     element: &Element<NS, TAG, LEAF, ATT, VAL>,
     key: &ATT,
 ) -> bool
@@ -123,7 +124,7 @@ where
     element
         .get_children()
         .iter()
-        .any(|child| is_keyed_node(child, key))
+        .all(|child| is_keyed_node(child, key))
 }
 
 /// returns true any attributes of this node attribute has key in it
@@ -221,11 +222,9 @@ where
         return vec![];
     }
 
-    let replace = should_replace(old_node, new_node, key, rep);
-
     let mut patches = vec![];
 
-    if replace {
+    if should_replace(old_node, new_node, key, rep) {
         patches.push(Patch::replace_node(
             old_node.tag(),
             TreePath::new(path.to_vec()),
@@ -250,8 +249,8 @@ where
         }
         // We're comparing two element nodes
         (Node::Element(old_element), Node::Element(new_element)) => {
-            if is_any_children_keyed(old_element, key)
-                || is_any_children_keyed(new_element, key)
+            if is_all_children_keyed(old_element, key)
+                && is_all_children_keyed(new_element, key)
             {
                 // use diff_keyed_elements if the any of the old_element or new_element
                 // wer are comparing contains a key as an attribute
