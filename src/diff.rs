@@ -350,6 +350,7 @@ where
 
     let min_count = cmp::min(old_child_count, new_child_count);
     for index in 0..min_count {
+        // if we iterate trough the old elements, a new child_path is created for that iteration
         let mut child_path = path.to_vec();
         child_path.push(index);
 
