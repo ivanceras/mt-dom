@@ -134,33 +134,43 @@ where
         if left_offset == 0 {
             // insert at the beginning of the old list
             let location = old_element.children.len() - right_offset;
-            create_and_insert_before(
-                &new_element.children,
-                location,
-                path,
-                start_range,
-                new_end_range,
-            )
+            let mut location_path = path.to_vec();
+            location_path.push(location);
+
+            vec![Patch::insert_before_node(
+                new_element.children[location].tag(),
+                TreePath::new(location_path),
+                new_element.children[start_range..new_end_range]
+                    .iter()
+                    .collect(),
+            )]
         } else if right_offset == 0 {
             // insert at the end  the old list
             let location = old_element.children.len();
-            create_and_insert_after(
-                &new_element.children,
-                location,
-                path,
-                start_range,
-                new_end_range,
-            )
+            let mut location_path = path.to_vec();
+            location_path.push(location);
+
+            vec![Patch::insert_after_node(
+                new_element.children[location].tag(),
+                TreePath::new(location_path),
+                new_element.children[start_range..new_end_range]
+                    .iter()
+                    .collect(),
+            )]
         } else {
             // inserting in the middle
             let location = left_offset - 1;
-            create_and_insert_after(
-                &new_element.children,
-                location,
-                path,
-                start_range,
-                new_end_range,
-            )
+
+            let mut location_path = path.to_vec();
+            location_path.push(location);
+
+            vec![Patch::insert_after_node(
+                new_element.children[location].tag(),
+                TreePath::new(location_path),
+                new_element.children[start_range..new_end_range]
+                    .iter()
+                    .collect(),
+            )]
         }
     } else {
         diff_keyed_middle(
@@ -236,14 +246,18 @@ where
         let start_range = left_offset;
         let new_end_range = new_element.children.len();
         let location = old_element.children.len();
-        let more_patches = create_and_insert_after(
-            &new_element.children,
-            location,
-            path,
-            start_range,
-            new_end_range,
+
+        let mut location_path = path.to_vec();
+        location_path.push(location);
+
+        let insert_path = Patch::insert_after_node(
+            new_element.children[location].tag(),
+            TreePath::new(location_path),
+            new_element.children[start_range..new_end_range]
+                .iter()
+                .collect(),
         );
-        patches.extend(more_patches);
+        patches.push(insert_path);
 
         return (None, patches);
     }
@@ -415,13 +429,18 @@ where
             );
             patches.extend(more_patches1);
 
-            let (nodes_created, more_patches2) =
-                create_children(new_middle, path);
-            patches.extend(more_patches2);
+            let location = start_range;
+            let mut location_path = path.to_vec();
+            location_path.push(location);
+            let replacement = &new_middle[start_range];
 
-            let mut more_patches3 =
-                replace_inner(first_old, nodes_created, path);
-            patches.extend(more_patches3);
+            let replace_patch = Patch::replace_node(
+                new_element.children[location].tag(),
+                TreePath::new(location_path),
+                replacement,
+            );
+
+            patches.push(replace_patch);
         } else {
             // I think this is wrong - why are we appending?
             // only valid of the if there are no trailing elements
@@ -474,13 +493,12 @@ where
     // add mount instruction for the first items not covered by the lis
     let last = *lis_sequence.last().unwrap();
     if last < (new_middle.len() - 1) {
+        let mut for_insert_after = vec![];
         for (idx, new_node) in new_middle[(last + 1)..].iter().enumerate() {
             let new_idx = idx + last + 1;
             let old_index = new_index_to_old_index[new_idx];
             if old_index == u32::MAX as usize {
-                let (created, more_patches) = create_node(new_node, path);
-                nodes_created += created;
-                patches.extend(more_patches);
+                for_insert_after.push(new_node);
             } else {
                 let more_patches1 = diff_recursive(
                     &old_middle[old_index],
@@ -498,9 +516,18 @@ where
                 nodes_created += created;
             }
         }
-        let last_element = find_last_element(&new_middle[last]).unwrap();
-        let more_patches = insert_after(last_element, nodes_created, path);
-        patches.extend(more_patches);
+
+        let location = new_start_range + last;
+        let mut location_path = path.to_vec();
+        location_path.push(location);
+
+        let insert_patch = Patch::insert_after_node(
+            new_element.children[location].tag(),
+            TreePath::new(location_path),
+            for_insert_after,
+        );
+
+        patches.push(insert_patch);
 
         nodes_created = 0;
     }
@@ -510,15 +537,15 @@ where
     let mut last = *lis_iter.next().unwrap();
     for next in lis_iter {
         if last - next > 1 {
+            // vec of nodes that will be inserted before the location
+            let mut for_insert_before = vec![];
             for (idx, new_node) in
                 new_middle[(next + 1)..last].iter().enumerate()
             {
                 let new_idx = idx + next + 1;
                 let old_index = new_index_to_old_index[new_idx];
                 if old_index == u32::MAX as usize {
-                    let (created, more_patches) = create_node(new_node, path);
-                    nodes_created += created;
-                    patches.extend(more_patches);
+                    for_insert_before.push(new_node);
                 } else {
                     let mut more_patches1 = diff_recursive(
                         &old_middle[old_index],
@@ -538,12 +565,16 @@ where
                 }
             }
 
-            let more_patches = insert_before(
-                find_first_element(&new_middle[last]).unwrap(),
-                nodes_created,
-                path,
+            let location = new_start_range + last;
+            let mut location_path = path.to_vec();
+            location_path.push(location);
+
+            let insert_patch = Patch::insert_before_node(
+                new_element.children[location].tag(),
+                TreePath::new(location_path),
+                for_insert_before,
             );
-            patches.extend(more_patches);
+            patches.push(insert_patch);
 
             nodes_created = 0;
         }
@@ -553,12 +584,11 @@ where
     // add mount instruction for the last items not covered by the lis
     let first_lis = *lis_sequence.first().unwrap();
     if first_lis > 0 {
+        let mut for_insert_before = vec![];
         for (idx, new_node) in new_middle[..first_lis].iter().enumerate() {
             let old_index = new_index_to_old_index[idx];
             if old_index == u32::MAX as usize {
-                let (created, more_patches) = create_node(new_node, path);
-                nodes_created += created;
-                patches.extend(more_patches);
+                for_insert_before.push(new_node);
             } else {
                 let mut more_patches1 = diff_recursive(
                     &old_middle[old_index],
@@ -577,38 +607,17 @@ where
             }
         }
 
-        let mut more_patches = insert_before(
-            find_first_element(&new_middle[first_lis]).unwrap(),
-            nodes_created,
-            path,
+        let location = new_start_range + first_lis;
+        let mut location_path = path.to_vec();
+        location_path.push(location);
+        let insert_patch = Patch::insert_before_node(
+            new_element.children[location].tag(),
+            TreePath::new(location_path),
+            for_insert_before,
         );
-        patches.extend(more_patches);
+        patches.push(insert_patch);
     }
     patches
-}
-
-/// create an Insertbefore patch
-///
-/// element_id is anchor element where the
-/// created node will be inserted before it
-///
-/// n - is the number of the nodes that will be inserted
-/// before the element_id.
-///
-/// TODO: the nodes is from the stack that was created while running the diffing
-fn insert_before<'a, NS, TAG, LEAF, ATT, VAL>(
-    element_id: usize,
-    n: usize,
-    path: &[usize],
-) -> Vec<Patch<'a, NS, TAG, LEAF, ATT, VAL>>
-where
-    NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
-    LEAF: PartialEq + Clone + Debug,
-    ATT: PartialEq + Clone + Debug,
-    VAL: PartialEq + Clone + Debug,
-{
-    vec![]
 }
 
 /// create an RemoveNode patch, which will remove
@@ -637,62 +646,6 @@ where
             Patch::remove_node(node.tag(), TreePath::new(patch_path))
         })
         .collect()
-}
-
-/// create a patch where the nodes are created
-/// and then inserted the created nodes before the first element of marker node.
-fn create_and_insert_before<'a, NS, TAG, LEAF, ATT, VAL>(
-    nodes: &'a [Node<NS, TAG, LEAF, ATT, VAL>],
-    location: usize,
-    path: &[usize],
-    start_range: usize,
-    end_range: usize,
-) -> Vec<Patch<'a, NS, TAG, LEAF, ATT, VAL>>
-where
-    NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
-    LEAF: PartialEq + Clone + Debug,
-    ATT: PartialEq + Clone + Debug,
-    VAL: PartialEq + Clone + Debug,
-{
-    // patch_path is the location where the nodes will be inserted
-    // before it
-    let mut patch_path = path.to_vec();
-    patch_path.push(location);
-
-    vec![Patch::insert_before_node(
-        nodes[location].tag(),
-        TreePath::new(patch_path),
-        nodes[start_range..end_range].iter().collect(),
-    )]
-}
-
-/// create a patch where the nodes are created
-/// and then insert the created nodes after the last_element of marker node.
-fn create_and_insert_after<'a, NS, TAG, LEAF, ATT, VAL>(
-    nodes: &'a [Node<NS, TAG, LEAF, ATT, VAL>],
-    location: usize,
-    path: &[usize],
-    start_range: usize,
-    end_range: usize,
-) -> Vec<Patch<'a, NS, TAG, LEAF, ATT, VAL>>
-where
-    NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
-    LEAF: PartialEq + Clone + Debug,
-    ATT: PartialEq + Clone + Debug,
-    VAL: PartialEq + Clone + Debug,
-{
-    // patch_path is the location where the nodes will be inserted
-    // after it
-    let mut patch_path = path.to_vec();
-    patch_path.push(location);
-
-    vec![Patch::insert_after_node(
-        nodes[location].tag(),
-        TreePath::new(patch_path),
-        nodes[start_range..end_range].iter().collect(),
-    )]
 }
 
 /// create the nodes and then append them, in the current path
@@ -726,20 +679,7 @@ where
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
 {
-    (0, vec![])
-}
-
-fn create_node<'a, NS, TAG, LEAF, ATT, VAL>(
-    node: &'a Node<NS, TAG, LEAF, ATT, VAL>,
-    path: &[usize],
-) -> (usize, Vec<Patch<'a, NS, TAG, LEAF, ATT, VAL>>)
-where
-    NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
-    LEAF: PartialEq + Clone + Debug,
-    ATT: PartialEq + Clone + Debug,
-    VAL: PartialEq + Clone + Debug,
-{
+    println!("I don't know what to do with push_all_nodes");
     (0, vec![])
 }
 
@@ -770,45 +710,4 @@ where
     VAL: PartialEq + Clone + Debug,
 {
     vec![]
-}
-
-fn insert_after<'a, NS, TAG, LEAF, ATT, VAL>(
-    element_id: usize,
-    n: usize,
-    path: &[usize],
-) -> Vec<Patch<'a, NS, TAG, LEAF, ATT, VAL>>
-where
-    NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
-    LEAF: PartialEq + Clone + Debug,
-    ATT: PartialEq + Clone + Debug,
-    VAL: PartialEq + Clone + Debug,
-{
-    vec![]
-}
-
-fn find_first_element<'a, NS, TAG, LEAF, ATT, VAL>(
-    node: &'a Node<NS, TAG, LEAF, ATT, VAL>,
-) -> Option<usize>
-where
-    NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
-    LEAF: PartialEq + Clone + Debug,
-    ATT: PartialEq + Clone + Debug,
-    VAL: PartialEq + Clone + Debug,
-{
-    None
-}
-
-fn find_last_element<'a, NS, TAG, LEAF, ATT, VAL>(
-    node: &'a Node<NS, TAG, LEAF, ATT, VAL>,
-) -> Option<usize>
-where
-    NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
-    LEAF: PartialEq + Clone + Debug,
-    ATT: PartialEq + Clone + Debug,
-    VAL: PartialEq + Clone + Debug,
-{
-    None
 }
