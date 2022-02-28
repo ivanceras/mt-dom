@@ -67,9 +67,11 @@ where
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
 {
-    /// Insert a vector of child nodes to the current node being patch.
+    /// Insert a vector of child nodes to the current node being patch, which will be the parent
+    /// of the newly inserted node.
     /// The usize is the index of of the children of the node to be
     /// patch to insert to. The new children will be inserted before this usize
+    /// TODO: rename to InsertAtNode
     InsertNode {
         /// the tag of the target node we insert this node into
         tag: Option<&'a TAG>,
@@ -77,6 +79,28 @@ where
         patch_path: TreePath,
         /// the node to be inserted
         node: &'a Node<NS, TAG, LEAF, ATT, VAL>,
+    },
+
+    /// insert the nodes before the node at patch_path
+    InsertBeforeNode {
+        /// the tag of the node at patch_path
+        tag: Option<&'a TAG>,
+        /// the path to traverse to get to the target element
+        /// of which our nodes will be inserted before it.
+        patch_path: TreePath,
+        /// the nodes to be inserted before patch_path
+        nodes: Vec<&'a Node<NS, TAG, LEAF, ATT, VAL>>,
+    },
+
+    /// insert the nodes after the node at patch_path
+    InsertAfterNode {
+        /// the tag of the node at patch_path
+        tag: Option<&'a TAG>,
+        /// the path to traverse to get to the target element
+        /// of which our nodes will be inserted after it.
+        patch_path: TreePath,
+        /// the nodes to be inserted after the patch_path
+        nodes: Vec<&'a Node<NS, TAG, LEAF, ATT, VAL>>,
     },
 
     /// Append a vector of child nodes to a parent node id at patch_path
@@ -155,6 +179,8 @@ where
     pub fn path(&self) -> &[usize] {
         match self {
             Patch::InsertNode { patch_path, .. } => &patch_path.path,
+            Patch::InsertBeforeNode { patch_path, .. } => &patch_path.path,
+            Patch::InsertAfterNode { patch_path, .. } => &patch_path.path,
             Patch::AppendChildren { patch_path, .. } => &patch_path.path,
             Patch::RemoveNode { patch_path, .. } => &patch_path.path,
             Patch::ReplaceNode { patch_path, .. } => &patch_path.path,
@@ -168,6 +194,8 @@ where
     pub fn tag(&self) -> Option<&TAG> {
         match self {
             Patch::InsertNode { tag, .. } => *tag,
+            Patch::InsertBeforeNode { tag, .. } => *tag,
+            Patch::InsertAfterNode { tag, .. } => *tag,
             Patch::AppendChildren { tag, .. } => Some(tag),
             Patch::RemoveNode { tag, .. } => *tag,
             Patch::ReplaceNode { tag, .. } => *tag,
@@ -187,6 +215,32 @@ where
             tag,
             patch_path,
             node,
+        }
+    }
+
+    /// create an InsertBeforeNode patch
+    pub fn insert_before_node(
+        tag: Option<&'a TAG>,
+        patch_path: TreePath,
+        nodes: Vec<&'a Node<NS, TAG, LEAF, ATT, VAL>>,
+    ) -> Patch<'a, NS, TAG, LEAF, ATT, VAL> {
+        Patch::InsertBeforeNode {
+            tag,
+            patch_path,
+            nodes,
+        }
+    }
+
+    /// create an InsertAfterNode patch
+    pub fn insert_after_node(
+        tag: Option<&'a TAG>,
+        patch_path: TreePath,
+        nodes: Vec<&'a Node<NS, TAG, LEAF, ATT, VAL>>,
+    ) -> Patch<'a, NS, TAG, LEAF, ATT, VAL> {
+        Patch::InsertAfterNode {
+            tag,
+            patch_path,
+            nodes,
         }
     }
 
