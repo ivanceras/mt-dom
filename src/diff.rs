@@ -1,5 +1,6 @@
 //! provides diffing algorithm which returns patches
 #![allow(clippy::type_complexity)]
+#![allow(unused)]
 use crate::{
     node::attribute::group_attributes_per_name, Attribute, Element, Node,
     Patch, TreePath,
@@ -267,16 +268,16 @@ where
         }
         // We're comparing two element nodes
         (Node::Element(old_element), Node::Element(new_element)) => {
-            /*
             if is_all_children_keyed(old_element, key)
                 && is_all_children_keyed(new_element, key)
-            */
+            /*
             if is_any_children_keyed(old_element, key)
                 || is_any_children_keyed(new_element, key)
+            */
             {
                 // use diff_keyed_elements if the any of the old_element or new_element
                 // wer are comparing contains a key as an attribute
-                let keyed_patches = diff_keyed_elements(
+                let keyed_patches = diff_keyed::diff_keyed_elements(
                     old_element,
                     new_element,
                     key,

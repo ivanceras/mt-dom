@@ -256,10 +256,10 @@ fn key_2_inserted_at_start() {
 
     assert_eq!(
         diff,
-        vec![Patch::insert_node(
-            Some(&"main"),
+        vec![Patch::insert_before_node(
+            Some(&"div"),
             TreePath::new(vec![0, 0]),
-            &element("div", vec![attr("key", "2")], vec![])
+            vec![&element("div", vec![attr("key", "2")], vec![])]
         )]
     );
 }
@@ -314,9 +314,9 @@ fn key_2_inserted_at_the_end() {
 
     assert_eq!(
         diff,
-        vec![Patch::append_children(
-            &"main",
-            TreePath::new(vec![0]),
+        vec![Patch::insert_after_node(
+            Some(&"div"),
+            TreePath::new(vec![0, 0]),
             vec![&element("div", vec![attr("key", "2")], vec![])]
         )]
     );
@@ -394,10 +394,10 @@ fn key_2_inserted_in_the_middle() {
 
     assert_eq!(
         diff,
-        vec![Patch::insert_node(
-            Some(&"main"),
-            TreePath::new(vec![0, 1]),
-            &element("div", vec![attr("key", "2")], vec![])
+        vec![Patch::insert_after_node(
+            Some(&"div"),
+            TreePath::new(vec![0, 0]),
+            vec![&element("div", vec![attr("key", "2")], vec![])]
         )]
     );
 }

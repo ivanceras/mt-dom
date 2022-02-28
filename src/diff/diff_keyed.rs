@@ -36,7 +36,7 @@ where
 // https://github.com/infernojs/inferno/blob/36fd96/packages/inferno/src/DOM/patching.ts#L530-L739
 //
 // The stack is empty upon entry.
-fn diff_keyed_children<'a, 'b, NS, TAG, LEAF, ATT, VAL, SKIP, REP>(
+pub(crate) fn diff_keyed_elements<'a, 'b, NS, TAG, LEAF, ATT, VAL, SKIP, REP>(
     old_element: &'a Element<NS, TAG, LEAF, ATT, VAL>,
     new_element: &'a Element<NS, TAG, LEAF, ATT, VAL>,
     key: &ATT,
@@ -106,19 +106,17 @@ where
     // within which to re-order nodes with the same keys, remove old nodes with
     // now-unused keys, and create new nodes with fresh keys.
 
-    let old_middle = &old_element.children
-        [left_offset..(old_element.children.len() - right_offset)];
-    let new_middle = &new_element.children
-        [left_offset..(new_element.children.len() - right_offset)];
+    let start_range = left_offset;
+    let old_end_range = old_element.children.len() - right_offset;
+    let new_end_range = new_element.children.len() - right_offset;
+
+    let old_middle = &old_element.children[start_range..old_end_range];
+    let new_middle = &new_element.children[start_range..new_end_range];
 
     debug_assert!(
         !((old_middle.len() == new_middle.len()) && old_middle.is_empty()),
         "keyed children must have the same number of children"
     );
-
-    let start_range = left_offset;
-    let new_end_range = new_element.children.len() - right_offset;
-    let old_end_range = old_element.children.len() - right_offset;
 
     if new_middle.is_empty() {
         // remove the old elements
@@ -132,6 +130,7 @@ where
         // there were no old elements, so just create the new elements
         // we need to find the right "foothold" though - we shouldn't use the "append" at all
         if left_offset == 0 {
+            println!("left offset is 0");
             // insert at the beginning of the old list
             let location = old_element.children.len() - right_offset;
             let mut location_path = path.to_vec();
@@ -145,13 +144,14 @@ where
                     .collect(),
             )]
         } else if right_offset == 0 {
+            println!("right offset is 0");
             // insert at the end  the old list
             let location = old_element.children.len();
             let mut location_path = path.to_vec();
             location_path.push(location);
 
             vec![Patch::insert_after_node(
-                new_element.children[location].tag(),
+                old_element.children[location].tag(),
                 TreePath::new(location_path),
                 new_element.children[start_range..new_end_range]
                     .iter()
@@ -165,7 +165,7 @@ where
             location_path.push(location);
 
             vec![Patch::insert_after_node(
-                new_element.children[location].tag(),
+                old_element.children[location].tag(),
                 TreePath::new(location_path),
                 new_element.children[start_range..new_end_range]
                     .iter()
@@ -217,6 +217,7 @@ where
         &'a Node<NS, TAG, LEAF, ATT, VAL>,
     ) -> bool,
 {
+    println!("Entering diff_keyed_ends...");
     let mut left_offset = 0;
     let mut patches = vec![];
 
@@ -245,19 +246,28 @@ where
     if left_offset == old_element.children.len() {
         let start_range = left_offset;
         let new_end_range = new_element.children.len();
-        let location = old_element.children.len();
+        let location = if old_element.children.len() > 0 {
+            old_element.children.len() - 1
+        } else {
+            0
+        };
 
         let mut location_path = path.to_vec();
         location_path.push(location);
 
-        let insert_path = Patch::insert_after_node(
-            new_element.children[location].tag(),
-            TreePath::new(location_path),
-            new_element.children[start_range..new_end_range]
-                .iter()
-                .collect(),
-        );
-        patches.push(insert_path);
+        let for_insert_after = new_element.children[start_range..new_end_range]
+            .iter()
+            .collect::<Vec<_>>();
+
+        if !for_insert_after.is_empty() {
+            let tag = old_element.children[location].tag();
+            let insert_path = Patch::insert_after_node(
+                tag,
+                TreePath::new(location_path),
+                for_insert_after,
+            );
+            patches.push(insert_path);
+        }
 
         return (None, patches);
     }
@@ -280,17 +290,21 @@ where
 
     // if the shared prefix is less than either length, then we need to walk backwards
     let mut right_offset = 0;
-    for (old, new) in old_element
+    for (index, (old, new)) in old_element
         .children
         .iter()
         .rev()
         .zip(new_element.children.iter().rev())
+        .enumerate()
     {
+        let mut child_path = path.to_vec();
+        child_path.push(index);
         // abort early if we finally run into nodes with different keys
         if get_key(old, key) != get_key(new, key) {
             break;
         }
-        let more_patches = diff_recursive(old, new, path, key, skip, rep);
+        let more_patches =
+            diff_recursive(old, new, &child_path, key, skip, rep);
         patches.extend(more_patches);
         right_offset += 1;
     }
@@ -337,6 +351,7 @@ where
         &'a Node<NS, TAG, LEAF, ATT, VAL>,
     ) -> bool,
 {
+    println!("---------->>>> Using diff_keyed_middled...");
     /*
     1. Map the old keys into a numerical ordering based on indices.
     2. Create a map of old key to its index
@@ -435,7 +450,7 @@ where
             let replacement = &new_middle[start_range];
 
             let replace_patch = Patch::replace_node(
-                new_element.children[location].tag(),
+                old_element.children[location].tag(),
                 TreePath::new(location_path),
                 replacement,
             );
@@ -522,7 +537,7 @@ where
         location_path.push(location);
 
         let insert_patch = Patch::insert_after_node(
-            new_element.children[location].tag(),
+            old_element.children[location].tag(),
             TreePath::new(location_path),
             for_insert_after,
         );
@@ -570,7 +585,7 @@ where
             location_path.push(location);
 
             let insert_patch = Patch::insert_before_node(
-                new_element.children[location].tag(),
+                old_element.children[location].tag(),
                 TreePath::new(location_path),
                 for_insert_before,
             );
@@ -611,7 +626,7 @@ where
         let mut location_path = path.to_vec();
         location_path.push(location);
         let insert_patch = Patch::insert_before_node(
-            new_element.children[location].tag(),
+            old_element.children[location].tag(),
             TreePath::new(location_path),
             for_insert_before,
         );
@@ -681,33 +696,4 @@ where
 {
     println!("I don't know what to do with push_all_nodes");
     (0, vec![])
-}
-
-fn create_children<'a, NS, TAG, LEAF, ATT, VAL>(
-    nodes: &'a [Node<NS, TAG, LEAF, ATT, VAL>],
-    path: &[usize],
-) -> (usize, Vec<Patch<'a, NS, TAG, LEAF, ATT, VAL>>)
-where
-    NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
-    LEAF: PartialEq + Clone + Debug,
-    ATT: PartialEq + Clone + Debug,
-    VAL: PartialEq + Clone + Debug,
-{
-    (0, vec![])
-}
-
-fn replace_inner<'a, NS, TAG, LEAF, ATT, VAL>(
-    node: &'a Node<NS, TAG, LEAF, ATT, VAL>,
-    n: usize,
-    path: &[usize],
-) -> Vec<Patch<'a, NS, TAG, LEAF, ATT, VAL>>
-where
-    NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
-    LEAF: PartialEq + Clone + Debug,
-    ATT: PartialEq + Clone + Debug,
-    VAL: PartialEq + Clone + Debug,
-{
-    vec![]
 }
