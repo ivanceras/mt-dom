@@ -9,6 +9,7 @@ use keyed_elements::diff_keyed_elements;
 use std::fmt::Debug;
 use std::{cmp, mem};
 
+#[cfg(feature = "new-diff-algo")]
 mod diff_keyed;
 mod keyed_elements;
 
@@ -268,15 +269,25 @@ where
         }
         // We're comparing two element nodes
         (Node::Element(old_element), Node::Element(new_element)) => {
-            if is_all_children_keyed(old_element, key)
-                && is_all_children_keyed(new_element, key)
-            /*
-            if is_any_children_keyed(old_element, key)
-                || is_any_children_keyed(new_element, key)
-            */
-            {
-                // use diff_keyed_elements if the any of the old_element or new_element
-                // wer are comparing contains a key as an attribute
+            #[cfg(not(feature = "new-diff-algo"))]
+            let test = is_any_children_keyed(old_element, key)
+                || is_any_children_keyed(new_element, key);
+
+            #[cfg(feature = "new-diff-algo")]
+            let test = is_all_children_keyed(old_element, key)
+                && is_all_children_keyed(new_element, key);
+
+            if test {
+                #[cfg(not(feature = "new-diff-algo"))]
+                let keyed_patches = keyed_elements::diff_keyed_elements(
+                    old_element,
+                    new_element,
+                    key,
+                    path,
+                    skip,
+                    rep,
+                );
+                #[cfg(feature = "new-diff-algo")]
                 let keyed_patches = diff_keyed::diff_keyed_elements(
                     old_element,
                     new_element,
