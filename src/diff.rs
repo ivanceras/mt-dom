@@ -75,8 +75,8 @@ where
 }
 
 /// calculate the difference of 2 nodes
-/// if the skip function evaluates to true diffinf of
-/// the node will be skipped entirely
+/// if the skip function evaluates to true, then diffing of
+/// the node and all of it's descendant will be skipped entirely and then proceed to the next node.
 ///
 /// The SKIP fn is passed to check whether the diffing of the old and new element should be
 /// skipped, and assumed no changes. This is for optimization where the developer is sure that
@@ -130,6 +130,7 @@ where
         .all(|child| is_keyed_node(child, key))
 }
 
+/// returns true if any of the children of this element has key in their attributes
 fn is_any_children_keyed<NS, TAG, LEAF, ATT, VAL>(
     element: &Element<NS, TAG, LEAF, ATT, VAL>,
     key: &ATT,
