@@ -220,6 +220,26 @@ where
 ///     - inserted if the child node_idx <= old elements children
 ///     - appended if the child node_idx is > old elements children
 ///
+///
+/// cases:
+///
+///  old            new
+///
+///  (-) 0              10   (+) (will be patched to old 0)
+///  (-) 1          .---key5  * (first matched)
+///  (-) 2         /    key3 (+) (will not matched old key3 since we've gone past last matched (key5 at 5) }
+///  (-) key3     /     12   (+)
+///  (-) key4    /      13   (+)
+///    * key5 <-'       key4 (+) (will not matched old key4 since we've gone past last matched (key5 at )
+///  (-) 6              14   (+)
+///    * key6 <-------- key6 *
+///  (-) 8              16   (+)
+///  (-) 9
+///
+/// Legend:
+/// (-) means will be removed
+/// (+) means will be inserted
+/// (*) means will be patched
 pub fn diff_keyed_elements<'a, 'b, NS, TAG, LEAF, ATT, VAL, SKIP, REP>(
     old_element: &'a Element<NS, TAG, LEAF, ATT, VAL>,
     new_element: &'a Element<NS, TAG, LEAF, ATT, VAL>,

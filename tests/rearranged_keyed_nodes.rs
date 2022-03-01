@@ -4,7 +4,7 @@ pub type MyNode =
     Node<&'static str, &'static str, &'static str, &'static str, &'static str>;
 
 #[test]
-//#[should_panic]
+#[should_panic]
 fn text_changed_non_keyed() {
     pretty_env_logger::try_init().ok();
     let old: MyNode = element(
