@@ -206,40 +206,45 @@ where
     matched_old_new_keyed
 }
 
-/// Reconciliation of keyed elements
+/// diff the old element with new element
 ///
-/// algorithm:
-///
-/// Phase1
-///   - prioritize matching elements that has the same key.
-///   - match non-keyed elements according to their node_idx alignment
-///
-/// Phase2
-///   - old child elements that are not matched will be removed
-///   - new child elements that are not matched will be inserted or appended
-///     - inserted if the child node_idx <= old elements children
-///     - appended if the child node_idx is > old elements children
-///
-///
-/// cases:
+/// example case:
 ///
 ///  old            new
 ///
-///  (-) 0              10   (+) (will be patched to old 0)
-///  (-) 1          .---key5  * (first matched)
-///  (-) 2         /    key3 (+) (will not matched old key3 since we've gone past last matched (key5 at 5) }
-///  (-) key3     /     12   (+)
-///  (-) key4    /      13   (+)
-///    * key5 <-'       key4 (+) (will not matched old key4 since we've gone past last matched (key5 at )
-///  (-) 6              14   (+)
+///  (-) 0              10   (+) (will be inserted at before key3)
+///  (-) 1              key5 (+) (will be inserted at before key3, this is not matched at key5, since key3 is matched first and since this new key5 has passed new key3 position)
+///  (-) 2       .----- key3 (*) (will not matched old key3 since we've gone past last matched (key5 at 5) }
+///  (*) key3 <-'       12   (+) (will be inserted at after key3)
+///  (*) key4 <-.       13   (+) (will be inserted at after key3)
+///  (-) key5    `----- key4 (*) (will not matched old key4 since we've gone past last matched (key5 at )
+///  (-) 6              14   (+) (will be inserted at after key4)
 ///    * key6 <-------- key6 *
-///  (-) 8              16   (+)
+///  (-) 8              16   (+) will be inserted at after key6)
 ///  (-) 9
 ///
 /// Legend:
 /// (-) means will be removed
 /// (+) means will be inserted
 /// (*) means will be patched
+///
+/// Algorithm flow:
+/// - make a BTreeMap for old index and their old key (old_index_key)
+/// - make a BTreeMap for new index and their new key (new_index_key)
+///
+/// - Use a old_index pointer to 0, this will be used to point to the index of the last matched old key (last_matched_old_index)
+/// - Use a new_index pointer to 0, this will be used to point to the index of the last matched new key (last_matched_new_index)
+///
+/// - from the new_index_key, iterate through the new elements to find which old_index which matched the new key starting from  `last_matched_old_index` until it finds a matched.
+///     - old_index_key[last_matched_old_index..]
+///     - if a matched is found (old_key == new_key) take node of the `old_index` and `new_index`
+///         - create a patch which will delete all the old elements from `old_index` to `last_matched_old_index`, using their own patch_path: [path + old_index].
+///         - create a patch which will insert all the new elements from `new_index` to `last_matched_new_index`, using InsertBefore patch_path: [path + last_matched_old_index].
+///         - set `last_matched_old_index` to `old_index`
+///         - set `last_matched_new_index` to `new_index`
+///     - if we have reached the end of the iteration
+///         - create a patch which will delete all the old_elements from `last_matched_old_index` to the last old elements.
+///         - create a patch which will insert all the new_elements from `last_matched_new_index`, using InsertAfter patch_path: [path + last_matched_new_index].
 pub fn diff_keyed_elements<'a, 'b, NS, TAG, LEAF, ATT, VAL, SKIP, REP>(
     old_element: &'a Element<NS, TAG, LEAF, ATT, VAL>,
     new_element: &'a Element<NS, TAG, LEAF, ATT, VAL>,
