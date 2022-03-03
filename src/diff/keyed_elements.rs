@@ -16,7 +16,7 @@ fn find_node_with_key<'a, NS, TAG, LEAF, ATT, VAL>(
 ) -> Option<(usize, &'a Node<NS, TAG, LEAF, ATT, VAL>)>
 where
     NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
+    TAG: PartialEq + Debug,
     LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
@@ -52,7 +52,7 @@ fn find_matched_new_child<'a, NS, TAG, LEAF, ATT, VAL>(
 ) -> Option<(usize, &'a Node<NS, TAG, LEAF, ATT, VAL>)>
 where
     NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
+    TAG: PartialEq + Debug,
     LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
@@ -75,7 +75,7 @@ fn find_child_node_with_idx<'a, NS, TAG, LEAF, ATT, VAL>(
 ) -> Option<(usize, &'a Node<NS, TAG, LEAF, ATT, VAL>)>
 where
     NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
+    TAG: PartialEq + Debug,
     LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
@@ -101,7 +101,7 @@ fn get_matched_old_new_idx<'a, NS, TAG, LEAF, ATT, VAL>(
 ) -> (Vec<usize>, Vec<usize>)
 where
     NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
+    TAG: PartialEq + Debug,
     LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
@@ -119,7 +119,7 @@ fn get_unmatched_children_node_idx<NS, TAG, LEAF, ATT, VAL>(
 ) -> Vec<(usize, &Node<NS, TAG, LEAF, ATT, VAL>)>
 where
     NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
+    TAG: PartialEq + Debug,
     LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
@@ -137,7 +137,7 @@ fn build_keyed_elements<'a, NS, TAG, LEAF, ATT, VAL>(
 ) -> BTreeMap<usize, (Vec<&'a VAL>, &'a Node<NS, TAG, LEAF, ATT, VAL>)>
 where
     NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
+    TAG: PartialEq + Debug,
     LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
@@ -172,7 +172,7 @@ fn build_matched_old_new_keyed<'a, NS, TAG, LEAF, ATT, VAL>(
 >
 where
     NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
+    TAG: PartialEq + Debug,
     LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
@@ -255,7 +255,7 @@ pub fn diff_keyed_elements<'a, 'b, NS, TAG, LEAF, ATT, VAL, SKIP, REP>(
 ) -> Vec<Patch<'a, NS, TAG, LEAF, ATT, VAL>>
 where
     NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
+    TAG: PartialEq + Debug,
     LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
@@ -423,7 +423,7 @@ fn create_insert_node_patches<'a, NS, TAG, LEAF, ATT, VAL>(
 ) -> Vec<Patch<'a, NS, TAG, LEAF, ATT, VAL>>
 where
     NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
+    TAG: PartialEq + Debug,
     LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
@@ -458,7 +458,7 @@ fn create_append_children_patches<'a, NS, TAG, LEAF, ATT, VAL>(
 ) -> Vec<Patch<'a, NS, TAG, LEAF, ATT, VAL>>
 where
     NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
+    TAG: PartialEq + Debug,
     LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,

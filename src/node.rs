@@ -22,7 +22,7 @@ mod element;
 pub enum Node<NS, TAG, LEAF, ATT, VAL>
 where
     NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
+    TAG: PartialEq + Debug,
     LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
@@ -36,7 +36,7 @@ where
 impl<NS, TAG, LEAF, ATT, VAL> Node<NS, TAG, LEAF, ATT, VAL>
 where
     NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
+    TAG: PartialEq + Debug,
     LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
@@ -274,7 +274,7 @@ pub fn element<NS, TAG, LEAF, ATT, VAL>(
 ) -> Node<NS, TAG, LEAF, ATT, VAL>
 where
     NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
+    TAG: PartialEq + Debug,
     LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
@@ -305,7 +305,7 @@ pub fn element_ns<NS, TAG, LEAF, ATT, VAL>(
 ) -> Node<NS, TAG, LEAF, ATT, VAL>
 where
     NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
+    TAG: PartialEq + Debug,
     LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
@@ -319,7 +319,7 @@ pub fn leaf<NS, TAG, LEAF, ATT, VAL>(
 ) -> Node<NS, TAG, LEAF, ATT, VAL>
 where
     NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
+    TAG: PartialEq + Debug,
     LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,

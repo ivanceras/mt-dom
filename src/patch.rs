@@ -62,7 +62,7 @@ mod tree_path;
 pub enum Patch<'a, NS, TAG, LEAF, ATT, VAL>
 where
     NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
+    TAG: PartialEq + Debug,
     LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
@@ -170,7 +170,7 @@ where
 impl<'a, NS, TAG, LEAF, ATT, VAL> Patch<'a, NS, TAG, LEAF, ATT, VAL>
 where
     NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
+    TAG: PartialEq + Debug,
     LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,

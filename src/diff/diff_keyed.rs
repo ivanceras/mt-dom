@@ -12,7 +12,7 @@ fn get_key<'a, NS, TAG, LEAF, ATT, VAL>(
 ) -> Option<Vec<&'a VAL>>
 where
     NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
+    TAG: PartialEq + Debug,
     LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
@@ -46,7 +46,7 @@ pub(crate) fn diff_keyed_elements<'a, 'b, NS, TAG, LEAF, ATT, VAL, SKIP, REP>(
 ) -> Vec<Patch<'a, NS, TAG, LEAF, ATT, VAL>>
 where
     NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
+    TAG: PartialEq + Debug,
     LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
@@ -204,7 +204,7 @@ fn diff_keyed_ends<'a, 'b, NS, TAG, LEAF, ATT, VAL, SKIP, REP>(
 )
 where
     NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
+    TAG: PartialEq + Debug,
     LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
@@ -338,7 +338,7 @@ fn diff_keyed_middle<'a, 'b, NS, TAG, LEAF, ATT, VAL, SKIP, REP>(
 ) -> Vec<Patch<'a, NS, TAG, LEAF, ATT, VAL>>
 where
     NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
+    TAG: PartialEq + Debug,
     LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
@@ -647,7 +647,7 @@ fn create_remove_nodes_patch<'a, NS, TAG, LEAF, ATT, VAL>(
 ) -> Vec<Patch<'a, NS, TAG, LEAF, ATT, VAL>>
 where
     NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
+    TAG: PartialEq + Debug,
     LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
@@ -671,7 +671,7 @@ fn create_and_append_children<'a, NS, TAG, LEAF, ATT, VAL>(
 ) -> Vec<Patch<'a, NS, TAG, LEAF, ATT, VAL>>
 where
     NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
+    TAG: PartialEq + Debug,
     LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
@@ -689,7 +689,7 @@ fn push_all_nodes<'a, NS, TAG, LEAF, ATT, VAL>(
 ) -> (usize, Vec<Patch<'a, NS, TAG, LEAF, ATT, VAL>>)
 where
     NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
+    TAG: PartialEq + Debug,
     LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,

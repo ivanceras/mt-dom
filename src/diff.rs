@@ -59,7 +59,7 @@ pub fn diff_with_key<'a, NS, TAG, LEAF, ATT, VAL>(
 ) -> Vec<Patch<'a, NS, TAG, LEAF, ATT, VAL>>
 where
     NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
+    TAG: PartialEq + Debug,
     LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
@@ -94,7 +94,7 @@ pub fn diff_with_functions<'a, NS, TAG, LEAF, ATT, VAL, SKIP, REP>(
 ) -> Vec<Patch<'a, NS, TAG, LEAF, ATT, VAL>>
 where
     NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
+    TAG: PartialEq + Debug,
     LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
@@ -119,7 +119,7 @@ fn is_all_children_keyed<NS, TAG, LEAF, ATT, VAL>(
 ) -> bool
 where
     NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
+    TAG: PartialEq + Debug,
     LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
@@ -137,7 +137,7 @@ fn is_any_children_keyed<NS, TAG, LEAF, ATT, VAL>(
 ) -> bool
 where
     NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
+    TAG: PartialEq + Debug,
     LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
@@ -155,7 +155,7 @@ fn is_keyed_node<NS, TAG, LEAF, ATT, VAL>(
 ) -> bool
 where
     NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
+    TAG: PartialEq + Debug,
     LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
@@ -175,7 +175,7 @@ fn should_replace<'a, 'b, NS, TAG, LEAF, ATT, VAL, REP>(
 ) -> bool
 where
     NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
+    TAG: PartialEq + Debug,
     LEAF: PartialEq + Clone + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
@@ -226,7 +226,7 @@ fn diff_recursive<'a, 'b, NS, TAG, LEAF, ATT, VAL, SKIP, REP>(
 where
     NS: PartialEq + Clone + Debug,
     LEAF: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
+    TAG: PartialEq + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
     SKIP: Fn(
@@ -341,7 +341,7 @@ fn diff_non_keyed_elements<'a, 'b, NS, TAG, LEAF, ATT, VAL, SKIP, REP>(
 where
     NS: PartialEq + Clone + Debug,
     LEAF: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
+    TAG: PartialEq + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
     SKIP: Fn(
@@ -404,7 +404,7 @@ fn create_append_children_patch<'a, NS, TAG, LEAF, ATT, VAL>(
 where
     NS: PartialEq + Clone + Debug,
     LEAF: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
+    TAG: PartialEq + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
 {
@@ -430,7 +430,7 @@ fn create_remove_node_patch<'a, NS, TAG, LEAF, ATT, VAL>(
 where
     NS: PartialEq + Clone + Debug,
     LEAF: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
+    TAG: PartialEq + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
 {
@@ -463,7 +463,7 @@ fn create_attribute_patches<'a, NS, TAG, LEAF, ATT, VAL>(
 where
     NS: PartialEq + Clone + Debug,
     LEAF: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
+    TAG: PartialEq + Debug,
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
 {
