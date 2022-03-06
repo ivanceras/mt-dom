@@ -48,24 +48,24 @@ use std::fmt::Debug;
 /// ```
 /// The equivalent idx and path are as follows:
 /// ```text
-///    0 = [0]
-///    1 = [0,0]
-///    2 = [0,0,0]
-///    3 = [0,0,1]
-///    4 = [0,1]
-///    5 = [0,1,0]
-///    6 = [0,1,1]
-///    7 = [0,1,2]
+///    0 = []
+///    1 = [0]
+///    2 = [0,0]
+///    3 = [0,1]
+///    4 = [1]
+///    5 = [1,0]
+///    6 = [1,1]
+///    7 = [1,2]
 /// ```
 #[derive(Debug, Clone, PartialEq)]
 pub struct TreePath {
-    /// an alternative path vector, where it specifies
-    /// the first element is the index of the root node which is always 0
-    /// the second element is the index of the child to traverse to and so on.
-    /// Given a DOM tree where `node_idx` and `path` was derived from, we can
-    /// verify that node_idx and path point to the same node.
-    /// The advantage of using this is that this doesn't need to traverse nodes that are not
-    /// relevant. Traversal operation complexity is O(log n)
+    /// An array of child index at each level of the dom tree.
+    /// The children of the nodes at each child index is traverse
+    /// at each traversal the first element of path is removed until
+    /// the path becomes empty.
+    /// If the path has become empty the node is said to be found.
+    ///
+    /// Empty path means root node
     pub path: Vec<usize>,
 }
 

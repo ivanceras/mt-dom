@@ -14,7 +14,7 @@ fn test_replace_node() {
         diff,
         vec![Patch::replace_node(
             Some(&"div"),
-            TreePath::new(vec![0]),
+            TreePath::new(vec![]),
             &new
         )],
     );
@@ -28,7 +28,7 @@ fn test_replace_text_node() {
     let diff = diff_with_key(&old, &new, &"key");
     assert_eq!(
         diff,
-        vec![Patch::replace_node(None, TreePath::new(vec![0]), &new)],
+        vec![Patch::replace_node(None, TreePath::new(vec![]), &new)],
     );
 }
 
@@ -43,7 +43,7 @@ fn test_replace_node_in_child() {
         diff,
         vec![Patch::replace_node(
             Some(&"div"),
-            TreePath::new(vec![0, 0]),
+            TreePath::new(vec![0]),
             &element("span", vec![], vec![])
         )],
         "Should replace the first node"
@@ -80,10 +80,10 @@ fn test_205() {
     assert_eq!(
         dbg!(diff_with_key(&old, &new, &"key")),
         vec![
-            Patch::remove_node(Some(&"i"), TreePath::new(vec![0, 0, 1]),),
+            Patch::remove_node(Some(&"i"), TreePath::new(vec![0, 1]),),
             Patch::replace_node(
                 Some(&"b"),
-                TreePath::new(vec![0, 1]),
+                TreePath::new(vec![1]),
                 &element("i", vec![], vec![])
             ),
         ],
@@ -145,7 +145,7 @@ fn test_class_changed() {
         diff,
         vec![Patch::add_attributes(
             &"div",
-            TreePath::new(vec![0]),
+            TreePath::new(vec![]),
             vec![&attr("class", "some-class2")]
         )]
     )
@@ -170,7 +170,7 @@ fn leaf_node_changed() {
     assert_eq!(
         diff,
         vec![Patch::replace_leaf(
-            TreePath::new(vec![0, 0]),
+            TreePath::new(vec![0]),
             &"text1",
             &"text2"
         )]
@@ -192,7 +192,7 @@ fn test_class_will_not_be_merged_on_different_calls() {
         diff,
         vec![Patch::add_attributes(
             &"div",
-            TreePath::new(vec![0]),
+            TreePath::new(vec![]),
             vec![&Attribute::with_multiple_values(
                 None,
                 "class",
@@ -217,7 +217,7 @@ fn test_class_removed() {
         diff,
         vec![Patch::remove_attributes(
             &"div",
-            TreePath::new(vec![0]),
+            TreePath::new(vec![]),
             vec![&attr("class", "some-class")]
         )]
     )
@@ -248,7 +248,7 @@ fn test_multiple_calls_to_style() {
         diff,
         vec![Patch::add_attributes(
             &"div",
-            TreePath::new(vec![0,]),
+            TreePath::new(vec![]),
             vec![
                 &attr("style", "display:flex"),
                 &attr("style", "width:200px;height:200px"),
@@ -269,7 +269,7 @@ fn inner_html_func_calls() {
         diff,
         vec![Patch::add_attributes(
             &"div",
-            TreePath::new(vec![0,]),
+            TreePath::new(vec![]),
             vec![&attr("inner_html", "<h1>Hello</h2>")]
         )]
     )
@@ -297,7 +297,7 @@ fn test_append() {
         diff,
         vec![Patch::append_children(
             &"div",
-            TreePath::new(vec![0]),
+            TreePath::new(vec![]),
             vec![&element("div", vec![], vec![leaf("2")])],
         )]
     )
@@ -326,7 +326,7 @@ fn test_append_more() {
         diff,
         vec![Patch::append_children(
             &"div",
-            TreePath::new(vec![0]),
+            TreePath::new(vec![]),
             vec![
                 &element("div", vec![], vec![leaf("2")]),
                 &element("div", vec![], vec![leaf("3")])
@@ -367,7 +367,7 @@ fn test_append_at_sub_level() {
         diff,
         vec![Patch::append_children(
             &"main",
-            TreePath::new(vec![0, 0]),
+            TreePath::new(vec![0]),
             vec![
                 &element("div", vec![], vec![leaf("2")]),
                 &element("div", vec![], vec![leaf("3")])

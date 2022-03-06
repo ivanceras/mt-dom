@@ -19,7 +19,7 @@ fn force_replace() {
         diff,
         vec![Patch::replace_node(
             Some(&"div"),
-            TreePath::new(vec![0]),
+            TreePath::new(vec![]),
             &new
         )],
     );
@@ -98,7 +98,7 @@ fn replace_true_in_attribute_must_replace_old_node_regardless() {
         diff,
         vec![Patch::replace_node(
             Some(&"div"),
-            TreePath::new(vec![0]),
+            TreePath::new(vec![]),
             &new
         )],
     );
@@ -230,7 +230,7 @@ fn replace_and_skip_in_sub_nodes() {
         diff,
         vec![Patch::replace_node(
             Some(&"div"),
-            TreePath::new(vec![0, 1]),
+            TreePath::new(vec![1]),
             &element(
                 "div",
                 vec![
