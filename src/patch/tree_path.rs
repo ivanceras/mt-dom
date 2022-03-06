@@ -76,8 +76,21 @@ impl TreePath {
     }
 
     /// add a path node idx
-    pub fn push_path(&mut self, node_idx: usize) {
+    pub fn push(&mut self, node_idx: usize) {
         self.path.push(node_idx)
+    }
+
+    /// remove first node index of this treepath
+    /// Everytime a node is traversed, the first element should be removed
+    /// until no more index is in this path
+    pub fn remove_first(&mut self) -> usize {
+        self.path.remove(0)
+    }
+
+    /// returns tree if the path is empty
+    /// This is used for checking if the path has been traversed
+    pub fn is_empty(&self) -> bool {
+        self.path.is_empty()
     }
 
     /// find the node using the path of this tree path
