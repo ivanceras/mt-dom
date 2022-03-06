@@ -11,12 +11,9 @@ edition = "2018"
 
 [dependencies]
 log = "0.4"
-# Used in diffing
-longest-increasing-subsequence = { version = "0.1.0", optional = true }
 
 [dev-dependencies]
 pretty_env_logger = "0.4"
 
 [features]
 with-measure = []
-new-diff-algo = ["longest-increasing-subsequence"]
