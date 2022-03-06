@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.17.0
+- return TreePath object from Patch::path method
+
 ## 0.16.0
 - TreePath starts empty vec![] as the path as its corresponding root node (previously it starts at vec![0])
 

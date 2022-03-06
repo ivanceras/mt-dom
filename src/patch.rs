@@ -162,16 +162,16 @@ where
     VAL: PartialEq + Clone + Debug,
 {
     /// return the path to traverse for this patch to get to the target Node
-    pub fn path(&self) -> &[usize] {
+    pub fn path(&self) -> &TreePath {
         match self {
-            Patch::InsertBeforeNode { patch_path, .. } => &patch_path.path,
-            Patch::InsertAfterNode { patch_path, .. } => &patch_path.path,
-            Patch::AppendChildren { patch_path, .. } => &patch_path.path,
-            Patch::RemoveNode { patch_path, .. } => &patch_path.path,
-            Patch::ReplaceNode { patch_path, .. } => &patch_path.path,
-            Patch::AddAttributes { patch_path, .. } => &patch_path.path,
-            Patch::RemoveAttributes { patch_path, .. } => &patch_path.path,
-            Patch::ReplaceLeaf { patch_path, .. } => &patch_path.path,
+            Patch::InsertBeforeNode { patch_path, .. } => &patch_path,
+            Patch::InsertAfterNode { patch_path, .. } => &patch_path,
+            Patch::AppendChildren { patch_path, .. } => &patch_path,
+            Patch::RemoveNode { patch_path, .. } => &patch_path,
+            Patch::ReplaceNode { patch_path, .. } => &patch_path,
+            Patch::AddAttributes { patch_path, .. } => &patch_path,
+            Patch::RemoveAttributes { patch_path, .. } => &patch_path,
+            Patch::ReplaceLeaf { patch_path, .. } => &patch_path,
         }
     }
 
