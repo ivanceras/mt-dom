@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.16.0
+- TreePath starts empty vec![] as the path as its corresponding root node (previously it starts at vec![0])
+
+## 0.15.0
+- Added InsertBeforeNode and InsertAfterNode variant for path, removed InsertNode as it is superseeded by InsertBeforeNode
+
 ## 0.14.0
 - Make mt-dom more generic by using a generic variant for the leaf node value.
 

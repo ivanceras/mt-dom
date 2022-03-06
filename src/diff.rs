@@ -45,7 +45,7 @@ mod keyed_elements;
 ///     diff,
 ///     vec![Patch::remove_node(
 ///         Some(&"div"),
-///         TreePath::new(vec![0, 0]),
+///         TreePath::new(vec![ 0]),
 ///     )
 ///     ]
 /// );
@@ -65,7 +65,7 @@ where
     diff_recursive(
         old_node,
         new_node,
-        &[0],
+        &[],
         key,
         &|_old, _new| false,
         &|_old, _new| false,
@@ -106,7 +106,7 @@ where
         &'a Node<NS, TAG, LEAF, ATT, VAL>,
     ) -> bool,
 {
-    diff_recursive(old_node, new_node, &[0], key, skip, rep)
+    diff_recursive(old_node, new_node, &[], key, skip, rep)
 }
 
 /// returns true if all of the node children has key in their attributes

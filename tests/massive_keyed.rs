@@ -43,7 +43,7 @@ fn key_inserted_at_start() {
         diff,
         vec![Patch::insert_node(
             Some(&"main"),
-            TreePath::new(vec![0, 0]),
+            TreePath::new(vec![0]),
             &element("div", vec![attr("key", "XXX")], vec![leaf("lineXXX")])
         )]
     );
@@ -92,7 +92,7 @@ fn key_inserted_at_middle() {
         diff,
         vec![Patch::insert_node(
             Some(&"main"),
-            TreePath::new(vec![0, 5]),
+            TreePath::new(vec![5]),
             &element("div", vec![attr("key", "XXX")], vec![leaf("lineXXX")])
         )]
     );
@@ -148,7 +148,7 @@ fn wrapped_elements() {
         diff,
         vec![Patch::insert_node(
             Some(&"main"),
-            TreePath::new(vec![0, 0, 5]),
+            TreePath::new(vec![0, 5]),
             &element("div", vec![attr("key", "XXX")], vec![leaf("lineXXX")])
         )]
     );
@@ -206,7 +206,7 @@ fn text_changed() {
     assert_eq!(
         diff,
         vec![Patch::replace_leaf(
-            TreePath::new(vec![0, 0, 6, 0]),
+            TreePath::new(vec![0, 6, 0]),
             &"line7",
             &"line7_changed"
         )]
@@ -262,7 +262,7 @@ fn text_changed_non_keyed() {
     assert_eq!(
         diff,
         vec![Patch::replace_leaf(
-            TreePath::new(vec![0, 0, 6, 0]),
+            TreePath::new(vec![0, 6, 0]),
             &"line7",
             &"line7_changed"
         )]
@@ -355,12 +355,12 @@ fn insert_one_line_at_start() {
     assert_eq!(
         diff,
         vec![
-            Patch::replace_leaf(TreePath::new(vec![0, 0, 0, 0, 0]), &"1", &"2"),
-            Patch::replace_leaf(TreePath::new(vec![0, 0, 1, 0, 0]), &"2", &"3"),
-            Patch::replace_leaf(TreePath::new(vec![0, 0, 2, 0, 0]), &"3", &"4"),
+            Patch::replace_leaf(TreePath::new(vec![0, 0, 0, 0]), &"1", &"2"),
+            Patch::replace_leaf(TreePath::new(vec![0, 1, 0, 0]), &"2", &"3"),
+            Patch::replace_leaf(TreePath::new(vec![0, 2, 0, 0]), &"3", &"4"),
             Patch::insert_node(
                 Some(&"main"),
-                TreePath::new(vec![0, 0, 0]),
+                TreePath::new(vec![0, 0]),
                 &element(
                     "div",
                     vec![attr("key", "hashXXX")],
@@ -469,12 +469,12 @@ fn insert_two_lines_at_start() {
     assert_eq!(
         diff,
         vec![
-            Patch::replace_leaf(TreePath::new(vec![0, 0, 0, 0, 0]), &"1", &"3"),
-            Patch::replace_leaf(TreePath::new(vec![0, 0, 1, 0, 0]), &"2", &"4"),
-            Patch::replace_leaf(TreePath::new(vec![0, 0, 2, 0, 0]), &"2", &"5"),
+            Patch::replace_leaf(TreePath::new(vec![0, 0, 0, 0]), &"1", &"3"),
+            Patch::replace_leaf(TreePath::new(vec![0, 1, 0, 0]), &"2", &"4"),
+            Patch::replace_leaf(TreePath::new(vec![0, 2, 0, 0]), &"2", &"5"),
             Patch::insert_node(
                 Some(&"main"),
-                TreePath::new(vec![0, 0, 0]),
+                TreePath::new(vec![0, 0]),
                 &element(
                     "div",
                     vec![attr("key", "hashXXX")],
@@ -486,7 +486,7 @@ fn insert_two_lines_at_start() {
             ),
             Patch::insert_node(
                 Some(&"main"),
-                TreePath::new(vec![0, 0, 0]),
+                TreePath::new(vec![0, 0]),
                 &element(
                     "div",
                     vec![attr("key", "hashYYY")],

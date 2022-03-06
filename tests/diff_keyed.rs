@@ -41,7 +41,7 @@ fn key_1_removed_at_start() {
     let diff = diff_with_key(&old, &new, &"key");
     assert_eq!(
         diff,
-        vec![Patch::remove_node(Some(&"div"), TreePath::new(vec![0, 0]))]
+        vec![Patch::remove_node(Some(&"div"), TreePath::new(vec![0]))]
     );
 }
 
@@ -65,7 +65,7 @@ fn non_unique_keys_matched_at_old() {
     let diff = diff_with_key(&old, &new, &"key");
     assert_eq!(
         diff,
-        vec![Patch::remove_node(Some(&"div"), TreePath::new(vec![0, 1]))]
+        vec![Patch::remove_node(Some(&"div"), TreePath::new(vec![1]))]
     );
 }
 
@@ -89,7 +89,7 @@ fn key_2_removed_at_the_end() {
     let diff = diff_with_key(&old, &new, &"key");
     assert_eq!(
         diff,
-        vec![Patch::remove_node(Some(&"div"), TreePath::new(vec![0, 1]),)]
+        vec![Patch::remove_node(Some(&"div"), TreePath::new(vec![1]),)]
     );
 }
 
@@ -117,7 +117,7 @@ fn key_2_removed_at_the_middle() {
     let diff = diff_with_key(&old, &new, &"key");
     assert_eq!(
         diff,
-        vec![Patch::remove_node(Some(&"div"), TreePath::new(vec![0, 1]))]
+        vec![Patch::remove_node(Some(&"div"), TreePath::new(vec![1]))]
     );
 }
 
@@ -149,8 +149,8 @@ fn there_are_2_exact_same_keys_in_the_old() {
     assert_eq!(
         diff,
         vec![
-            Patch::replace_leaf(TreePath::new(vec![0, 0, 0]), &"0", &"1"),
-            Patch::remove_node(Some(&"div"), TreePath::new(vec![0, 1]))
+            Patch::replace_leaf(TreePath::new(vec![0, 0]), &"0", &"1"),
+            Patch::remove_node(Some(&"div"), TreePath::new(vec![1]))
         ]
     );
 }
@@ -183,10 +183,10 @@ fn there_are_2_exact_same_keys_in_the_new() {
     assert_eq!(
         diff,
         vec![
-            Patch::replace_leaf(TreePath::new(vec![0, 0, 0]), &"0", &"1"),
+            Patch::replace_leaf(TreePath::new(vec![0, 0]), &"0", &"1"),
             Patch::insert_node(
                 Some(&"main"),
-                TreePath::new(vec![0, 1]),
+                TreePath::new(vec![1]),
                 &element("div", vec![attr("key", "1")], vec![leaf("1")])
             ),
         ]
@@ -222,14 +222,14 @@ fn there_are_2_exact_same_keys_in_both_old_and_new() {
     assert_eq!(
         diff,
         vec![
-            Patch::replace_leaf(TreePath::new(vec![0, 0, 0]), &"0", &"1"),
-            Patch::replace_leaf(TreePath::new(vec![0, 1, 0]), &"1", &"3"),
+            Patch::replace_leaf(TreePath::new(vec![0, 0]), &"0", &"1"),
+            Patch::replace_leaf(TreePath::new(vec![1, 0]), &"1", &"3"),
             Patch::insert_node(
                 Some(&"main"),
-                TreePath::new(vec![0, 1]),
+                TreePath::new(vec![1]),
                 &element("div", vec![attr("key", "1")], vec![leaf("2")])
             ),
-            Patch::remove_node(Some(&"div"), TreePath::new(vec![0, 2])),
+            Patch::remove_node(Some(&"div"), TreePath::new(vec![2])),
         ]
     );
 }
@@ -258,7 +258,7 @@ fn key_2_inserted_at_start() {
         diff,
         vec![Patch::insert_node(
             Some(&"main"),
-            TreePath::new(vec![0, 0]),
+            TreePath::new(vec![0]),
             &element("div", vec![attr("key", "2")], vec![])
         )]
     );
@@ -285,7 +285,7 @@ fn keyed_element_not_reused() {
         diff,
         vec![Patch::replace_node(
             Some(&"div"),
-            TreePath::new(vec![0, 0]),
+            TreePath::new(vec![0]),
             &element("div", vec![attr("key", "2")], vec![])
         )]
     );
@@ -316,7 +316,7 @@ fn key_2_inserted_at_the_end() {
         diff,
         vec![Patch::append_children(
             &"main",
-            TreePath::new(vec![0]),
+            TreePath::new(vec![]),
             vec![&element("div", vec![attr("key", "2")], vec![])]
         )]
     );
@@ -355,12 +355,12 @@ fn test_append_at_sub_level() {
         vec![
             Patch::append_children(
                 &"main",
-                TreePath::new(vec![0, 0]),
+                TreePath::new(vec![0]),
                 vec![&element("div", vec![attr("key", "2")], vec![leaf("2")]),],
             ),
             Patch::append_children(
                 &"main",
-                TreePath::new(vec![0, 0]),
+                TreePath::new(vec![0]),
                 vec![&element("div", vec![attr("key", "3")], vec![leaf("3")])],
             )
         ]
@@ -396,7 +396,7 @@ fn key_2_inserted_in_the_middle() {
         diff,
         vec![Patch::insert_node(
             Some(&"main"),
-            TreePath::new(vec![0, 1]),
+            TreePath::new(vec![1]),
             &element("div", vec![attr("key", "2")], vec![])
         )]
     );
@@ -431,10 +431,10 @@ fn key1_removed_at_start_then_key2_has_additional_attributes() {
         vec![
             Patch::add_attributes(
                 &"div",
-                TreePath::new(vec![0, 1]),
+                TreePath::new(vec![1]),
                 vec![&attr("class", "some-class")]
             ),
-            Patch::remove_node(Some(&"div"), TreePath::new(vec![0, 0]),),
+            Patch::remove_node(Some(&"div"), TreePath::new(vec![0]),),
         ]
     );
 }
@@ -475,10 +475,10 @@ fn deep_nested_key1_removed_at_start_then_key2_has_additional_attributes() {
         vec![
             Patch::add_attributes(
                 &"div",
-                TreePath::new(vec![0, 0, 1]),
+                TreePath::new(vec![0, 1]),
                 vec![&attr("class", "some-class")]
             ),
-            Patch::remove_node(Some(&"div"), TreePath::new(vec![0, 0, 0]),),
+            Patch::remove_node(Some(&"div"), TreePath::new(vec![0, 0]),),
         ]
     );
 }
@@ -521,11 +521,11 @@ fn deep_nested_more_children_key0_and_key1_removed_at_start_then_key2_has_additi
         vec![
             Patch::add_attributes(
                 &"div",
-                TreePath::new(vec![0, 0, 2]),
+                TreePath::new(vec![0, 2]),
                 vec![&attr("class", "some-class")]
             ),
-            Patch::remove_node(Some(&"div"), TreePath::new(vec![0, 0, 0]),),
-            Patch::remove_node(Some(&"div"), TreePath::new(vec![0, 0, 1]),),
+            Patch::remove_node(Some(&"div"), TreePath::new(vec![0, 0]),),
+            Patch::remove_node(Some(&"div"), TreePath::new(vec![0, 1]),),
         ]
     );
 }
@@ -589,21 +589,21 @@ fn deep_nested_keyed_with_non_keyed_children() {
         vec![
             Patch::add_attributes(
                 &"div",
-                TreePath::new(vec![0, 0, 2]),
+                TreePath::new(vec![0, 2]),
                 vec![&attr("class", "some-class")]
             ),
             Patch::replace_leaf(
-                TreePath::new(vec![0, 0, 2, 0, 0]),
+                TreePath::new(vec![0, 2, 0, 0]),
                 &"paragraph1",
                 &"paragraph1, with added content"
             ),
             Patch::replace_leaf(
-                TreePath::new(vec![0, 0, 2, 1, 0]),
+                TreePath::new(vec![0, 2, 1, 0]),
                 &"Click here",
                 &"Click here to continue"
             ),
-            Patch::remove_node(Some(&"div"), TreePath::new(vec![0, 0, 0]),),
-            Patch::remove_node(Some(&"div"), TreePath::new(vec![0, 0, 1]),),
+            Patch::remove_node(Some(&"div"), TreePath::new(vec![0, 0]),),
+            Patch::remove_node(Some(&"div"), TreePath::new(vec![0, 1]),),
         ]
     );
 }
@@ -649,11 +649,11 @@ fn text_changed_in_keyed_elements() {
         patch,
         vec![
             Patch::replace_leaf(
-                TreePath::new(vec![0, 0, 2, 0]),
+                TreePath::new(vec![0, 2, 0]),
                 &"item3",
                 &"item3 with changes"
             ),
-            Patch::remove_node(Some(&"article"), TreePath::new(vec![0, 0, 0]),)
+            Patch::remove_node(Some(&"article"), TreePath::new(vec![0, 0]),)
         ]
     );
 }
@@ -720,13 +720,13 @@ fn text_changed_in_mixed_keyed_and_non_keyed_elements() {
         patch,
         vec![
             Patch::replace_leaf(
-                TreePath::new(vec![0, 0, 2, 0]),
+                TreePath::new(vec![0, 2, 0]),
                 &"item3",
                 &"item3 with changes"
             ),
-            Patch::remove_node(Some(&"article"), TreePath::new(vec![0, 0, 0]),),
+            Patch::remove_node(Some(&"article"), TreePath::new(vec![0, 0]),),
             Patch::replace_leaf(
-                TreePath::new(vec![0, 1, 0]),
+                TreePath::new(vec![1, 0]),
                 &"3 items left",
                 &"2 items left"
             ),
@@ -799,13 +799,13 @@ fn test12() {
         patch,
         vec![
             Patch::replace_leaf(
-                TreePath::new(vec![0, 1, 2, 0]),
+                TreePath::new(vec![1, 2, 0]),
                 &"item3",
                 &"item3 with changes"
             ),
-            Patch::remove_node(Some(&"article"), TreePath::new(vec![0, 1, 0]),),
+            Patch::remove_node(Some(&"article"), TreePath::new(vec![1, 0]),),
             Patch::replace_leaf(
-                TreePath::new(vec![0, 2, 0]),
+                TreePath::new(vec![2, 0]),
                 &"3 items left",
                 &"2 items left"
             ),
@@ -838,6 +838,6 @@ fn remove_first() {
     dbg!(&diff);
     assert_eq!(
         diff,
-        vec![Patch::remove_node(Some(&"div"), TreePath::new(vec![0, 0]),)]
+        vec![Patch::remove_node(Some(&"div"), TreePath::new(vec![0]),)]
     )
 }
