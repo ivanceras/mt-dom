@@ -125,6 +125,7 @@
         Leaf(T),
     }
     ```
+- [ ] Start at empty vec for Root node in TreePath
 
 ## Optimization
 - Create a data structure which has old_element and its node_idx and the new_element with its node_idx

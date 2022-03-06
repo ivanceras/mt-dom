@@ -67,20 +67,6 @@ where
     ATT: PartialEq + Clone + Debug,
     VAL: PartialEq + Clone + Debug,
 {
-    /// Insert a vector of child nodes to the current node being patch, which will be the parent
-    /// of the newly inserted node.
-    /// The usize is the index of of the children of the node to be
-    /// patch to insert to. The new children will be inserted before this usize
-    /// TODO: rename to InsertAtNode
-    InsertNode {
-        /// the tag of the target node we insert this node into
-        tag: Option<&'a TAG>,
-        /// the path to traverse to get to the target element of which our node will be inserted before it.
-        patch_path: TreePath,
-        /// the node to be inserted
-        node: &'a Node<NS, TAG, LEAF, ATT, VAL>,
-    },
-
     /// insert the nodes before the node at patch_path
     InsertBeforeNode {
         /// the tag of the node at patch_path
@@ -178,7 +164,6 @@ where
     /// return the path to traverse for this patch to get to the target Node
     pub fn path(&self) -> &[usize] {
         match self {
-            Patch::InsertNode { patch_path, .. } => &patch_path.path,
             Patch::InsertBeforeNode { patch_path, .. } => &patch_path.path,
             Patch::InsertAfterNode { patch_path, .. } => &patch_path.path,
             Patch::AppendChildren { patch_path, .. } => &patch_path.path,
@@ -193,7 +178,6 @@ where
     /// return the tag of this patch
     pub fn tag(&self) -> Option<&TAG> {
         match self {
-            Patch::InsertNode { tag, .. } => *tag,
             Patch::InsertBeforeNode { tag, .. } => *tag,
             Patch::InsertAfterNode { tag, .. } => *tag,
             Patch::AppendChildren { tag, .. } => Some(tag),
@@ -211,10 +195,10 @@ where
         patch_path: TreePath,
         node: &'a Node<NS, TAG, LEAF, ATT, VAL>,
     ) -> Patch<'a, NS, TAG, LEAF, ATT, VAL> {
-        Patch::InsertNode {
+        Patch::InsertBeforeNode {
             tag,
             patch_path,
-            node,
+            nodes: vec![node],
         }
     }
 
