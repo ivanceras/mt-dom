@@ -258,10 +258,10 @@ where
     match (old_node, new_node) {
         (Node::Leaf(old_leaf), Node::Leaf(new_leaf)) => {
             if old_leaf != new_leaf {
-                let ct = Patch::replace_leaf(
+                let ct = Patch::replace_node(
+                    old_node.tag(),
                     TreePath::new(path.to_vec()),
-                    old_leaf,
-                    new_leaf,
+                    new_node,
                 );
                 patches.push(ct);
             }

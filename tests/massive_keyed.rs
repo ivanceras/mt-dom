@@ -205,10 +205,10 @@ fn text_changed() {
     dbg!(&diff);
     assert_eq!(
         diff,
-        vec![Patch::replace_leaf(
+        vec![Patch::replace_node(
+            None,
             TreePath::new(vec![0, 6, 0]),
-            &"line7",
-            &"line7_changed"
+            &leaf("line7_changed")
         )]
     );
 }
@@ -261,10 +261,10 @@ fn text_changed_non_keyed() {
 
     assert_eq!(
         diff,
-        vec![Patch::replace_leaf(
+        vec![Patch::replace_node(
+            None,
             TreePath::new(vec![0, 6, 0]),
-            &"line7",
-            &"line7_changed"
+            &leaf("line7_changed")
         )]
     );
 }
@@ -355,9 +355,21 @@ fn insert_one_line_at_start() {
     assert_eq!(
         diff,
         vec![
-            Patch::replace_leaf(TreePath::new(vec![0, 0, 0, 0]), &"1", &"2"),
-            Patch::replace_leaf(TreePath::new(vec![0, 1, 0, 0]), &"2", &"3"),
-            Patch::replace_leaf(TreePath::new(vec![0, 2, 0, 0]), &"3", &"4"),
+            Patch::replace_node(
+                None,
+                TreePath::new(vec![0, 0, 0, 0]),
+                &leaf("2")
+            ),
+            Patch::replace_node(
+                None,
+                TreePath::new(vec![0, 1, 0, 0]),
+                &leaf("3")
+            ),
+            Patch::replace_node(
+                None,
+                TreePath::new(vec![0, 2, 0, 0]),
+                &leaf("4")
+            ),
             Patch::insert_node(
                 Some(&"main"),
                 TreePath::new(vec![0, 0]),
@@ -469,9 +481,21 @@ fn insert_two_lines_at_start() {
     assert_eq!(
         diff,
         vec![
-            Patch::replace_leaf(TreePath::new(vec![0, 0, 0, 0]), &"1", &"3"),
-            Patch::replace_leaf(TreePath::new(vec![0, 1, 0, 0]), &"2", &"4"),
-            Patch::replace_leaf(TreePath::new(vec![0, 2, 0, 0]), &"2", &"5"),
+            Patch::replace_node(
+                None,
+                TreePath::new(vec![0, 0, 0, 0]),
+                &leaf("3")
+            ),
+            Patch::replace_node(
+                None,
+                TreePath::new(vec![0, 1, 0, 0]),
+                &leaf("4")
+            ),
+            Patch::replace_node(
+                None,
+                TreePath::new(vec![0, 2, 0, 0]),
+                &leaf("5")
+            ),
             Patch::insert_node(
                 Some(&"main"),
                 TreePath::new(vec![0, 0]),

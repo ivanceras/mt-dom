@@ -140,17 +140,6 @@ where
         /// attributes that are to be removed from this target node
         attrs: Vec<&'a Attribute<NS, ATT, VAL>>,
     },
-    /// Replace the old leaf with a new leaf
-    ReplaceLeaf {
-        /// the path to be traverse in order to replace this leaf
-        patch_path: TreePath,
-        /// the old leaf that will be replace,
-        /// this is for debugging and assertion purposes that we are
-        /// changing the matching old LEAF content in the vdom and the real dom
-        old: &'a LEAF,
-        /// the new leaf for replacement
-        new: &'a LEAF,
-    },
 }
 
 impl<'a, NS, TAG, LEAF, ATT, VAL> Patch<'a, NS, TAG, LEAF, ATT, VAL>
@@ -171,7 +160,6 @@ where
             Patch::ReplaceNode { patch_path, .. } => &patch_path,
             Patch::AddAttributes { patch_path, .. } => &patch_path,
             Patch::RemoveAttributes { patch_path, .. } => &patch_path,
-            Patch::ReplaceLeaf { patch_path, .. } => &patch_path,
         }
     }
 
@@ -185,7 +173,6 @@ where
             Patch::ReplaceNode { tag, .. } => *tag,
             Patch::AddAttributes { tag, .. } => Some(tag),
             Patch::RemoveAttributes { tag, .. } => Some(tag),
-            Patch::ReplaceLeaf { .. } => None,
         }
     }
 
@@ -288,19 +275,6 @@ where
             tag,
             patch_path,
             attrs,
-        }
-    }
-
-    /// create a patch where the old leaf is replaced with a new one
-    pub fn replace_leaf(
-        patch_path: TreePath,
-        old: &'a LEAF,
-        new: &'a LEAF,
-    ) -> Patch<'a, NS, TAG, LEAF, ATT, VAL> {
-        Patch::ReplaceLeaf {
-            patch_path,
-            old,
-            new,
         }
     }
 }

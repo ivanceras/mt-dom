@@ -169,10 +169,10 @@ fn leaf_node_changed() {
     dbg!(&diff);
     assert_eq!(
         diff,
-        vec![Patch::replace_leaf(
+        vec![Patch::replace_node(
+            None,
             TreePath::new(vec![0]),
-            &"text1",
-            &"text2"
+            &leaf("text2")
         )]
     )
 }
