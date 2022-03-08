@@ -232,8 +232,8 @@ where
 /// - make a BTreeMap for old index and their old key (old_index_key)
 /// - make a BTreeMap for new index and their new key (new_index_key)
 ///
-/// - Use a old_index pointer to 0, this will be used to point to the index of the last matched old key (last_matched_old_index)
-/// - Use a new_index pointer to 0, this will be used to point to the index of the last matched new key (last_matched_new_index)
+/// - Use an old_index pointer to 0, this will be used to point to the index of the last matched old key (last_matched_old_index)
+/// - Use an new_index pointer to 0, this will be used to point to the index of the last matched new key (last_matched_new_index)
 ///
 /// - from the new_index_key, iterate through the new elements to find which old_index which matched the new key starting from  `last_matched_old_index` until it finds a matched.
 ///     - old_index_key[last_matched_old_index..]
@@ -242,7 +242,7 @@ where
 ///         - create a patch which will insert all the new elements from `new_index` to `last_matched_new_index`, using InsertBefore patch_path: [path + last_matched_old_index].
 ///         - set `last_matched_old_index` to `old_index`
 ///         - set `last_matched_new_index` to `new_index`
-///     - if we have reached the end of the iteration
+///     - if we have reached the end of the iteration (the last old_index that has a match)
 ///         - create a patch which will delete all the old_elements from `last_matched_old_index` to the last old elements.
 ///         - create a patch which will insert all the new_elements from `last_matched_new_index`, using InsertAfter patch_path: [path + last_matched_new_index].
 pub fn diff_keyed_elements<'a, 'b, NS, TAG, LEAF, ATT, VAL, SKIP, REP>(
