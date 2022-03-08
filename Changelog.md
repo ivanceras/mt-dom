@@ -1,5 +1,8 @@
 # Changelog
 
+# 0.18.0
+- Remove the Patch::ReplaceLeaf variant as it can be expressed using Patch::ReplaceNode
+
 ## 0.17.0
 - return TreePath object from Patch::path method
 
