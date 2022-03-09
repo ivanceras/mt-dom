@@ -102,6 +102,8 @@ where
             .iter()
             .enumerate()
             .map(|(old_index, old)| {
+                println!("There are no matches.. removing everything..");
+
                 let mut old_child_path = TreePath::new(path.to_vec());
                 old_child_path.push(old_index);
                 Patch::remove_node(old.tag(), old_child_path)
@@ -150,6 +152,11 @@ where
         // if there is a matching old_index, create a patch that will remove all the nodes
         // from the old_elements from the `last_matched_old_index` to this `matched_old_index
         if let Some(matched_old_index) = matched_old_index {
+            println!("--->> path: {:?}", path);
+            println!(
+                "matched old_index: {} to new_index: {}",
+                matched_old_index, new_index
+            );
             let mut old_path = path.to_vec();
             old_path.push(matched_old_index);
 
@@ -234,8 +241,8 @@ where
         .filter_map(|(i, old)| {
             if is_forward(last_matched_old_index, i) {
                 let mut old_path = TreePath::new(path.to_vec());
-
                 old_path.push(i);
+                println!("removing the remaining old node at: {:?}", old_path);
 
                 Some(Patch::remove_node(old.tag(), old_path))
             } else {

@@ -9,7 +9,7 @@ use std::fmt::Debug;
 use std::{cmp, mem};
 
 mod keyed;
-mod keyed_elements;
+//mod keyed_elements;
 
 /// Return the patches needed for `old_node` to have the same DOM as `new_node`
 ///
