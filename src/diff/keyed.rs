@@ -47,7 +47,7 @@ pub fn diff_keyed_elements<'a, 'b, NS, TAG, LEAF, ATT, VAL, SKIP, REP>(
     old_element: &'a Element<NS, TAG, LEAF, ATT, VAL>,
     new_element: &'a Element<NS, TAG, LEAF, ATT, VAL>,
     key: &ATT,
-    path: &[usize],
+    path: &TreePath,
     skip: &SKIP,
     rep: &REP,
 ) -> Vec<Patch<'a, NS, TAG, LEAF, ATT, VAL>>
@@ -104,8 +104,7 @@ where
             .map(|(old_index, old)| {
                 println!("There are no matches.. removing everything..");
 
-                let mut old_child_path = TreePath::new(path.to_vec());
-                old_child_path.push(old_index);
+                let old_child_path = path.traverse(old_index);
                 Patch::remove_node(old.tag(), old_child_path)
             })
             .collect::<Vec<_>>();
@@ -117,7 +116,7 @@ where
         if !for_append_children.is_empty() {
             let for_append_patch = Patch::append_children(
                 old_element.tag(),
-                TreePath::new(path.to_vec()),
+                path.clone(),
                 for_append_children,
             );
             patches.push(for_append_patch);
@@ -157,8 +156,8 @@ where
                 "matched old_index: {} to new_index: {}",
                 matched_old_index, new_index
             );
-            let mut old_path = path.to_vec();
-            old_path.push(matched_old_index);
+
+            let old_path = path.traverse(matched_old_index);
 
             let patch_for_matched = diff_recursive(
                 &old_element.children[matched_old_index],
@@ -179,8 +178,7 @@ where
                     if is_forward(last_matched_old_index, i)
                         && i < matched_old_index
                     {
-                        let mut old_path = TreePath::new(path.to_vec());
-                        old_path.push(i);
+                        let old_path = path.traverse(i);
                         Some(Patch::remove_node(old.tag(), old_path))
                     } else {
                         None
@@ -209,10 +207,9 @@ where
                 .collect::<Vec<_>>();
 
             if !for_insert_nodes.is_empty() {
-                let mut old_path = TreePath::new(path.to_vec());
-
                 let old_index_marked_node = last_matched_old_index.unwrap_or(0);
-                old_path.push(old_index_marked_node);
+
+                let old_path = path.traverse(old_index_marked_node);
 
                 let old_tag = old_element.children[old_index_marked_node].tag();
                 // create a patch that will insert the new elements from `last_matched_new_index` to
@@ -240,8 +237,7 @@ where
         .enumerate()
         .filter_map(|(i, old)| {
             if is_forward(last_matched_old_index, i) {
-                let mut old_path = TreePath::new(path.to_vec());
-                old_path.push(i);
+                let old_path = path.traverse(i);
                 println!("removing the remaining old node at: {:?}", old_path);
 
                 Some(Patch::remove_node(old.tag(), old_path))
@@ -260,8 +256,7 @@ where
         .get(last_matched_old_index.unwrap_or(0))
         .map(|n| n.tag())
         .flatten();
-    let mut old_path = TreePath::new(path.to_vec());
-    old_path.push(last_matched_old_index.unwrap_or(0));
+    let old_path = path.traverse(last_matched_old_index.unwrap_or(0));
 
     // insert all the elements after the last_matched_new_index, insert it before the
     // node at last_matched_old_index
@@ -288,6 +283,7 @@ where
 }
 
 // check if index is greater than the contained value of an index
+// returns true if `than` is None
 fn is_forward(than: Option<usize>, i: usize) -> bool {
     match than {
         None => true,
@@ -316,7 +312,7 @@ mod test {
             old.as_element_ref().unwrap(),
             new.as_element_ref().unwrap(),
             &"key",
-            &[],
+            &TreePath::root(),
             &|_, _| false,
             &|_, _| false,
         );
@@ -331,7 +327,7 @@ mod test {
             old.as_element_ref().unwrap(),
             new.as_element_ref().unwrap(),
             &"key",
-            &[],
+            &TreePath::from([]),
             &|_, _| false,
             &|_, _| false,
         );
@@ -350,7 +346,7 @@ mod test {
             &old.as_element_ref().unwrap(),
             &new.as_element_ref().unwrap(),
             &"key",
-            &[],
+            &TreePath::root(),
             &|_, _| false,
             &|_, _| false,
         );
@@ -370,7 +366,7 @@ mod test {
             &old.as_element_ref().unwrap(),
             &new.as_element_ref().unwrap(),
             &"key",
-            &[],
+            &TreePath::root(),
             &|_, _| false,
             &|_, _| false,
         );
@@ -405,7 +401,7 @@ mod test {
             &old.as_element_ref().unwrap(),
             &new.as_element_ref().unwrap(),
             &"key",
-            &[],
+            &TreePath::root(),
             &|_, _| false,
             &|_, _| false,
         );
@@ -437,14 +433,11 @@ mod test {
             &old.as_element_ref().unwrap(),
             &new.as_element_ref().unwrap(),
             &"key",
-            &[],
+            &TreePath::root(),
             &|_, _| false,
             &|_, _| false,
         );
-        assert_eq!(
-            patches,
-            vec![Patch::remove_node(Some(&"div"), TreePath::new(vec![0]),)]
-        );
+        assert_eq!(patches, vec![Patch::remove_node(Some(&"div"), [0].into())]);
     }
 
     #[test]
@@ -465,13 +458,13 @@ mod test {
             &old.as_element_ref().unwrap(),
             &new.as_element_ref().unwrap(),
             &"key",
-            &[],
+            &TreePath::root(),
             &|_, _| false,
             &|_, _| false,
         );
         assert_eq!(
             patches,
-            vec![Patch::remove_node(Some(&"div"), TreePath::new(vec![1]),)]
+            vec![Patch::remove_node(Some(&"div"), vec![1].into())]
         );
     }
 
@@ -501,7 +494,7 @@ mod test {
             &old.as_element_ref().unwrap(),
             &new.as_element_ref().unwrap(),
             &"key",
-            &[],
+            &TreePath::root(),
             &|_, _| false,
             &|_, _| false,
         );
@@ -537,7 +530,7 @@ mod test {
             &old.as_element_ref().unwrap(),
             &new.as_element_ref().unwrap(),
             &"key",
-            &[],
+            &TreePath::root(),
             &|_, _| false,
             &|_, _| false,
         );
@@ -586,7 +579,7 @@ mod test {
             &old.as_element_ref().unwrap(),
             &new.as_element_ref().unwrap(),
             &"key",
-            &[],
+            &TreePath::root(),
             &|_, _| false,
             &|_, _| false,
         );
@@ -631,7 +624,7 @@ mod test {
             &old.as_element_ref().unwrap(),
             &new.as_element_ref().unwrap(),
             &"key",
-            &[],
+            &TreePath::root(),
             &|_, _| false,
             &|_, _| false,
         );
@@ -683,7 +676,7 @@ mod test {
             &old.as_element_ref().unwrap(),
             &new.as_element_ref().unwrap(),
             &"key",
-            &[],
+            &TreePath::root(),
             &|_, _| false,
             &|_, _| false,
         );
@@ -693,16 +686,16 @@ mod test {
         assert_eq!(
             patches,
             vec![
-                Patch::remove_node(Some(&"div"), TreePath::new(vec![0])),
+                Patch::remove_node(Some(&"div"), TreePath::from([0])),
                 Patch::insert_before_node(
                     Some(&"div"),
-                    TreePath::new(vec![1]),
+                    TreePath::from([1]),
                     vec![&element("div", [attr("key", "10")], []),]
                 ),
-                Patch::remove_node(Some(&"div"), TreePath::new(vec![3])),
+                Patch::remove_node(Some(&"div"), TreePath::from([3])),
                 Patch::insert_after_node(
                     Some(&"div"),
-                    TreePath::new(vec![2]),
+                    TreePath::from([2]),
                     vec![&element("div", [attr("key", "40")], [])]
                 ),
             ]

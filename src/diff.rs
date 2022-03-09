@@ -64,7 +64,7 @@ where
     diff_recursive(
         old_node,
         new_node,
-        &[],
+        &TreePath::root(),
         key,
         &|_old, _new| false,
         &|_old, _new| false,
@@ -105,7 +105,7 @@ where
         &'a Node<NS, TAG, LEAF, ATT, VAL>,
     ) -> bool,
 {
-    diff_recursive(old_node, new_node, &[], key, skip, rep)
+    diff_recursive(old_node, new_node, &TreePath::root(), key, skip, rep)
 }
 
 /// returns true if all of the node children has key in their attributes
@@ -215,7 +215,7 @@ where
 fn diff_recursive<'a, 'b, NS, TAG, LEAF, ATT, VAL, SKIP, REP>(
     old_node: &'a Node<NS, TAG, LEAF, ATT, VAL>,
     new_node: &'a Node<NS, TAG, LEAF, ATT, VAL>,
-    path: &[usize],
+    path: &TreePath,
     key: &ATT,
     skip: &SKIP,
     rep: &REP,
@@ -245,7 +245,7 @@ where
     if should_replace(old_node, new_node, key, rep) {
         patches.push(Patch::replace_node(
             old_node.tag(),
-            TreePath::new(path.to_vec()),
+            path.clone(),
             new_node,
         ));
         return patches;
@@ -257,20 +257,17 @@ where
     match (old_node, new_node) {
         (Node::Leaf(old_leaf), Node::Leaf(new_leaf)) => {
             if old_leaf != new_leaf {
-                let ct = Patch::replace_node(
-                    old_node.tag(),
-                    TreePath::new(path.to_vec()),
-                    new_node,
-                );
+                let ct =
+                    Patch::replace_node(old_node.tag(), path.clone(), new_node);
                 patches.push(ct);
             }
         }
         // We're comparing two element nodes
         (Node::Element(old_element), Node::Element(new_element)) => {
-            let test = is_any_children_keyed(old_element, key)
+            let diff_as_keyed = is_any_children_keyed(old_element, key)
                 || is_any_children_keyed(new_element, key);
 
-            if test {
+            if diff_as_keyed {
                 let keyed_patches = keyed::diff_keyed_elements(
                     old_element,
                     new_element,
@@ -316,7 +313,7 @@ fn diff_non_keyed_elements<'a, 'b, NS, TAG, LEAF, ATT, VAL, SKIP, REP>(
     old_element: &'a Element<NS, TAG, LEAF, ATT, VAL>,
     new_element: &'a Element<NS, TAG, LEAF, ATT, VAL>,
     key: &ATT,
-    path: &[usize],
+    path: &TreePath,
     skip: &SKIP,
     rep: &REP,
 ) -> Vec<Patch<'a, NS, TAG, LEAF, ATT, VAL>>
@@ -346,8 +343,7 @@ where
     let min_count = cmp::min(old_child_count, new_child_count);
     for index in 0..min_count {
         // if we iterate trough the old elements, a new child_path is created for that iteration
-        let mut child_path = path.to_vec();
-        child_path.push(index);
+        let child_path = path.traverse(index);
 
         let old_child = &old_element
             .children
@@ -381,7 +377,7 @@ where
 fn create_append_children_patch<'a, NS, TAG, LEAF, ATT, VAL>(
     old_element: &'a Element<NS, TAG, LEAF, ATT, VAL>,
     new_element: &'a Element<NS, TAG, LEAF, ATT, VAL>,
-    path: &[usize],
+    path: &TreePath,
 ) -> Patch<'a, NS, TAG, LEAF, ATT, VAL>
 where
     NS: PartialEq + Clone + Debug,
@@ -397,17 +393,13 @@ where
         append_patch.push(append_child);
     }
 
-    Patch::append_children(
-        &old_element.tag,
-        TreePath::new(path.to_vec()),
-        append_patch,
-    )
+    Patch::append_children(&old_element.tag, path.clone(), append_patch)
 }
 
 fn create_remove_node_patch<'a, NS, TAG, LEAF, ATT, VAL>(
     old_element: &'a Element<NS, TAG, LEAF, ATT, VAL>,
     new_element: &'a Element<NS, TAG, LEAF, ATT, VAL>,
-    path: &[usize],
+    path: &TreePath,
 ) -> Vec<Patch<'a, NS, TAG, LEAF, ATT, VAL>>
 where
     NS: PartialEq + Clone + Debug,
@@ -424,10 +416,8 @@ where
         .skip(new_child_count)
         .enumerate()
     {
-        let mut child_path = path.to_vec();
-        child_path.push(new_child_count + i);
-        let remove_node_patch =
-            Patch::remove_node(old_child.tag(), TreePath::new(child_path));
+        let child_path = path.traverse(new_child_count + i);
+        let remove_node_patch = Patch::remove_node(old_child.tag(), child_path);
         patches.push(remove_node_patch);
     }
     patches
@@ -440,7 +430,7 @@ where
 fn create_attribute_patches<'a, NS, TAG, LEAF, ATT, VAL>(
     old_element: &'a Element<NS, TAG, LEAF, ATT, VAL>,
     new_element: &'a Element<NS, TAG, LEAF, ATT, VAL>,
-    path: &[usize],
+    path: &TreePath,
 ) -> Vec<Patch<'a, NS, TAG, LEAF, ATT, VAL>>
 where
     NS: PartialEq + Clone + Debug,
@@ -505,14 +495,14 @@ where
     if !add_attributes.is_empty() {
         patches.push(Patch::add_attributes(
             &old_element.tag,
-            TreePath::new(path.to_vec()),
+            path.clone(),
             add_attributes,
         ));
     }
     if !remove_attributes.is_empty() {
         patches.push(Patch::remove_attributes(
             &old_element.tag,
-            TreePath::new(path.to_vec()),
+            path.clone(),
             remove_attributes,
         ));
     }

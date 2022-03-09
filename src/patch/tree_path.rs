@@ -75,9 +75,22 @@ impl TreePath {
         Self { path }
     }
 
+    /// create a TreePath which starts at empty vec which is the root node of a DOM tree
+    pub fn root() -> Self {
+        Self { path: vec![] }
+    }
+
     /// add a path node idx
     pub fn push(&mut self, node_idx: usize) {
         self.path.push(node_idx)
+    }
+
+    /// create a new TreePath with an added node_index
+    /// This is used for traversing into child elements
+    pub fn traverse(&self, node_idx: usize) -> Self {
+        let mut new_path = self.clone();
+        new_path.push(node_idx);
+        new_path
     }
 
     /// remove first node index of this treepath
@@ -106,6 +119,20 @@ impl TreePath {
         VAL: PartialEq + Clone + Debug,
     {
         find_node_by_path(node, self)
+    }
+}
+
+impl<const N: usize> From<[usize; N]> for TreePath {
+    fn from(array: [usize; N]) -> Self {
+        Self {
+            path: array.to_vec(),
+        }
+    }
+}
+
+impl From<Vec<usize>> for TreePath {
+    fn from(vec: Vec<usize>) -> Self {
+        Self { path: vec }
     }
 }
 
@@ -165,6 +192,13 @@ mod tests {
         &'static str,
         &'static str,
     >;
+
+    #[test]
+    fn test_traverse() {
+        let path = TreePath::from([0]);
+
+        assert_eq!(path.traverse(1), TreePath::from([0, 1]));
+    }
 
     fn sample_node() -> MyNode {
         let node: MyNode = element(
