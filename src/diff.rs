@@ -9,7 +9,6 @@ use std::fmt::Debug;
 use std::{cmp, mem};
 
 mod keyed;
-//mod keyed_elements;
 
 /// Return the patches needed for `old_node` to have the same DOM as `new_node`
 ///
@@ -273,7 +272,6 @@ where
 
             if test {
                 let keyed_patches = keyed::diff_keyed_elements(
-                    //let keyed_patches = keyed_elements::diff_keyed_elements(
                     old_element,
                     new_element,
                     key,
