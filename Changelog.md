@@ -1,6 +1,9 @@
 # Changelog
 
-# 0.18.0
+## 0.19.0
+- Change algorithm for diffing keyed elements this time with a more stream-line and shorter code
+
+## 0.18.0
 - Remove the Patch::ReplaceLeaf variant as it can be expressed using Patch::ReplaceNode
 
 ## 0.17.0
