@@ -26,7 +26,24 @@ fn mixed_key_and_no_key_with_no_change() {
     );
 
     let diff = diff_with_key(&old, &new, &"key");
-    assert_eq!(diff, vec![]);
+    dbg!(&diff);
+    assert_eq!(
+        diff,
+        vec![
+            Patch::remove_node(Some(&"div"), TreePath::new(vec![0])),
+            Patch::insert_before_node(
+                Some(&"div"),
+                TreePath::new(vec![1]),
+                vec![&element("div", vec![], vec![leaf("1")])]
+            ),
+            Patch::remove_node(Some(&"div"), TreePath::new(vec![2])),
+            Patch::insert_after_node(
+                Some(&"div"),
+                TreePath::new(vec![1]),
+                vec![&element("div", vec![], vec![leaf("3")])]
+            ),
+        ]
+    );
 }
 
 #[test]
@@ -59,7 +76,19 @@ fn mixed_key_and_no_key_with_2_matched() {
         diff,
         vec![
             Patch::replace_node(None, TreePath::new(vec![1, 0]), &leaf("1")),
-            Patch::replace_node(None, TreePath::new(vec![2, 0]), &leaf("3"))
+            Patch::remove_node(Some(&"div"), TreePath::new(vec![0])),
+            Patch::insert_before_node(
+                Some(&"div"),
+                TreePath::new(vec![1]),
+                vec![&element("div", vec![], vec![leaf("1")])]
+            ),
+            Patch::replace_node(None, TreePath::new(vec![2, 0]), &leaf("3")),
+            Patch::remove_node(Some(&"div"), TreePath::new(vec![3])),
+            Patch::insert_after_node(
+                Some(&"div"),
+                TreePath::new(vec![2]),
+                vec![&element("div", vec![], vec![leaf("3")])]
+            ),
         ]
     );
 }
@@ -95,11 +124,17 @@ fn mixed_key_and_no_key_with_misordered_2_matched() {
         diff,
         vec![
             Patch::insert_node(
-                Some(&"main"),
+                Some(&"div"),
                 TreePath::new(vec![0]),
                 &element("div", vec![], vec![leaf("1")]),
             ),
-            Patch::remove_node(Some(&"div"), TreePath::new(vec![1]),),
+            Patch::remove_node(Some(&"div"), TreePath::new(vec![1])),
+            Patch::remove_node(Some(&"div"), TreePath::new(vec![3])),
+            Patch::insert_after_node(
+                Some(&"div"),
+                TreePath::new(vec![2]),
+                vec![&element("div", vec![], vec![leaf("3")])],
+            ),
         ]
     );
 }

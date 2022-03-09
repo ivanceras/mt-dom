@@ -5,7 +5,6 @@ use crate::{
     node::attribute::group_attributes_per_name, Attribute, Element, Node,
     Patch, TreePath,
 };
-use keyed_elements::diff_keyed_elements;
 use std::fmt::Debug;
 use std::{cmp, mem};
 
@@ -273,7 +272,8 @@ where
                 || is_any_children_keyed(new_element, key);
 
             if test {
-                let keyed_patches = keyed_elements::diff_keyed_elements(
+                let keyed_patches = keyed::diff_keyed_elements(
+                    //let keyed_patches = keyed_elements::diff_keyed_elements(
                     old_element,
                     new_element,
                     key,
