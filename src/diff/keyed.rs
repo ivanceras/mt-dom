@@ -127,8 +127,8 @@ where
     }
 
     // a pointer to the last matched
-    let mut last_matched_old_index = 0;
-    let mut last_matched_new_index = 0;
+    let mut last_matched_old_index = None;
+    let mut last_matched_new_index = None;
 
     // iterate through new elements and find which old element index has the same key in this new
     // key
@@ -136,15 +136,15 @@ where
         let new_key = new.get_attribute_value(key);
         println!("new_key: {:?}", new_key);
         let matched_old_index: Option<usize> = if let Some(new_key) = new_key {
-            old_key_index.iter().skip(last_matched_old_index).find_map(
-                |(old_index, old_key)| {
-                    if **old_key == new_key {
-                        Some(*old_index)
-                    } else {
-                        None
-                    }
-                },
-            )
+            old_key_index.iter().find_map(|(old_index, old_key)| {
+                if is_forward(last_matched_old_index, *old_index)
+                    && **old_key == new_key
+                {
+                    Some(*old_index)
+                } else {
+                    None
+                }
+            })
         } else {
             None
         };
@@ -159,8 +159,8 @@ where
 
             println!("going inside diff_recursive..");
 
-            dbg!(&old_element.children[matched_old_index]);
-            dbg!(&new);
+            //dbg!(&old_element.children[matched_old_index]);
+            //dbg!(&new);
 
             let patch_for_matched = diff_recursive(
                 &old_element.children[matched_old_index],
@@ -175,16 +175,37 @@ where
 
             patches.extend(patch_for_matched);
 
-            let for_remove_nodes = &old_element.children
-                [last_matched_old_index..matched_old_index];
+            println!(
+                "remove nodes from {:?} to {}",
+                last_matched_old_index, matched_old_index
+            );
+
+            let for_remove_nodes = &old_element
+                .children
+                .iter()
+                .enumerate()
+                .filter_map(|(i, old)| {
+                    if is_forward(last_matched_old_index, i)
+                        && i < matched_old_index
+                    {
+                        Some(old)
+                    } else {
+                        None
+                    }
+                })
+                .collect::<Vec<_>>();
 
             if !for_remove_nodes.is_empty() {
+                println!(
+                    "remove nodes from {:?} to {}",
+                    last_matched_old_index, matched_old_index
+                );
                 let for_remove_patches = for_remove_nodes
                     .iter()
                     .enumerate()
                     .map(|(i, old)| {
                         let mut old_path = TreePath::new(path.to_vec());
-                        old_path.push(last_matched_old_index + i);
+                        old_path.push(last_matched_old_index.unwrap_or(0) + i);
                         Patch::remove_node(old.tag(), old_path)
                     })
                     .collect::<Vec<_>>();
@@ -193,30 +214,41 @@ where
             }
 
             //assign this matched_old_index to the last_matched_old_index
-            last_matched_old_index = matched_old_index;
+            last_matched_old_index = Some(matched_old_index);
 
-            let for_insert_nodes =
-                &new_element.children[last_matched_new_index..new_index];
+            let for_insert_nodes = new_element
+                .children
+                .iter()
+                .enumerate()
+                .filter_map(|(i, new)| {
+                    if is_forward(last_matched_new_index, i) && i < new_index {
+                        Some(new)
+                    } else {
+                        None
+                    }
+                })
+                .collect::<Vec<_>>();
 
             if !for_insert_nodes.is_empty() {
                 let mut old_path = TreePath::new(path.to_vec());
-                old_path.push(last_matched_old_index);
 
-                let old_tag =
-                    old_element.children[last_matched_old_index].tag();
+                let old_index_marked_node = last_matched_old_index.unwrap_or(0);
+                old_path.push(old_index_marked_node);
+
+                let old_tag = old_element.children[old_index_marked_node].tag();
                 // create a patch that will insert the new elements from `last_matched_new_index` to
                 // `new_index`
                 let for_insert_patch = Patch::insert_before_node(
                     old_tag,
                     old_path,
-                    for_insert_nodes.iter().collect::<Vec<_>>(),
+                    for_insert_nodes,
                 );
 
                 patches.push(for_insert_patch);
             }
 
             //assign last matched_new_index to the new_index we are iterating on
-            last_matched_new_index = new_index;
+            last_matched_new_index = Some(new_index);
         } else {
             println!("no matching..");
         }
@@ -228,7 +260,7 @@ where
         .iter()
         .enumerate()
         .filter_map(|(i, old)| {
-            if i > last_matched_old_index {
+            if is_forward(last_matched_old_index, i) {
                 Some(old)
             } else {
                 None
@@ -238,7 +270,7 @@ where
 
     if !remaining_old_nodes.is_empty() {
         println!(
-            "remaining old_nodes is not empty... {}",
+            "remaining old_nodes is not empty... {:?}",
             last_matched_old_index
         );
         let for_remove_patches = remaining_old_nodes
@@ -246,7 +278,8 @@ where
             .enumerate()
             .map(|(i, old)| {
                 let mut old_path = TreePath::new(path.to_vec());
-                old_path.push(last_matched_old_index + i);
+                old_path.push(last_matched_old_index.unwrap_or(0) + i);
+
                 Patch::remove_node(old.tag(), old_path)
             })
             .collect::<Vec<_>>();
@@ -256,11 +289,11 @@ where
 
     let old_tag = old_element
         .children
-        .get(last_matched_old_index)
+        .get(last_matched_old_index.unwrap_or(0))
         .map(|n| n.tag())
         .flatten();
     let mut old_path = TreePath::new(path.to_vec());
-    old_path.push(last_matched_old_index);
+    old_path.push(last_matched_old_index.unwrap_or(0));
 
     // insert all the elements after the last_matched_new_index, insert it before the
     // node at last_matched_old_index
@@ -269,7 +302,7 @@ where
         .iter()
         .enumerate()
         .filter_map(|(i, new)| {
-            if i > last_matched_new_index {
+            if is_forward(last_matched_new_index, i) {
                 Some(new)
             } else {
                 None
@@ -279,7 +312,7 @@ where
 
     if !remaining_new_nodes.is_empty() {
         println!(
-            "remaining_new_nodes is not empty. {}",
+            "remaining_new_nodes is not empty. {:?}",
             last_matched_new_index
         );
         let for_insert_after =
@@ -288,6 +321,14 @@ where
     }
 
     patches
+}
+
+// check if index is greater than the contained value of an index
+fn is_forward(than: Option<usize>, i: usize) -> bool {
+    match than {
+        None => true,
+        Some(than) => i > than,
+    }
 }
 
 #[cfg(test)]
@@ -377,6 +418,196 @@ mod test {
                     &"main",
                     TreePath::new(vec![]),
                     vec![&element("div", [attr("key", "2")], [])]
+                )
+            ]
+        );
+    }
+
+    #[test]
+    fn keyed_inserted_at_the_end() {
+        let old: MyNode =
+            element("main", [], vec![element("div", [attr("key", "1")], [])]);
+
+        let new: MyNode = element(
+            "main",
+            [],
+            vec![
+                element("div", [attr("key", "1")], []),
+                element("div", [attr("key", "2")], []),
+            ],
+        );
+
+        let patches = diff_keyed_elements(
+            &old.as_element_ref().unwrap(),
+            &new.as_element_ref().unwrap(),
+            &"key",
+            &[],
+            &|_, _| false,
+            &|_, _| false,
+        );
+        assert_eq!(
+            patches,
+            vec![Patch::insert_after_node(
+                Some(&"div"),
+                TreePath::new(vec![0]),
+                vec![&element("div", [attr("key", "2")], [])]
+            )]
+        );
+    }
+
+    #[test]
+    fn keyed_remove_at_start() {
+        let old: MyNode = element(
+            "main",
+            [],
+            vec![
+                element("div", [attr("key", "1")], []),
+                element("div", [attr("key", "2")], []),
+            ],
+        );
+
+        let new: MyNode =
+            element("main", [], vec![element("div", [attr("key", "2")], [])]);
+
+        let patches = diff_keyed_elements(
+            &old.as_element_ref().unwrap(),
+            &new.as_element_ref().unwrap(),
+            &"key",
+            &[],
+            &|_, _| false,
+            &|_, _| false,
+        );
+        assert_eq!(
+            patches,
+            vec![Patch::remove_node(Some(&"div"), TreePath::new(vec![0]),)]
+        );
+    }
+
+    #[test]
+    fn keyed_all_matched() {
+        let old: MyNode = element(
+            "main",
+            [],
+            vec![
+                element("div", [attr("key", "1")], []),
+                element("div", [attr("key", "2")], []),
+                element("div", [attr("key", "3")], []),
+            ],
+        );
+
+        let new: MyNode = element(
+            "main",
+            [],
+            vec![
+                element("div", [attr("key", "1")], []),
+                element("div", [attr("key", "2")], []),
+                element("div", [attr("key", "3")], []),
+            ],
+        );
+
+        let patches = diff_keyed_elements(
+            &old.as_element_ref().unwrap(),
+            &new.as_element_ref().unwrap(),
+            &"key",
+            &[],
+            &|_, _| false,
+            &|_, _| false,
+        );
+
+        dbg!(&patches);
+
+        assert_eq!(patches, vec![]);
+    }
+
+    #[test]
+    fn keyed_inserted_at_the_middle() {
+        let old: MyNode = element(
+            "main",
+            [],
+            vec![
+                element("div", [attr("key", "1")], []),
+                element("div", [attr("key", "3")], []),
+            ],
+        );
+
+        let new: MyNode = element(
+            "main",
+            [],
+            vec![
+                element("div", [attr("key", "1")], []),
+                element("div", [attr("key", "2")], []),
+                element("div", [attr("key", "3")], []),
+            ],
+        );
+
+        let patches = diff_keyed_elements(
+            &old.as_element_ref().unwrap(),
+            &new.as_element_ref().unwrap(),
+            &"key",
+            &[],
+            &|_, _| false,
+            &|_, _| false,
+        );
+
+        dbg!(&patches);
+
+        assert_eq!(
+            patches,
+            vec![Patch::insert_before_node(
+                Some(&"div"),
+                TreePath::new(vec![1]),
+                vec![&element("div", [attr("key", "2")], [])]
+            )]
+        );
+    }
+
+    #[test]
+    fn keyed_multiple_matches_start_and_end() {
+        let old: MyNode = element(
+            "main",
+            [],
+            vec![
+                element("div", [attr("key", "1")], []),
+                element("div", [attr("key", "2")], []),
+                element("div", [attr("key", "3")], []),
+                element("div", [attr("key", "4")], []),
+            ],
+        );
+
+        let new: MyNode = element(
+            "main",
+            [],
+            vec![
+                element("div", [attr("key", "1")], []),
+                element("div", [attr("key", "20")], []),
+                element("div", [attr("key", "30")], []),
+                element("div", [attr("key", "4")], []),
+            ],
+        );
+
+        let patches = diff_keyed_elements(
+            &old.as_element_ref().unwrap(),
+            &new.as_element_ref().unwrap(),
+            &"key",
+            &[],
+            &|_, _| false,
+            &|_, _| false,
+        );
+
+        dbg!(&patches);
+
+        assert_eq!(
+            patches,
+            vec![
+                Patch::remove_node(Some(&"div"), TreePath::new(vec![0])),
+                Patch::remove_node(Some(&"div"), TreePath::new(vec![1])),
+                Patch::insert_before_node(
+                    Some(&"div"),
+                    TreePath::new(vec![3]),
+                    vec![
+                        &element("div", [attr("key", "20")], []),
+                        &element("div", [attr("key", "30")], [])
+                    ]
                 )
             ]
         );
