@@ -512,6 +512,56 @@ mod test {
     }
 
     #[test]
+    fn keyed_rearranged() {
+        let old: MyNode = element(
+            "main",
+            [],
+            vec![
+                element("div", [attr("key", "1")], []),
+                element("div", [attr("key", "2")], []),
+                element("div", [attr("key", "3")], []),
+            ],
+        );
+
+        let new: MyNode = element(
+            "main",
+            [],
+            vec![
+                element("div", [attr("key", "3")], []),
+                element("div", [attr("key", "2")], []),
+                element("div", [attr("key", "1")], []),
+            ],
+        );
+
+        let patches = diff_keyed_elements(
+            &old.as_element_ref().unwrap(),
+            &new.as_element_ref().unwrap(),
+            &"key",
+            &[],
+            &|_, _| false,
+            &|_, _| false,
+        );
+
+        dbg!(&patches);
+
+        assert_eq!(
+            patches,
+            vec![
+                Patch::remove_node(Some(&"div"), TreePath::new(vec![0])),
+                Patch::remove_node(Some(&"div"), TreePath::new(vec![1])),
+                Patch::insert_after_node(
+                    Some(&"div"),
+                    TreePath::new(vec![2]),
+                    vec![
+                        &element("div", [attr("key", "2")], []),
+                        &element("div", [attr("key", "1")], [])
+                    ]
+                )
+            ]
+        );
+    }
+
+    #[test]
     fn keyed_inserted_at_the_middle() {
         let old: MyNode = element(
             "main",

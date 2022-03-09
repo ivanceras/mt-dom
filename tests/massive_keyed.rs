@@ -42,7 +42,7 @@ fn key_inserted_at_start() {
     assert_eq!(
         diff,
         vec![Patch::insert_node(
-            Some(&"main"),
+            Some(&"div"),
             TreePath::new(vec![0]),
             &element("div", vec![attr("key", "XXX")], vec![leaf("lineXXX")])
         )]
@@ -91,7 +91,7 @@ fn key_inserted_at_middle() {
     assert_eq!(
         diff,
         vec![Patch::insert_node(
-            Some(&"main"),
+            Some(&"div"),
             TreePath::new(vec![5]),
             &element("div", vec![attr("key", "XXX")], vec![leaf("lineXXX")])
         )]
@@ -147,7 +147,7 @@ fn wrapped_elements() {
     assert_eq!(
         diff,
         vec![Patch::insert_node(
-            Some(&"main"),
+            Some(&"div"),
             TreePath::new(vec![0, 5]),
             &element("div", vec![attr("key", "XXX")], vec![leaf("lineXXX")])
         )]
@@ -360,6 +360,18 @@ fn insert_one_line_at_start() {
                 TreePath::new(vec![0, 0, 0, 0]),
                 &leaf("2")
             ),
+            Patch::insert_node(
+                Some(&"div"),
+                TreePath::new(vec![0, 0]),
+                &element(
+                    "div",
+                    vec![attr("key", "hashXXX")],
+                    vec![
+                        element("div", vec![], vec![leaf("1")]),
+                        element("div", vec![], vec![leaf("XXX")]),
+                    ],
+                ),
+            ),
             Patch::replace_node(
                 None,
                 TreePath::new(vec![0, 1, 0, 0]),
@@ -370,18 +382,6 @@ fn insert_one_line_at_start() {
                 TreePath::new(vec![0, 2, 0, 0]),
                 &leaf("4")
             ),
-            Patch::insert_node(
-                Some(&"main"),
-                TreePath::new(vec![0, 0]),
-                &element(
-                    "div",
-                    vec![attr("key", "hashXXX")],
-                    vec![
-                        element("div", vec![], vec![leaf("1")]),
-                        element("div", vec![], vec![leaf("XXX")]),
-                    ],
-                ),
-            )
         ]
     );
 }
@@ -486,6 +486,28 @@ fn insert_two_lines_at_start() {
                 TreePath::new(vec![0, 0, 0, 0]),
                 &leaf("3")
             ),
+            Patch::insert_before_node(
+                Some(&"div"),
+                TreePath::new(vec![0, 0]),
+                vec![
+                    &element(
+                        "div",
+                        vec![attr("key", "hashXXX")],
+                        vec![
+                            element("div", vec![], vec![leaf("1")]),
+                            element("div", vec![], vec![leaf("XXX")]),
+                        ],
+                    ),
+                    &element(
+                        "div",
+                        vec![attr("key", "hashYYY")],
+                        vec![
+                            element("div", vec![], vec![leaf("2")]),
+                            element("div", vec![], vec![leaf("YYY")]),
+                        ],
+                    )
+                ]
+            ),
             Patch::replace_node(
                 None,
                 TreePath::new(vec![0, 1, 0, 0]),
@@ -495,30 +517,6 @@ fn insert_two_lines_at_start() {
                 None,
                 TreePath::new(vec![0, 2, 0, 0]),
                 &leaf("5")
-            ),
-            Patch::insert_node(
-                Some(&"main"),
-                TreePath::new(vec![0, 0]),
-                &element(
-                    "div",
-                    vec![attr("key", "hashXXX")],
-                    vec![
-                        element("div", vec![], vec![leaf("1")]),
-                        element("div", vec![], vec![leaf("XXX")]),
-                    ],
-                ),
-            ),
-            Patch::insert_node(
-                Some(&"main"),
-                TreePath::new(vec![0, 0]),
-                &element(
-                    "div",
-                    vec![attr("key", "hashYYY")],
-                    vec![
-                        element("div", vec![], vec![leaf("2")]),
-                        element("div", vec![], vec![leaf("YYY")]),
-                    ],
-                )
             ),
         ]
     );
