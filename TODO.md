@@ -125,7 +125,12 @@
         Leaf(T),
     }
     ```
-- [ ] Start at empty vec for Root node in TreePath
+- [X] Start at empty vec for Root node in TreePath
+- [ ] Remove Tags in Patch object
+- [ ] Pass TreePath in the diff function
+    - add functions to simplify tree path construction
+    - add `From<[u8]>` and `From<Vec<u8>>`
+- [ ] Get rid of SKIP, REPLACE function as it has no practical purpose
 
 ## Optimization
 - Create a data structure which has old_element and its node_idx and the new_element with its node_idx
