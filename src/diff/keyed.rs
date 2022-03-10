@@ -1,4 +1,4 @@
-use super::{create_attribute_patches, diff_recursive};
+use super::diff_recursive;
 use crate::{Element, Node, Patch, TreePath};
 use std::collections::BTreeMap;
 use std::fmt::Debug;
@@ -90,10 +90,10 @@ where
 
     // check if there is no match from the keys in new_element to the keys in old_elements
     // if indeed there is no match at all, create a remove_all node and append all children
-    let has_match = new_key_index.iter().any(|(new_index, new_key)| {
+    let has_match = new_key_index.iter().any(|(_new_index, new_key)| {
         old_key_index
             .iter()
-            .any(|(old_index, old_key)| new_key == old_key)
+            .any(|(_old_index, old_key)| new_key == old_key)
     });
     // return early if there new no matches
     if !has_match {

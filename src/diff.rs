@@ -1,6 +1,4 @@
 //! provides diffing algorithm which returns patches
-#![allow(clippy::type_complexity)]
-#![allow(unused)]
 use crate::{
     node::attribute::group_attributes_per_name, Attribute, Element, Node,
     Patch, TreePath,
