@@ -102,10 +102,7 @@ where
             .iter()
             .enumerate()
             .map(|(old_index, old)| {
-                println!("There are no matches.. removing everything..");
-
-                let old_child_path = path.traverse(old_index);
-                Patch::remove_node(old.tag(), old_child_path)
+                Patch::remove_node(old.tag(), path.traverse(old_index))
             })
             .collect::<Vec<_>>();
 
@@ -151,18 +148,10 @@ where
         // if there is a matching old_index, create a patch that will remove all the nodes
         // from the old_elements from the `last_matched_old_index` to this `matched_old_index
         if let Some(matched_old_index) = matched_old_index {
-            println!("--->> path: {:?}", path);
-            println!(
-                "matched old_index: {} to new_index: {}",
-                matched_old_index, new_index
-            );
-
-            let old_path = path.traverse(matched_old_index);
-
             let patch_for_matched = diff_recursive(
                 &old_element.children[matched_old_index],
                 new,
-                &old_path,
+                &path.traverse(matched_old_index),
                 key,
                 skip,
                 rep,
@@ -178,8 +167,7 @@ where
                     if is_forward(last_matched_old_index, i)
                         && i < matched_old_index
                     {
-                        let old_path = path.traverse(i);
-                        Some(Patch::remove_node(old.tag(), old_path))
+                        Some(Patch::remove_node(old.tag(), path.traverse(i)))
                     } else {
                         None
                     }
@@ -208,15 +196,12 @@ where
 
             if !for_insert_nodes.is_empty() {
                 let old_index_marked_node = last_matched_old_index.unwrap_or(0);
-
-                let old_path = path.traverse(old_index_marked_node);
-
                 let old_tag = old_element.children[old_index_marked_node].tag();
                 // create a patch that will insert the new elements from `last_matched_new_index` to
                 // `new_index`
                 let for_insert_patch = Patch::insert_before_node(
                     old_tag,
-                    old_path,
+                    path.traverse(old_index_marked_node),
                     for_insert_nodes,
                 );
 
@@ -237,10 +222,7 @@ where
         .enumerate()
         .filter_map(|(i, old)| {
             if is_forward(last_matched_old_index, i) {
-                let old_path = path.traverse(i);
-                println!("removing the remaining old node at: {:?}", old_path);
-
-                Some(Patch::remove_node(old.tag(), old_path))
+                Some(Patch::remove_node(old.tag(), path.traverse(i)))
             } else {
                 None
             }
@@ -251,12 +233,13 @@ where
         patches.extend(remaining_old_for_remove_patches);
     }
 
+    let old_index_marked_node = last_matched_old_index.unwrap_or(0);
+
     let old_tag = old_element
         .children
-        .get(last_matched_old_index.unwrap_or(0))
+        .get(old_index_marked_node)
         .map(|n| n.tag())
         .flatten();
-    let old_path = path.traverse(last_matched_old_index.unwrap_or(0));
 
     // insert all the elements after the last_matched_new_index, insert it before the
     // node at last_matched_old_index
@@ -274,8 +257,11 @@ where
         .collect::<Vec<_>>();
 
     if !remaining_new_nodes.is_empty() {
-        let for_insert_after =
-            Patch::insert_after_node(old_tag, old_path, remaining_new_nodes);
+        let for_insert_after = Patch::insert_after_node(
+            old_tag,
+            path.traverse(old_index_marked_node),
+            remaining_new_nodes,
+        );
         patches.push(for_insert_after);
     }
 
