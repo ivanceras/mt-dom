@@ -108,25 +108,6 @@ where
     diff_recursive(old_node, new_node, &TreePath::root(), key, skip, rep)
 }
 
-/// returns true if all of the node children has key in their attributes
-#[allow(unused)]
-fn is_all_children_keyed<NS, TAG, LEAF, ATT, VAL>(
-    element: &Element<NS, TAG, LEAF, ATT, VAL>,
-    key: &ATT,
-) -> bool
-where
-    NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Debug,
-    LEAF: PartialEq + Clone + Debug,
-    ATT: PartialEq + Clone + Debug,
-    VAL: PartialEq + Clone + Debug,
-{
-    element
-        .get_children()
-        .iter()
-        .all(|child| is_keyed_node(child, key))
-}
-
 /// returns true if any of the children of this element has key in their attributes
 fn is_any_children_keyed<NS, TAG, LEAF, ATT, VAL>(
     element: &Element<NS, TAG, LEAF, ATT, VAL>,
@@ -140,7 +121,7 @@ where
     VAL: PartialEq + Clone + Debug,
 {
     element
-        .get_children()
+        .children
         .iter()
         .any(|child| is_keyed_node(child, key))
 }
@@ -240,16 +221,16 @@ where
         return vec![];
     }
 
-    let mut patches = vec![];
-
+    // replace node and return early
     if should_replace(old_node, new_node, key, rep) {
-        patches.push(Patch::replace_node(
+        return vec![Patch::replace_node(
             old_node.tag(),
             path.clone(),
             new_node,
-        ));
-        return patches;
+        )];
     }
+
+    let mut patches = vec![];
 
     // The following comparison can only contain identical variants, other
     // cases have already been handled above by comparing variant
@@ -350,7 +331,7 @@ where
             .get(index)
             .expect("No old_node child node");
         let new_child =
-            &new_element.children.get(index).expect("No new chold node");
+            &new_element.children.get(index).expect("No new child node");
 
         let more_patches =
             diff_recursive(old_child, new_child, &child_path, key, skip, rep);
@@ -360,66 +341,30 @@ where
     // If there are more new child than old_node child, we make a patch to append the excess element
     // starting from old_child_count to the last item of the new_elements
     if new_child_count > old_child_count {
-        let append_children_patch =
-            create_append_children_patch(old_element, new_element, path);
-        patches.push(append_children_patch);
+        patches.push(Patch::append_children(
+            &old_element.tag,
+            path.clone(),
+            new_element.children.iter().skip(old_child_count).collect(),
+        ));
     }
 
     if new_child_count < old_child_count {
-        let remove_node_patches =
-            create_remove_node_patch(old_element, new_element, path);
+        let remove_node_patches = old_element
+            .children
+            .iter()
+            .skip(new_child_count)
+            .enumerate()
+            .map(|(i, old_child)| {
+                Patch::remove_node(
+                    old_child.tag(),
+                    path.traverse(new_child_count + i),
+                )
+            })
+            .collect::<Vec<_>>();
+
         patches.extend(remove_node_patches);
     }
 
-    patches
-}
-
-fn create_append_children_patch<'a, NS, TAG, LEAF, ATT, VAL>(
-    old_element: &'a Element<NS, TAG, LEAF, ATT, VAL>,
-    new_element: &'a Element<NS, TAG, LEAF, ATT, VAL>,
-    path: &TreePath,
-) -> Patch<'a, NS, TAG, LEAF, ATT, VAL>
-where
-    NS: PartialEq + Clone + Debug,
-    LEAF: PartialEq + Clone + Debug,
-    TAG: PartialEq + Debug,
-    ATT: PartialEq + Clone + Debug,
-    VAL: PartialEq + Clone + Debug,
-{
-    let old_child_count = old_element.children.len();
-    let mut append_patch: Vec<&'a Node<NS, TAG, LEAF, ATT, VAL>> = vec![];
-
-    for append_child in new_element.children.iter().skip(old_child_count) {
-        append_patch.push(append_child);
-    }
-
-    Patch::append_children(&old_element.tag, path.clone(), append_patch)
-}
-
-fn create_remove_node_patch<'a, NS, TAG, LEAF, ATT, VAL>(
-    old_element: &'a Element<NS, TAG, LEAF, ATT, VAL>,
-    new_element: &'a Element<NS, TAG, LEAF, ATT, VAL>,
-    path: &TreePath,
-) -> Vec<Patch<'a, NS, TAG, LEAF, ATT, VAL>>
-where
-    NS: PartialEq + Clone + Debug,
-    LEAF: PartialEq + Clone + Debug,
-    TAG: PartialEq + Debug,
-    ATT: PartialEq + Clone + Debug,
-    VAL: PartialEq + Clone + Debug,
-{
-    let new_child_count = new_element.children.len();
-    let mut patches = vec![];
-    for (i, old_child) in old_element
-        .get_children()
-        .iter()
-        .skip(new_child_count)
-        .enumerate()
-    {
-        let child_path = path.traverse(new_child_count + i);
-        let remove_node_patch = Patch::remove_node(old_child.tag(), child_path);
-        patches.push(remove_node_patch);
-    }
     patches
 }
 
@@ -452,8 +397,6 @@ where
     // or the values differ
     // add it to the AddAttribute patches
     for (new_attr_name, new_attrs) in new_attributes_grouped.iter() {
-        // Issue: only the first found attribute's value is returned
-        // This could be problematic if there are multiple attributes of the same name
         let old_attr_values = old_attributes_grouped
             .iter()
             .find(|(att_name, _)| att_name == new_attr_name)
