@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.19.1
+- Code cleanup and refactoring.
+- Uses TreePath to be passed around in diffing functions.
+    - Add convenient methods in TreePath
+
 ## 0.19.0
 - Change algorithm for diffing keyed elements this time with a more stream-line and shorter code
 
