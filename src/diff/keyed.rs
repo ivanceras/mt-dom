@@ -491,6 +491,49 @@ mod test {
     }
 
     #[test]
+    fn keyed_child_differs() {
+        let old: MyNode = element(
+            "main",
+            [],
+            vec![
+                element("div", [attr("key", "1")], [leaf("10")]),
+                element("div", [attr("key", "2")], [leaf("20")]),
+                element("div", [attr("key", "3")], [leaf("30")]),
+            ],
+        );
+
+        let new: MyNode = element(
+            "main",
+            [],
+            vec![
+                element("div", [attr("key", "1")], [leaf("1000")]),
+                element("div", [attr("key", "2")], [leaf("2000")]),
+                element("div", [attr("key", "3")], [leaf("3000")]),
+            ],
+        );
+
+        let patches = diff_keyed_elements(
+            &old.as_element_ref().unwrap(),
+            &new.as_element_ref().unwrap(),
+            &"key",
+            &TreePath::root(),
+            &|_, _| false,
+            &|_, _| false,
+        );
+
+        dbg!(&patches);
+
+        assert_eq!(
+            patches,
+            vec![
+                Patch::replace_node(None, [0, 0].into(), &leaf("1000")),
+                Patch::replace_node(None, [1, 0].into(), &leaf("2000")),
+                Patch::replace_node(None, [2, 0].into(), &leaf("3000")),
+            ]
+        );
+    }
+
+    #[test]
     fn keyed_rearranged() {
         let old: MyNode = element(
             "main",
