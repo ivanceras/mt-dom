@@ -127,7 +127,7 @@
     ```
 - [X] Start at empty vec for Root node in TreePath
 - [ ] Remove Tags in Patch object
-- [ ] Pass TreePath in the diff function
+- [X] Pass TreePath in the diff function
     - add functions to simplify tree path construction
     - add `From<[u8]>` and `From<Vec<u8>>`
 - [ ] Get rid of SKIP, REPLACE function as it has no practical purpose
