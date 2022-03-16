@@ -100,6 +100,11 @@ impl TreePath {
         self.path.remove(0)
     }
 
+    /// pluck the next in line node index in this treepath
+    pub fn pluck(&mut self) -> usize {
+        self.remove_first()
+    }
+
     /// returns tree if the path is empty
     /// This is used for checking if the path has been traversed
     pub fn is_empty(&self) -> bool {
