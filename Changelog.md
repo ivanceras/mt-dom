@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.19.3
+- documentation correction for `diff_keyed_elements`
+
+## 0.19.2
+- add `pluck` method in TreePath, which is a more concise name than `remove_first` when used in traversing the actual dom.
+
 ## 0.19.1
 - Code cleanup and refactoring.
 - Uses TreePath to be passed around in diffing functions.
