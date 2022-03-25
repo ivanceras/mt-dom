@@ -11,13 +11,13 @@ use std::iter::FromIterator;
 ///  old            new
 ///
 ///  (-) 0              10   (+) (will be inserted at before key3)
-///  (-) 1              key5 (+) (will be inserted at before key3, this is not matched at key5, since key3 is matched first and since this new key5 has passed new key3 position)
-///  (-) 2       .----- key3 (*) (will not matched old key3 since we've gone past last matched (key5 at 5) }
+///  (-) 1              key5 (+) (will be inserted at before key3, this is not matched at old key5, due to forward matching rule.  See [reason]
+///  (-) 2       .----- key3 (*) (will matched old key3 )
 ///  (*) key3 <-'       12   (+) (will be inserted at after key3)
 ///  (*) key4 <-.       13   (+) (will be inserted at after key3)
-///  (-) key5    `----- key4 (*) (will not matched old key4 since we've gone past last matched (key5 at )
+///  (-) key5    `----- key4 (*) (will be matched to old key4)
 ///  (-) 6              14   (+) (will be inserted at after key4)
-///    * key6 <-------- key6 *
+///    * key6 <-------- key6 (*) (will be matched to old key6 )
 ///  (-) 8              16   (+) will be inserted at after key6)
 ///  (-) 9
 ///
@@ -25,6 +25,13 @@ use std::iter::FromIterator;
 /// (-) means will be removed
 /// (+) means will be inserted
 /// (*) means will be patched
+///
+/// Summary of the matches:
+/// old            new
+///
+/// key3 <-------  key3
+/// key4 <-------  key4
+/// key6 <-------  key6
 ///
 /// Algorithm flow:
 /// - make a BTreeMap for old index and their old key (old_index_key)
@@ -43,6 +50,11 @@ use std::iter::FromIterator;
 ///     - if we have reached the end of the iteration (the last old_index that has a match)
 ///         - create a patch which will delete all the old_elements from `last_matched_old_index` to the last old elements.
 ///         - create a patch which will insert all the new_elements from `last_matched_new_index`, using InsertAfter patch_path: [path + last_matched_new_index].
+///
+///
+/// [reason]: The reason is that old key3 is matched first with new key3, and since the old key5's position has passed the position of the matching position of new key3 for its old key3, therefore new key5 is not matched to old key5).
+///           In short, key5 is not in the correct order. In an alternate case where key3 is not matched, then key5 should be matched.
+///
 pub fn diff_keyed_elements<'a, 'b, NS, TAG, LEAF, ATT, VAL, SKIP, REP>(
     old_element: &'a Element<NS, TAG, LEAF, ATT, VAL>,
     new_element: &'a Element<NS, TAG, LEAF, ATT, VAL>,
