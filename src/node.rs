@@ -50,6 +50,14 @@ where
         }
     }
 
+    /// returns a reference to the LEAF if the node is a Leaf variant
+    pub fn as_leaf_ref(&self) -> Option<&LEAF> {
+        match self {
+            Node::Leaf(leaf) => Some(leaf),
+            _ => None,
+        }
+    }
+
     /// Get a mutable reference to the element, if this node is an element node
     pub fn as_element_mut(
         &mut self,
