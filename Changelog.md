@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.19.4
+- add `as_leaf_ref` method for `Node`.
+
 ## 0.19.3
 - documentation correction for `diff_keyed_elements`
 
