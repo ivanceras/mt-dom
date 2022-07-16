@@ -41,10 +41,14 @@ fn key_inserted_at_start() {
     let diff = diff_with_key(&old, &new, &"key");
     assert_eq!(
         diff,
-        vec![Patch::insert_node(
+        vec![Patch::insert_before_node(
             Some(&"div"),
             TreePath::new(vec![0]),
-            &element("div", vec![attr("key", "XXX")], vec![leaf("lineXXX")])
+            vec![&element(
+                "div",
+                vec![attr("key", "XXX")],
+                vec![leaf("lineXXX")]
+            )]
         )]
     );
 }
@@ -90,10 +94,14 @@ fn key_inserted_at_middle() {
 
     assert_eq!(
         diff,
-        vec![Patch::insert_node(
+        vec![Patch::insert_before_node(
             Some(&"div"),
             TreePath::new(vec![5]),
-            &element("div", vec![attr("key", "XXX")], vec![leaf("lineXXX")])
+            vec![&element(
+                "div",
+                vec![attr("key", "XXX")],
+                vec![leaf("lineXXX")]
+            )]
         )]
     );
 }
@@ -146,10 +154,14 @@ fn wrapped_elements() {
     dbg!(&diff);
     assert_eq!(
         diff,
-        vec![Patch::insert_node(
+        vec![Patch::insert_before_node(
             Some(&"div"),
             TreePath::new(vec![0, 5]),
-            &element("div", vec![attr("key", "XXX")], vec![leaf("lineXXX")])
+            vec![&element(
+                "div",
+                vec![attr("key", "XXX")],
+                vec![leaf("lineXXX")]
+            )]
         )]
     );
 }
@@ -360,17 +372,17 @@ fn insert_one_line_at_start() {
                 TreePath::new(vec![0, 0, 0, 0]),
                 &leaf("2")
             ),
-            Patch::insert_node(
+            Patch::insert_before_node(
                 Some(&"div"),
                 TreePath::new(vec![0, 0]),
-                &element(
+                vec![&element(
                     "div",
                     vec![attr("key", "hashXXX")],
                     vec![
                         element("div", vec![], vec![leaf("1")]),
                         element("div", vec![], vec![leaf("XXX")]),
                     ],
-                ),
+                )],
             ),
             Patch::replace_node(
                 None,

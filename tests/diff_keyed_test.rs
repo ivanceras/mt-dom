@@ -184,10 +184,10 @@ fn there_are_2_exact_same_keys_in_the_new() {
         diff,
         vec![
             Patch::replace_node(None, TreePath::new(vec![0, 0]), &leaf("1")),
-            Patch::insert_node(
+            Patch::insert_before_node(
                 Some(&"div"),
                 TreePath::new(vec![1]),
-                &element("div", vec![attr("key", "1")], vec![leaf("1")])
+                vec![&element("div", vec![attr("key", "1")], vec![leaf("1")])]
             ),
         ]
     );
@@ -224,10 +224,10 @@ fn there_are_2_exact_same_keys_in_both_old_and_new() {
         vec![
             Patch::replace_node(None, TreePath::new(vec![0, 0]), &leaf("1")),
             Patch::replace_node(None, TreePath::new(vec![1, 0]), &leaf("3")),
-            Patch::insert_node(
+            Patch::insert_before_node(
                 Some(&"div"),
                 TreePath::new(vec![1]),
-                &element("div", vec![attr("key", "1")], vec![leaf("2")])
+                vec![&element("div", vec![attr("key", "1")], vec![leaf("2")])]
             ),
             Patch::remove_node(Some(&"div"), TreePath::new(vec![2])),
         ]

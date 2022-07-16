@@ -176,20 +176,6 @@ where
         }
     }
 
-    ///TODO: remove this one
-    /// create an InsertNode patch
-    pub fn insert_node(
-        tag: Option<&'a TAG>,
-        patch_path: TreePath,
-        node: &'a Node<NS, TAG, LEAF, ATT, VAL>,
-    ) -> Patch<'a, NS, TAG, LEAF, ATT, VAL> {
-        Patch::InsertBeforeNode {
-            tag,
-            patch_path,
-            nodes: vec![node],
-        }
-    }
-
     /// create an InsertBeforeNode patch
     pub fn insert_before_node(
         tag: Option<&'a TAG>,
