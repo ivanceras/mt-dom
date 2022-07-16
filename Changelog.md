@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.20.0
+- **Breaking** Remove internal api `Patch::insert_ndoe` in favor of `Patch::insert_before_node`
+
 ## 0.19.4
 - add `as_leaf_ref` method for `Node`.
 
