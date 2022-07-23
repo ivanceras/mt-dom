@@ -131,6 +131,11 @@
     - add functions to simplify tree path construction
     - add `From<[u8]>` and `From<Vec<u8>>`
 - [ ] Get rid of SKIP, REPLACE function as it has no practical purpose
+- [ ] Make the `isKeyed` test passed in the js-framework-benchmark
+    - > Keyed test for swap failed. Swap must add the TRs that it removed, but there were 997 new nodes
+sauron-v0.50.1-keyed is keyed for 'run benchmark' and keyed for 'remove row benchmark' and non-keyed for 'swap rows benchmark'
+    - https://github.com/krausest/js-framework-benchmark/pull/1060#issuecomment-1168247794
+
 
 ## Optimization
 - Create a data structure which has old_element and its node_idx and the new_element with its node_idx
