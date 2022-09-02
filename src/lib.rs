@@ -24,7 +24,7 @@ pub use node::{
     attribute::{
         attr, attr_ns, group_attributes_per_name, merge_attributes_of_same_name,
     },
-    element, element_ns, leaf, Attribute, Element, Node,
+    element, element_ns, leaf, node_list, Attribute, Element, Node,
 };
 pub use patch::{Patch, TreePath};
 

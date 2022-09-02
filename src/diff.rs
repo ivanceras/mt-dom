@@ -268,6 +268,18 @@ where
                 patches.extend(non_keyed_patches);
             }
         }
+        (Node::NodeList(old_elements), Node::NodeList(new_elements)) => {
+            let more_patches = diff_non_keyed_children(
+                old_node.tag().expect("must have a tag"),
+                old_elements,
+                new_elements,
+                key,
+                &path,
+                skip,
+                rep,
+            );
+            patches.extend(more_patches);
+        }
         _ => {
             unreachable!("Unequal variant discriminants should already have been handled");
         }
@@ -316,20 +328,55 @@ where
         create_attribute_patches(old_element, new_element, path);
     patches.extend(attributes_patches);
 
-    let old_child_count = old_element.children.len();
-    let new_child_count = new_element.children.len();
+    let more_patches = diff_non_keyed_children(
+        &old_element.tag,
+        &old_element.children,
+        &new_element.children,
+        key,
+        &path,
+        skip,
+        rep,
+    );
+    patches.extend(more_patches);
+    patches
+}
+
+fn diff_non_keyed_children<'a, NS, TAG, LEAF, ATT, VAL, SKIP, REP>(
+    old_element_tag: &'a TAG,
+    old_children: &'a Vec<Node<NS, TAG, LEAF, ATT, VAL>>,
+    new_children: &'a Vec<Node<NS, TAG, LEAF, ATT, VAL>>,
+    key: &ATT,
+    path: &TreePath,
+    skip: &SKIP,
+    rep: &REP,
+) -> Vec<Patch<'a, NS, TAG, LEAF, ATT, VAL>>
+where
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Debug,
+    LEAF: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+    SKIP: Fn(
+        &'a Node<NS, TAG, LEAF, ATT, VAL>,
+        &'a Node<NS, TAG, LEAF, ATT, VAL>,
+    ) -> bool,
+    REP: Fn(
+        &'a Node<NS, TAG, LEAF, ATT, VAL>,
+        &'a Node<NS, TAG, LEAF, ATT, VAL>,
+    ) -> bool,
+{
+    let mut patches = vec![];
+    let old_child_count = old_children.len();
+    let new_child_count = new_children.len();
 
     let min_count = cmp::min(old_child_count, new_child_count);
     for index in 0..min_count {
         // if we iterate trough the old elements, a new child_path is created for that iteration
         let child_path = path.traverse(index);
 
-        let old_child = &old_element
-            .children
-            .get(index)
-            .expect("No old_node child node");
-        let new_child =
-            &new_element.children.get(index).expect("No new child node");
+        let old_child =
+            &old_children.get(index).expect("No old_node child node");
+        let new_child = &new_children.get(index).expect("No new child node");
 
         let more_patches =
             diff_recursive(old_child, new_child, &child_path, key, skip, rep);
@@ -340,15 +387,14 @@ where
     // starting from old_child_count to the last item of the new_elements
     if new_child_count > old_child_count {
         patches.push(Patch::append_children(
-            &old_element.tag,
+            old_element_tag,
             path.clone(),
-            new_element.children.iter().skip(old_child_count).collect(),
+            new_children.iter().skip(old_child_count).collect(),
         ));
     }
 
     if new_child_count < old_child_count {
-        let remove_node_patches = old_element
-            .children
+        let remove_node_patches = old_children
             .iter()
             .skip(new_child_count)
             .enumerate()

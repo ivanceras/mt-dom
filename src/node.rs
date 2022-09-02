@@ -29,6 +29,8 @@ where
 {
     /// Element variant of a virtual node
     Element(Element<NS, TAG, LEAF, ATT, VAL>),
+    /// A node containing nodes
+    NodeList(Vec<Node<NS, TAG, LEAF, ATT, VAL>>),
     /// A Leaf node
     Leaf(LEAF),
 }
@@ -333,4 +335,18 @@ where
     VAL: PartialEq + Clone + Debug,
 {
     Node::Leaf(leaf)
+}
+
+/// create a node list
+pub fn node_list<NS, TAG, LEAF, ATT, VAL>(
+    elements: impl IntoIterator<Item = Node<NS, TAG, LEAF, ATT, VAL>>,
+) -> Node<NS, TAG, LEAF, ATT, VAL>
+where
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Debug,
+    LEAF: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+{
+    Node::NodeList(elements.into_iter().collect())
 }
