@@ -52,11 +52,19 @@ where
         children: impl IntoIterator<Item = Node<NS, TAG, LEAF, ATT, VAL>>,
         self_closing: bool,
     ) -> Self {
+        //unroll the nodelist
+        let children = children
+            .into_iter()
+            .flat_map(|child| match child {
+                Node::NodeList(node_list) => node_list,
+                _ => vec![child],
+            })
+            .collect();
         Self {
             namespace,
             tag,
             attrs: attrs.into_iter().collect(),
-            children: children.into_iter().collect(),
+            children,
             self_closing,
         }
     }

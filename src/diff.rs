@@ -268,17 +268,10 @@ where
                 patches.extend(non_keyed_patches);
             }
         }
-        (Node::NodeList(old_elements), Node::NodeList(new_elements)) => {
-            let more_patches = diff_non_keyed_children(
-                old_node.tag().expect("must have a tag"),
-                old_elements,
-                new_elements,
-                key,
-                &path,
-                skip,
-                rep,
+        (Node::NodeList(_old_elements), Node::NodeList(_new_elements)) => {
+            panic!(
+                "Node list must have already unrolled when creating an element"
             );
-            patches.extend(more_patches);
         }
         _ => {
             unreachable!("Unequal variant discriminants should already have been handled");
