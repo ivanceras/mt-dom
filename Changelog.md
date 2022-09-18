@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.21.0
+- Add `NodeList` as variant of a node which is used for view functions which needs to return multiple nodes
+
 ## 0.20.0
 - **Breaking** Remove internal api `Patch::insert_ndoe` in favor of `Patch::insert_before_node`
 
