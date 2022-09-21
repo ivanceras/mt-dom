@@ -180,6 +180,7 @@ where
             None
         }
     }
+
     /// Removes an child node  from this element and returns it.
     ///
     /// The removed child is replaced by the last child of the element's children.

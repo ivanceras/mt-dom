@@ -1,7 +1,10 @@
 //! patch module
 
 //use crate::node::Text;
-use crate::{Attribute, Node};
+use crate::{
+    Attribute,
+    Node,
+};
 use std::fmt::Debug;
 
 pub use tree_path::TreePath;

@@ -1,5 +1,9 @@
 #![deny(warnings)]
-use mt_dom::{diff::diff_with_functions, patch::*, *};
+use mt_dom::{
+    diff::diff_with_functions,
+    patch::*,
+    *,
+};
 
 type MyNode =
     Node<&'static str, &'static str, &'static str, &'static str, &'static str>;

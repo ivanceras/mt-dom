@@ -1,5 +1,8 @@
 #![deny(warnings)]
-use mt_dom::{patch::*, *};
+use mt_dom::{
+    patch::*,
+    *,
+};
 
 pub type MyNode =
     Node<&'static str, &'static str, &'static str, &'static str, &'static str>;

@@ -1,8 +1,15 @@
 use super::diff_recursive;
-use crate::{Element, Node, Patch, TreePath};
-use std::collections::BTreeMap;
-use std::fmt::Debug;
-use std::iter::FromIterator;
+use crate::{
+    Element,
+    Node,
+    Patch,
+    TreePath,
+};
+use std::{
+    collections::BTreeMap,
+    fmt::Debug,
+    iter::FromIterator,
+};
 
 /// diff the old element with new element
 ///

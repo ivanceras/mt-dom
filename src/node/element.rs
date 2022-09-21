@@ -1,4 +1,7 @@
-use crate::node::{Attribute, Node};
+use crate::node::{
+    Attribute,
+    Node,
+};
 use std::fmt::Debug;
 
 /// Represents an element of the virtual node
@@ -55,9 +58,11 @@ where
         //unroll the nodelist
         let children = children
             .into_iter()
-            .flat_map(|child| match child {
-                Node::NodeList(node_list) => node_list,
-                _ => vec![child],
+            .flat_map(|child| {
+                match child {
+                    Node::NodeList(node_list) => node_list,
+                    _ => vec![child],
+                }
             })
             .collect();
         Self {

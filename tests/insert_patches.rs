@@ -1,4 +1,8 @@
-use mt_dom::{diff::*, patch::*, *};
+use mt_dom::{
+    diff::*,
+    patch::*,
+    *,
+};
 
 pub type MyNode =
     Node<&'static str, &'static str, &'static str, &'static str, &'static str>;

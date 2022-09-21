@@ -1,10 +1,17 @@
 //! provides diffing algorithm which returns patches
 use crate::{
-    node::attribute::group_attributes_per_name, Attribute, Element, Node,
-    Patch, TreePath,
+    node::attribute::group_attributes_per_name,
+    Attribute,
+    Element,
+    Node,
+    Patch,
+    TreePath,
 };
-use std::fmt::Debug;
-use std::{cmp, mem};
+use std::{
+    cmp,
+    fmt::Debug,
+    mem,
+};
 
 mod keyed;
 
