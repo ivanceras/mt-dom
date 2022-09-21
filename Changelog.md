@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.21.1
+- clippy fixes
+- remove feature `with-measure` as it is not used anymore
+
 ## 0.21.0
 - Add `NodeList` as variant of a node which is used for view functions which needs to return multiple nodes
 
