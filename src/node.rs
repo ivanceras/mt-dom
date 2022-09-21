@@ -222,13 +222,10 @@ where
     /// only count the descendant node
     pub fn descendant_node_count(&self) -> usize {
         let mut cnt = 0;
-        match self {
-            Node::Element(element) => {
-                for child in element.children.iter() {
-                    cnt += child.node_count();
-                }
+        if let Node::Element(element) = self {
+            for child in element.children.iter() {
+                cnt += child.node_count();
             }
-            _ => (),
         }
         cnt
     }

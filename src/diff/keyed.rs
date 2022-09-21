@@ -250,8 +250,7 @@ where
     let old_tag = old_element
         .children
         .get(old_index_marked_node)
-        .map(|n| n.tag())
-        .flatten();
+        .and_then(|n| n.tag());
 
     // insert all the elements after the last_matched_new_index, insert it before the
     // node at last_matched_old_index

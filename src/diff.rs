@@ -326,7 +326,7 @@ where
         &old_element.children,
         &new_element.children,
         key,
-        &path,
+        path,
         skip,
         rep,
     );

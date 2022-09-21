@@ -2,7 +2,7 @@
 use std::fmt::Debug;
 
 /// These are the plain attributes of an element
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Attribute<NS, ATT, VAL>
 where
     NS: PartialEq + Clone + Debug,
