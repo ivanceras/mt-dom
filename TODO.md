@@ -135,8 +135,22 @@
     - > Keyed test for swap failed. Swap must add the TRs that it removed, but there were 997 new nodes
 sauron-v0.50.1-keyed is keyed for 'run benchmark' and keyed for 'remove row benchmark' and non-keyed for 'swap rows benchmark'
     - https://github.com/krausest/js-framework-benchmark/pull/1060#issuecomment-1168247794
+- [ ] Make the Generics follow the conventsion like Leaf, instead of all caps LEAF
 
 
 ## Optimization
 - Create a data structure which has old_element and its node_idx and the new_element with its node_idx
  that way, referencing to a node with the node_idx is very straigh forward way to diff.
+- [ ] create skip_critera attribute which accepts TreePath and value which can be PartialEq, with which
+if the current value on this skip_criteria attribute is equal to the stored value, the diffing is skipped
+    ```rust
+    struct Criteria{
+        map: HashMap<TreePath, Vec<Value>>,
+    }
+
+    diff_with_skip_critera<Skip>(
+        skip: Skip
+    ) where Skip: Fn(TreePath, Vec<Values>, Node, Node)
+    ```
+- [ ] Improve the keyed algorithmn to check from bottom to top for matching keys
+- [ ] employ diff key ends from first to last and then middle using Lis

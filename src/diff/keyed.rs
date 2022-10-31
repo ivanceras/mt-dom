@@ -1,15 +1,6 @@
 use super::diff_recursive;
-use crate::{
-    Element,
-    Node,
-    Patch,
-    TreePath,
-};
-use std::{
-    collections::BTreeMap,
-    fmt::Debug,
-    iter::FromIterator,
-};
+use crate::{Element, Node, Patch, TreePath};
+use std::{collections::BTreeMap, fmt::Debug, iter::FromIterator};
 
 /// diff the old element with new element
 ///
@@ -62,6 +53,9 @@ use std::{
 /// [reason]: The reason is that old key3 is matched first with new key3, and since the old key5's position has passed the position of the matching position of new key3 for its old key3, therefore new key5 is not matched to old key5).
 ///           In short, key5 is not in the correct order. In an alternate case where key3 is not matched, then key5 should be matched.
 ///
+/// References: dioxus `diff_keyed_middle` which is also based on infernojs, but instead of using
+/// [Lis](https://en.wikipedia.org/wiki/Longest_increasing_subsequence) we use first subsequence
+/// match even if it is not the longest increasing subsequence
 pub fn diff_keyed_elements<'a, 'b, NS, TAG, LEAF, ATT, VAL, SKIP, REP>(
     old_element: &'a Element<NS, TAG, LEAF, ATT, VAL>,
     new_element: &'a Element<NS, TAG, LEAF, ATT, VAL>,
