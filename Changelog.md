@@ -1,5 +1,10 @@
 # Changelog
 
+
+## 0.22.0
+- Refactor Patch such that, tag and patch_path is the same field in a struct
+    while the different types is in an enum variant PatchType, this minimized the use of repeated fields
+
 ## 0.21.1
 - clippy fixes
 - remove feature `with-measure` as it is not used anymore
