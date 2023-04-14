@@ -1,10 +1,7 @@
 //! patch module
 
 //use crate::node::Text;
-use crate::{
-    Attribute,
-    Node,
-};
+use crate::{Attribute, Node};
 use std::fmt::Debug;
 
 pub use tree_path::TreePath;
@@ -62,7 +59,25 @@ mod tree_path;
 /// 1 - is the `footer` element since it is the 2nd element of the body.
 /// 2 - is the `nav` element since it is the 3rd node in the `footer` element.
 #[derive(Clone, Debug, PartialEq)]
-pub enum Patch<'a, NS, TAG, LEAF, ATT, VAL>
+pub struct Patch<'a, NS, TAG, LEAF, ATT, VAL>
+where
+    NS: PartialEq + Clone + Debug,
+    TAG: PartialEq + Debug,
+    LEAF: PartialEq + Clone + Debug,
+    ATT: PartialEq + Clone + Debug,
+    VAL: PartialEq + Clone + Debug,
+{
+    /// the tag of the node at patch_path
+    tag: Option<&'a TAG>,
+    /// the path to traverse to get to the target element
+    patch_path: TreePath,
+    /// the type of patch we are going to apply
+    patch_type: PatchType<'a, NS, TAG, LEAF, ATT, VAL>,
+}
+
+/// the patch variant
+#[derive(Clone, Debug, PartialEq)]
+pub enum PatchType<'a, NS, TAG, LEAF, ATT, VAL>
 where
     NS: PartialEq + Clone + Debug,
     TAG: PartialEq + Debug,
@@ -72,51 +87,26 @@ where
 {
     /// insert the nodes before the node at patch_path
     InsertBeforeNode {
-        /// the tag of the node at patch_path
-        tag: Option<&'a TAG>,
-        /// the path to traverse to get to the target element
-        /// of which our nodes will be inserted before it.
-        patch_path: TreePath,
         /// the nodes to be inserted before patch_path
         nodes: Vec<&'a Node<NS, TAG, LEAF, ATT, VAL>>,
     },
 
     /// insert the nodes after the node at patch_path
     InsertAfterNode {
-        /// the tag of the node at patch_path
-        tag: Option<&'a TAG>,
-        /// the path to traverse to get to the target element
-        /// of which our nodes will be inserted after it.
-        patch_path: TreePath,
         /// the nodes to be inserted after the patch_path
         nodes: Vec<&'a Node<NS, TAG, LEAF, ATT, VAL>>,
     },
 
     /// Append a vector of child nodes to a parent node id at patch_path
     AppendChildren {
-        /// the tag of the node we are appending the children into
-        tag: &'a TAG,
-        /// index of the node we are going to append the children into
-        patch_path: TreePath,
         /// children nodes to be appended and their corresponding new_node_idx
         children: Vec<&'a Node<NS, TAG, LEAF, ATT, VAL>>,
     },
-    /// remove node
-    RemoveNode {
-        /// The tag of the node that is to be removed.
-        /// This is only used for additional check where are removing the correct node.
-        tag: Option<&'a TAG>,
-        /// the node_idx of the node to be removed
-        patch_path: TreePath,
-    },
+    /// remove the target node
+    RemoveNode,
     /// ReplaceNode a node with another node. This typically happens when a node's tag changes.
     /// ex: <div> becomes <span>
     ReplaceNode {
-        /// The tag of the node we are going to replace.
-        /// This is only used for additional checking that we are removing the correct node.
-        tag: Option<&'a TAG>,
-        /// the traversal path of the node we are going to replace
-        patch_path: TreePath,
         /// the node that will replace the target node
         replacement: &'a Node<NS, TAG, LEAF, ATT, VAL>,
     },
@@ -124,22 +114,11 @@ where
     /// Note: the attributes is not a reference since attributes of same
     /// name are merged to produce a new unify attribute
     AddAttributes {
-        /// node tag
-        /// use for verifying that the we are patching the correct node which
-        /// should match the same tag
-        tag: &'a TAG,
-        /// the path to traverse to get to the target lement of which we add the attributes.
-        patch_path: TreePath,
         /// the attributes to be patched into the target node
         attrs: Vec<&'a Attribute<NS, ATT, VAL>>,
     },
     /// Remove attributes that the old node had that the new node doesn't
     RemoveAttributes {
-        /// The tag of the node we are removing the attributes from.
-        /// This is only used for additional check that we are patching the correct node
-        tag: &'a TAG,
-        /// the path to traverse to get to the target lement of which we remove the attributes
-        patch_path: TreePath,
         /// attributes that are to be removed from this target node
         attrs: Vec<&'a Attribute<NS, ATT, VAL>>,
     },
@@ -155,28 +134,12 @@ where
 {
     /// return the path to traverse for this patch to get to the target Node
     pub fn path(&self) -> &TreePath {
-        match self {
-            Patch::InsertBeforeNode { patch_path, .. } => patch_path,
-            Patch::InsertAfterNode { patch_path, .. } => patch_path,
-            Patch::AppendChildren { patch_path, .. } => patch_path,
-            Patch::RemoveNode { patch_path, .. } => patch_path,
-            Patch::ReplaceNode { patch_path, .. } => patch_path,
-            Patch::AddAttributes { patch_path, .. } => patch_path,
-            Patch::RemoveAttributes { patch_path, .. } => patch_path,
-        }
+        &self.patch_path
     }
 
     /// return the tag of this patch
     pub fn tag(&self) -> Option<&TAG> {
-        match self {
-            Patch::InsertBeforeNode { tag, .. } => *tag,
-            Patch::InsertAfterNode { tag, .. } => *tag,
-            Patch::AppendChildren { tag, .. } => Some(tag),
-            Patch::RemoveNode { tag, .. } => *tag,
-            Patch::ReplaceNode { tag, .. } => *tag,
-            Patch::AddAttributes { tag, .. } => Some(tag),
-            Patch::RemoveAttributes { tag, .. } => Some(tag),
-        }
+        self.tag
     }
 
     /// create an InsertBeforeNode patch
@@ -185,10 +148,10 @@ where
         patch_path: TreePath,
         nodes: Vec<&'a Node<NS, TAG, LEAF, ATT, VAL>>,
     ) -> Patch<'a, NS, TAG, LEAF, ATT, VAL> {
-        Patch::InsertBeforeNode {
+        Patch {
             tag,
             patch_path,
-            nodes,
+            patch_type: PatchType::InsertBeforeNode { nodes },
         }
     }
 
@@ -198,10 +161,10 @@ where
         patch_path: TreePath,
         nodes: Vec<&'a Node<NS, TAG, LEAF, ATT, VAL>>,
     ) -> Patch<'a, NS, TAG, LEAF, ATT, VAL> {
-        Patch::InsertAfterNode {
+        Patch {
             tag,
             patch_path,
-            nodes,
+            patch_type: PatchType::InsertAfterNode { nodes },
         }
     }
 
@@ -211,10 +174,10 @@ where
         patch_path: TreePath,
         children: Vec<&'a Node<NS, TAG, LEAF, ATT, VAL>>,
     ) -> Patch<'a, NS, TAG, LEAF, ATT, VAL> {
-        Patch::AppendChildren {
-            tag,
+        Patch {
+            tag: Some(tag),
             patch_path,
-            children,
+            patch_type: PatchType::AppendChildren { children },
         }
     }
 
@@ -224,7 +187,11 @@ where
         tag: Option<&'a TAG>,
         patch_path: TreePath,
     ) -> Patch<'a, NS, TAG, LEAF, ATT, VAL> {
-        Patch::RemoveNode { tag, patch_path }
+        Patch {
+            tag,
+            patch_path,
+            patch_type: PatchType::RemoveNode,
+        }
     }
 
     /// create a patch where a node is replaced by the `replacement` node.
@@ -234,10 +201,10 @@ where
         patch_path: TreePath,
         replacement: &'a Node<NS, TAG, LEAF, ATT, VAL>,
     ) -> Patch<'a, NS, TAG, LEAF, ATT, VAL> {
-        Patch::ReplaceNode {
+        Patch {
             tag,
             patch_path,
-            replacement,
+            patch_type: PatchType::ReplaceNode { replacement },
         }
     }
 
@@ -247,10 +214,10 @@ where
         patch_path: TreePath,
         attrs: Vec<&'a Attribute<NS, ATT, VAL>>,
     ) -> Patch<'a, NS, TAG, LEAF, ATT, VAL> {
-        Patch::AddAttributes {
-            tag,
+        Patch {
+            tag: Some(tag),
             patch_path,
-            attrs,
+            patch_type: PatchType::AddAttributes { attrs },
         }
     }
 
@@ -261,10 +228,10 @@ where
         patch_path: TreePath,
         attrs: Vec<&'a Attribute<NS, ATT, VAL>>,
     ) -> Patch<'a, NS, TAG, LEAF, ATT, VAL> {
-        Patch::RemoveAttributes {
-            tag,
+        Patch {
+            tag: Some(tag),
             patch_path,
-            attrs,
+            patch_type: PatchType::RemoveAttributes { attrs },
         }
     }
 }
