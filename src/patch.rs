@@ -68,11 +68,11 @@ where
     VAL: PartialEq + Clone + Debug,
 {
     /// the tag of the node at patch_path
-    tag: Option<&'a TAG>,
+    pub tag: Option<&'a TAG>,
     /// the path to traverse to get to the target element
-    patch_path: TreePath,
+    pub patch_path: TreePath,
     /// the type of patch we are going to apply
-    patch_type: PatchType<'a, NS, TAG, LEAF, ATT, VAL>,
+    pub patch_type: PatchType<'a, NS, TAG, LEAF, ATT, VAL>,
 }
 
 /// the patch variant
