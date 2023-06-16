@@ -246,12 +246,16 @@ where
     );
 
     // make a map of old_index -> old_key
-    let old_key_to_old_index: BTreeMap<usize, Vec<&Val>> = BTreeMap::from_iter(
-        old_children.iter().enumerate().map(|(old_index, old)| {
-            let old_key = old.get_attribute_value(key).unwrap();
-            (old_index, old_key)
-        }),
-    );
+    let old_key_to_old_index: BTreeMap<usize, Vec<&Val>> =
+        BTreeMap::from_iter(old_children.iter().enumerate().filter_map(
+            |(old_index, old)| {
+                if let Some(old_key) = old.get_attribute_value(key) {
+                    Some((old_index, old_key))
+                } else {
+                    None
+                }
+            },
+        ));
 
     let mut shared_keys: Vec<Vec<&Val>> = vec![];
 
@@ -259,21 +263,22 @@ where
     let new_index_to_old_index: Vec<usize> = new_children
         .iter()
         .map(|new| {
-            let new_key = new.get_attribute_value(key).unwrap();
-
-            let index =
-                old_key_to_old_index
-                    .iter()
-                    .find_map(|(old_index, old_key)| {
+            if let Some(new_key) = new.get_attribute_value(key) {
+                let index = old_key_to_old_index.iter().find_map(
+                    |(old_index, old_key)| {
                         if new_key == *old_key {
                             Some(old_index)
                         } else {
                             None
                         }
-                    });
-            if let Some(&index) = index {
-                shared_keys.push(new_key);
-                index
+                    },
+                );
+                if let Some(&index) = index {
+                    shared_keys.push(new_key);
+                    index
+                } else {
+                    u32::MAX as usize
+                }
             } else {
                 u32::MAX as usize
             }
@@ -302,8 +307,16 @@ where
 
     // remove any old children that are not shared
     for (index, old_child) in old_children.iter().enumerate() {
-        let old_key = old_child.get_attribute_value(key).unwrap();
-        if !shared_keys.contains(&old_key) {
+        if let Some(old_key) = old_child.get_attribute_value(key) {
+            if !shared_keys.contains(&old_key) {
+                let patch = Patch::remove_node(
+                    old_child.tag(),
+                    path.traverse(left_offset + index),
+                );
+                all_patches.push(patch);
+            }
+        } else {
+            // also remove the node that has no key
             let patch = Patch::remove_node(
                 old_child.tag(),
                 path.traverse(left_offset + index),
@@ -399,10 +412,15 @@ where
                     all_patches.extend(patches);
                 }
             }
-            let tag = old_children[last].tag();
-            let patch =
-                Patch::insert_before_node(tag, path.traverse(last), new_nodes);
-            all_patches.push(patch);
+            if !new_nodes.is_empty() {
+                let tag = old_children[last].tag();
+                let patch = Patch::insert_before_node(
+                    tag,
+                    path.traverse(last),
+                    new_nodes,
+                );
+                all_patches.push(patch);
+            }
         }
     }
 
@@ -426,10 +444,15 @@ where
                 all_patches.extend(patches);
             }
         }
-        let tag = old_children[first_lis].tag();
-        let patch =
-            Patch::insert_before_node(tag, path.traverse(first_lis), new_nodes);
-        all_patches.push(patch);
+        if !new_nodes.is_empty() {
+            let tag = old_children[first_lis].tag();
+            let patch = Patch::insert_before_node(
+                tag,
+                path.traverse(first_lis),
+                new_nodes,
+            );
+            all_patches.push(patch);
+        }
     }
     all_patches
 }
