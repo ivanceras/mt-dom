@@ -190,7 +190,7 @@ where
     false
 }
 
-fn diff_recursive<'a, 'b, Ns, Tag, Leaf, Att, Val, Skip, Rep>(
+pub(crate) fn diff_recursive<'a, 'b, Ns, Tag, Leaf, Att, Val, Skip, Rep>(
     old_node: &'a Node<Ns, Tag, Leaf, Att, Val>,
     new_node: &'a Node<Ns, Tag, Leaf, Att, Val>,
     path: &TreePath,
@@ -246,7 +246,18 @@ where
                 || is_any_children_keyed(new_element, key);
 
             if diff_as_keyed {
+                /*
                 let keyed_patches = keyed::diff_keyed_elements(
+                    old_element,
+                    new_element,
+                    key,
+                    path,
+                    skip,
+                    rep,
+                );
+                patches.extend(keyed_patches);
+                */
+                let keyed_patches = crate::diff_lis::diff_keyed_elements(
                     old_element,
                     new_element,
                     key,
