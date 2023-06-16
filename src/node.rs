@@ -11,49 +11,49 @@ mod element;
 ///
 /// Much of the types are Generics
 ///
-/// NS - is the type for the namespace, this will be &'static str when used in html based virtual dom implementation
-/// TAG - is the type for the element tag, this will be &'static str when used in html based virtual
+/// Ns - is the type for the namespace, this will be &'static str when used in html based virtual dom implementation
+/// Tag - is the type for the element tag, this will be &'static str when used in html based virtual
 /// dom impmenentation
-/// ATT - is the type for the attribute name, this will be &'static str when used in html based
+/// Att - is the type for the attribute name, this will be &'static str when used in html based
 /// virtual dom implementation
-/// VAL - is the type for the value of the attribute, this will be String, f64, or just another
+/// Val - is the type for the value of the attribute, this will be String, f64, or just another
 /// generics that suits the implementing library which used mt-dom for just dom-diffing purposes
 #[derive(Clone, Debug, PartialEq)]
-pub enum Node<NS, TAG, LEAF, ATT, VAL>
+pub enum Node<Ns, Tag, Leaf, Att, Val>
 where
-    NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Debug,
-    LEAF: PartialEq + Clone + Debug,
-    ATT: PartialEq + Clone + Debug,
-    VAL: PartialEq + Clone + Debug,
+    Ns: PartialEq + Clone + Debug,
+    Tag: PartialEq + Debug,
+    Leaf: PartialEq + Clone + Debug,
+    Att: PartialEq + Clone + Debug,
+    Val: PartialEq + Clone + Debug,
 {
     /// Element variant of a virtual node
-    Element(Element<NS, TAG, LEAF, ATT, VAL>),
+    Element(Element<Ns, Tag, Leaf, Att, Val>),
     /// A node containing nodes
-    NodeList(Vec<Node<NS, TAG, LEAF, ATT, VAL>>),
+    NodeList(Vec<Node<Ns, Tag, Leaf, Att, Val>>),
     /// A Leaf node
-    Leaf(LEAF),
+    Leaf(Leaf),
 }
 
-impl<NS, TAG, LEAF, ATT, VAL> Node<NS, TAG, LEAF, ATT, VAL>
+impl<Ns, Tag, Leaf, Att, Val> Node<Ns, Tag, Leaf, Att, Val>
 where
-    NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Debug,
-    LEAF: PartialEq + Clone + Debug,
-    ATT: PartialEq + Clone + Debug,
-    VAL: PartialEq + Clone + Debug,
+    Ns: PartialEq + Clone + Debug,
+    Tag: PartialEq + Debug,
+    Leaf: PartialEq + Clone + Debug,
+    Att: PartialEq + Clone + Debug,
+    Val: PartialEq + Clone + Debug,
 {
     /// consume self and return the element if it is an element variant
     /// None if it is a text node
-    pub fn take_element(self) -> Option<Element<NS, TAG, LEAF, ATT, VAL>> {
+    pub fn take_element(self) -> Option<Element<Ns, Tag, Leaf, Att, Val>> {
         match self {
             Node::Element(element) => Some(element),
             _ => None,
         }
     }
 
-    /// returns a reference to the LEAF if the node is a Leaf variant
-    pub fn as_leaf_ref(&self) -> Option<&LEAF> {
+    /// returns a reference to the Leaf if the node is a Leaf variant
+    pub fn as_leaf_ref(&self) -> Option<&Leaf> {
         match self {
             Node::Leaf(leaf) => Some(leaf),
             _ => None,
@@ -63,7 +63,7 @@ where
     /// Get a mutable reference to the element, if this node is an element node
     pub fn as_element_mut(
         &mut self,
-    ) -> Option<&mut Element<NS, TAG, LEAF, ATT, VAL>> {
+    ) -> Option<&mut Element<Ns, Tag, Leaf, Att, Val>> {
         match *self {
             Node::Element(ref mut element) => Some(element),
             _ => None,
@@ -71,7 +71,7 @@ where
     }
 
     /// returns a reference to the element if this is an element node
-    pub fn as_element_ref(&self) -> Option<&Element<NS, TAG, LEAF, ATT, VAL>> {
+    pub fn as_element_ref(&self) -> Option<&Element<Ns, Tag, Leaf, Att, Val>> {
         match *self {
             Node::Element(ref element) => Some(element),
             _ => None,
@@ -83,7 +83,7 @@ where
     /// This is used in building the nodes in a builder pattern
     pub fn add_children(
         mut self,
-        children: impl IntoIterator<Item = Node<NS, TAG, LEAF, ATT, VAL>>,
+        children: impl IntoIterator<Item = Node<Ns, Tag, Leaf, Att, Val>>,
     ) -> Self {
         if let Some(element) = self.as_element_mut() {
             element.add_children(children);
@@ -96,7 +96,7 @@ where
     /// add children but not consume self
     pub fn add_children_ref_mut(
         &mut self,
-        children: impl IntoIterator<Item = Node<NS, TAG, LEAF, ATT, VAL>>,
+        children: impl IntoIterator<Item = Node<Ns, Tag, Leaf, Att, Val>>,
     ) {
         if let Some(element) = self.as_element_mut() {
             element.add_children(children);
@@ -109,7 +109,7 @@ where
     /// this is used in view building
     pub fn add_attributes(
         mut self,
-        attributes: impl IntoIterator<Item = Attribute<NS, ATT, VAL>>,
+        attributes: impl IntoIterator<Item = Attribute<Ns, Att, Val>>,
     ) -> Self {
         if let Some(elm) = self.as_element_mut() {
             elm.add_attributes(attributes);
@@ -122,7 +122,7 @@ where
     /// add attributes using a mutable reference to self
     pub fn add_attributes_ref_mut(
         &mut self,
-        attributes: impl IntoIterator<Item = Attribute<NS, ATT, VAL>>,
+        attributes: impl IntoIterator<Item = Attribute<Ns, Att, Val>>,
     ) {
         if let Some(elm) = self.as_element_mut() {
             elm.add_attributes(attributes);
@@ -133,7 +133,7 @@ where
 
     /// get the attributes of this node
     /// returns None if it is a text node
-    pub fn get_attributes(&self) -> Option<&[Attribute<NS, ATT, VAL>]> {
+    pub fn get_attributes(&self) -> Option<&[Attribute<Ns, Att, Val>]> {
         match *self {
             Node::Element(ref element) => Some(element.get_attributes()),
             _ => None,
@@ -142,7 +142,7 @@ where
 
     /// returns the tag of this node if it is an element
     /// otherwise None if it is a text node
-    pub fn tag(&self) -> Option<&TAG> {
+    pub fn tag(&self) -> Option<&Tag> {
         if let Some(e) = self.as_element_ref() {
             Some(&e.tag)
         } else {
@@ -152,7 +152,7 @@ where
 
     /// return the children of this node if it is an element
     /// returns None if it is a text node
-    pub fn get_children(&self) -> Option<&[Node<NS, TAG, LEAF, ATT, VAL>]> {
+    pub fn get_children(&self) -> Option<&[Node<Ns, Tag, Leaf, Att, Val>]> {
         if let Some(element) = self.as_element_ref() {
             Some(element.get_children())
         } else {
@@ -173,7 +173,7 @@ where
     /// returns None if it is a text node
     pub fn children_mut(
         &mut self,
-    ) -> Option<&mut [Node<NS, TAG, LEAF, ATT, VAL>]> {
+    ) -> Option<&mut [Node<Ns, Tag, Leaf, Att, Val>]> {
         if let Some(element) = self.as_element_mut() {
             Some(element.children_mut())
         } else {
@@ -191,7 +191,7 @@ where
     pub fn swap_remove_child(
         &mut self,
         index: usize,
-    ) -> Node<NS, TAG, LEAF, ATT, VAL> {
+    ) -> Node<Ns, Tag, Leaf, Att, Val> {
         match self {
             Node::Element(element) => element.swap_remove_child(index),
             _ => panic!("text has no child"),
@@ -234,7 +234,7 @@ where
     /// remove the existing attributes and set with the new value
     pub fn set_attributes_ref_mut(
         &mut self,
-        attributes: impl IntoIterator<Item = Attribute<NS, ATT, VAL>>,
+        attributes: impl IntoIterator<Item = Attribute<Ns, Att, Val>>,
     ) {
         if let Some(elm) = self.as_element_mut() {
             elm.set_attributes(attributes);
@@ -244,7 +244,7 @@ where
     /// merge to existing attributes if the attribute name already exist
     pub fn merge_attributes(
         mut self,
-        attributes: impl IntoIterator<Item = Attribute<NS, ATT, VAL>>,
+        attributes: impl IntoIterator<Item = Attribute<Ns, Att, Val>>,
     ) -> Self {
         if let Some(elm) = self.as_element_mut() {
             elm.merge_attributes(attributes);
@@ -253,7 +253,7 @@ where
     }
 
     /// returh the attribute values of this node which match the attribute name `name`
-    pub fn get_attribute_value(&self, name: &ATT) -> Option<Vec<&VAL>> {
+    pub fn get_attribute_value(&self, name: &Att) -> Option<Vec<&Val>> {
         if let Some(elm) = self.as_element_ref() {
             elm.get_attribute_value(name)
         } else {
@@ -275,17 +275,17 @@ where
 ///      );
 /// ```
 #[inline]
-pub fn element<NS, TAG, LEAF, ATT, VAL>(
-    tag: TAG,
-    attrs: impl IntoIterator<Item = Attribute<NS, ATT, VAL>>,
-    children: impl IntoIterator<Item = Node<NS, TAG, LEAF, ATT, VAL>>,
-) -> Node<NS, TAG, LEAF, ATT, VAL>
+pub fn element<Ns, Tag, Leaf, Att, Val>(
+    tag: Tag,
+    attrs: impl IntoIterator<Item = Attribute<Ns, Att, Val>>,
+    children: impl IntoIterator<Item = Node<Ns, Tag, Leaf, Att, Val>>,
+) -> Node<Ns, Tag, Leaf, Att, Val>
 where
-    NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Debug,
-    LEAF: PartialEq + Clone + Debug,
-    ATT: PartialEq + Clone + Debug,
-    VAL: PartialEq + Clone + Debug,
+    Ns: PartialEq + Clone + Debug,
+    Tag: PartialEq + Debug,
+    Leaf: PartialEq + Clone + Debug,
+    Att: PartialEq + Clone + Debug,
+    Val: PartialEq + Clone + Debug,
 {
     element_ns(None, tag, attrs, children, false)
 }
@@ -304,47 +304,47 @@ where
 ///          false
 ///      );
 /// ```
-pub fn element_ns<NS, TAG, LEAF, ATT, VAL>(
-    namespace: Option<NS>,
-    tag: TAG,
-    attrs: impl IntoIterator<Item = Attribute<NS, ATT, VAL>>,
-    children: impl IntoIterator<Item = Node<NS, TAG, LEAF, ATT, VAL>>,
+pub fn element_ns<Ns, Tag, Leaf, Att, Val>(
+    namespace: Option<Ns>,
+    tag: Tag,
+    attrs: impl IntoIterator<Item = Attribute<Ns, Att, Val>>,
+    children: impl IntoIterator<Item = Node<Ns, Tag, Leaf, Att, Val>>,
     self_closing: bool,
-) -> Node<NS, TAG, LEAF, ATT, VAL>
+) -> Node<Ns, Tag, Leaf, Att, Val>
 where
-    NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Debug,
-    LEAF: PartialEq + Clone + Debug,
-    ATT: PartialEq + Clone + Debug,
-    VAL: PartialEq + Clone + Debug,
+    Ns: PartialEq + Clone + Debug,
+    Tag: PartialEq + Debug,
+    Leaf: PartialEq + Clone + Debug,
+    Att: PartialEq + Clone + Debug,
+    Val: PartialEq + Clone + Debug,
 {
     Node::Element(Element::new(namespace, tag, attrs, children, self_closing))
 }
 
 /// create a leaf node
-pub fn leaf<NS, TAG, LEAF, ATT, VAL>(
-    leaf: LEAF,
-) -> Node<NS, TAG, LEAF, ATT, VAL>
+pub fn leaf<Ns, Tag, Leaf, Att, Val>(
+    leaf: Leaf,
+) -> Node<Ns, Tag, Leaf, Att, Val>
 where
-    NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Debug,
-    LEAF: PartialEq + Clone + Debug,
-    ATT: PartialEq + Clone + Debug,
-    VAL: PartialEq + Clone + Debug,
+    Ns: PartialEq + Clone + Debug,
+    Tag: PartialEq + Debug,
+    Leaf: PartialEq + Clone + Debug,
+    Att: PartialEq + Clone + Debug,
+    Val: PartialEq + Clone + Debug,
 {
     Node::Leaf(leaf)
 }
 
 /// create a node list
-pub fn node_list<NS, TAG, LEAF, ATT, VAL>(
-    elements: impl IntoIterator<Item = Node<NS, TAG, LEAF, ATT, VAL>>,
-) -> Node<NS, TAG, LEAF, ATT, VAL>
+pub fn node_list<Ns, Tag, Leaf, Att, Val>(
+    elements: impl IntoIterator<Item = Node<Ns, Tag, Leaf, Att, Val>>,
+) -> Node<Ns, Tag, Leaf, Att, Val>
 where
-    NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Debug,
-    LEAF: PartialEq + Clone + Debug,
-    ATT: PartialEq + Clone + Debug,
-    VAL: PartialEq + Clone + Debug,
+    Ns: PartialEq + Clone + Debug,
+    Tag: PartialEq + Debug,
+    Leaf: PartialEq + Clone + Debug,
+    Att: PartialEq + Clone + Debug,
+    Val: PartialEq + Clone + Debug,
 {
     Node::NodeList(elements.into_iter().collect())
 }

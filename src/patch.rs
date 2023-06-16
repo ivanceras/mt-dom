@@ -59,48 +59,48 @@ mod tree_path;
 /// 1 - is the `footer` element since it is the 2nd element of the body.
 /// 2 - is the `nav` element since it is the 3rd node in the `footer` element.
 #[derive(Clone, Debug, PartialEq)]
-pub struct Patch<'a, NS, TAG, LEAF, ATT, VAL>
+pub struct Patch<'a, Ns, Tag, Leaf, Att, Val>
 where
-    NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Debug,
-    LEAF: PartialEq + Clone + Debug,
-    ATT: PartialEq + Clone + Debug,
-    VAL: PartialEq + Clone + Debug,
+    Ns: PartialEq + Clone + Debug,
+    Tag: PartialEq + Debug,
+    Leaf: PartialEq + Clone + Debug,
+    Att: PartialEq + Clone + Debug,
+    Val: PartialEq + Clone + Debug,
 {
     /// the tag of the node at patch_path
-    pub tag: Option<&'a TAG>,
+    pub tag: Option<&'a Tag>,
     /// the path to traverse to get to the target element
     pub patch_path: TreePath,
     /// the type of patch we are going to apply
-    pub patch_type: PatchType<'a, NS, TAG, LEAF, ATT, VAL>,
+    pub patch_type: PatchType<'a, Ns, Tag, Leaf, Att, Val>,
 }
 
 /// the patch variant
 #[derive(Clone, Debug, PartialEq)]
-pub enum PatchType<'a, NS, TAG, LEAF, ATT, VAL>
+pub enum PatchType<'a, Ns, Tag, Leaf, Att, Val>
 where
-    NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Debug,
-    LEAF: PartialEq + Clone + Debug,
-    ATT: PartialEq + Clone + Debug,
-    VAL: PartialEq + Clone + Debug,
+    Ns: PartialEq + Clone + Debug,
+    Tag: PartialEq + Debug,
+    Leaf: PartialEq + Clone + Debug,
+    Att: PartialEq + Clone + Debug,
+    Val: PartialEq + Clone + Debug,
 {
     /// insert the nodes before the node at patch_path
     InsertBeforeNode {
         /// the nodes to be inserted before patch_path
-        nodes: Vec<&'a Node<NS, TAG, LEAF, ATT, VAL>>,
+        nodes: Vec<&'a Node<Ns, Tag, Leaf, Att, Val>>,
     },
 
     /// insert the nodes after the node at patch_path
     InsertAfterNode {
         /// the nodes to be inserted after the patch_path
-        nodes: Vec<&'a Node<NS, TAG, LEAF, ATT, VAL>>,
+        nodes: Vec<&'a Node<Ns, Tag, Leaf, Att, Val>>,
     },
 
     /// Append a vector of child nodes to a parent node id at patch_path
     AppendChildren {
         /// children nodes to be appended and their corresponding new_node_idx
-        children: Vec<&'a Node<NS, TAG, LEAF, ATT, VAL>>,
+        children: Vec<&'a Node<Ns, Tag, Leaf, Att, Val>>,
     },
     /// remove the target node
     RemoveNode,
@@ -108,29 +108,29 @@ where
     /// ex: <div> becomes <span>
     ReplaceNode {
         /// the node that will replace the target node
-        replacement: &'a Node<NS, TAG, LEAF, ATT, VAL>,
+        replacement: &'a Node<Ns, Tag, Leaf, Att, Val>,
     },
     /// Add attributes that the new node has that the old node does not
     /// Note: the attributes is not a reference since attributes of same
     /// name are merged to produce a new unify attribute
     AddAttributes {
         /// the attributes to be patched into the target node
-        attrs: Vec<&'a Attribute<NS, ATT, VAL>>,
+        attrs: Vec<&'a Attribute<Ns, Att, Val>>,
     },
     /// Remove attributes that the old node had that the new node doesn't
     RemoveAttributes {
         /// attributes that are to be removed from this target node
-        attrs: Vec<&'a Attribute<NS, ATT, VAL>>,
+        attrs: Vec<&'a Attribute<Ns, Att, Val>>,
     },
 }
 
-impl<'a, NS, TAG, LEAF, ATT, VAL> Patch<'a, NS, TAG, LEAF, ATT, VAL>
+impl<'a, Ns, Tag, Leaf, Att, Val> Patch<'a, Ns, Tag, Leaf, Att, Val>
 where
-    NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Debug,
-    LEAF: PartialEq + Clone + Debug,
-    ATT: PartialEq + Clone + Debug,
-    VAL: PartialEq + Clone + Debug,
+    Ns: PartialEq + Clone + Debug,
+    Tag: PartialEq + Debug,
+    Leaf: PartialEq + Clone + Debug,
+    Att: PartialEq + Clone + Debug,
+    Val: PartialEq + Clone + Debug,
 {
     /// return the path to traverse for this patch to get to the target Node
     pub fn path(&self) -> &TreePath {
@@ -138,16 +138,16 @@ where
     }
 
     /// return the tag of this patch
-    pub fn tag(&self) -> Option<&TAG> {
+    pub fn tag(&self) -> Option<&Tag> {
         self.tag
     }
 
     /// create an InsertBeforeNode patch
     pub fn insert_before_node(
-        tag: Option<&'a TAG>,
+        tag: Option<&'a Tag>,
         patch_path: TreePath,
-        nodes: Vec<&'a Node<NS, TAG, LEAF, ATT, VAL>>,
-    ) -> Patch<'a, NS, TAG, LEAF, ATT, VAL> {
+        nodes: Vec<&'a Node<Ns, Tag, Leaf, Att, Val>>,
+    ) -> Patch<'a, Ns, Tag, Leaf, Att, Val> {
         Patch {
             tag,
             patch_path,
@@ -157,10 +157,10 @@ where
 
     /// create an InsertAfterNode patch
     pub fn insert_after_node(
-        tag: Option<&'a TAG>,
+        tag: Option<&'a Tag>,
         patch_path: TreePath,
-        nodes: Vec<&'a Node<NS, TAG, LEAF, ATT, VAL>>,
-    ) -> Patch<'a, NS, TAG, LEAF, ATT, VAL> {
+        nodes: Vec<&'a Node<Ns, Tag, Leaf, Att, Val>>,
+    ) -> Patch<'a, Ns, Tag, Leaf, Att, Val> {
         Patch {
             tag,
             patch_path,
@@ -170,10 +170,10 @@ where
 
     /// create a patch where we add children to the target node
     pub fn append_children(
-        tag: &'a TAG,
+        tag: &'a Tag,
         patch_path: TreePath,
-        children: Vec<&'a Node<NS, TAG, LEAF, ATT, VAL>>,
-    ) -> Patch<'a, NS, TAG, LEAF, ATT, VAL> {
+        children: Vec<&'a Node<Ns, Tag, Leaf, Att, Val>>,
+    ) -> Patch<'a, Ns, Tag, Leaf, Att, Val> {
         Patch {
             tag: Some(tag),
             patch_path,
@@ -184,9 +184,9 @@ where
     /// create a patch where the target element that can be traverse
     /// using the patch path will be remove
     pub fn remove_node(
-        tag: Option<&'a TAG>,
+        tag: Option<&'a Tag>,
         patch_path: TreePath,
-    ) -> Patch<'a, NS, TAG, LEAF, ATT, VAL> {
+    ) -> Patch<'a, Ns, Tag, Leaf, Att, Val> {
         Patch {
             tag,
             patch_path,
@@ -197,10 +197,10 @@ where
     /// create a patch where a node is replaced by the `replacement` node.
     /// The target node to be replace is traverse using the `patch_path`
     pub fn replace_node(
-        tag: Option<&'a TAG>,
+        tag: Option<&'a Tag>,
         patch_path: TreePath,
-        replacement: &'a Node<NS, TAG, LEAF, ATT, VAL>,
-    ) -> Patch<'a, NS, TAG, LEAF, ATT, VAL> {
+        replacement: &'a Node<Ns, Tag, Leaf, Att, Val>,
+    ) -> Patch<'a, Ns, Tag, Leaf, Att, Val> {
         Patch {
             tag,
             patch_path,
@@ -210,10 +210,10 @@ where
 
     /// create a patch where a new attribute is added to the target element
     pub fn add_attributes(
-        tag: &'a TAG,
+        tag: &'a Tag,
         patch_path: TreePath,
-        attrs: Vec<&'a Attribute<NS, ATT, VAL>>,
-    ) -> Patch<'a, NS, TAG, LEAF, ATT, VAL> {
+        attrs: Vec<&'a Attribute<Ns, Att, Val>>,
+    ) -> Patch<'a, Ns, Tag, Leaf, Att, Val> {
         Patch {
             tag: Some(tag),
             patch_path,
@@ -224,10 +224,10 @@ where
     /// create patch where it remove attributes of the target element that can be traversed by the
     /// patch_path.
     pub fn remove_attributes(
-        tag: &'a TAG,
+        tag: &'a Tag,
         patch_path: TreePath,
-        attrs: Vec<&'a Attribute<NS, ATT, VAL>>,
-    ) -> Patch<'a, NS, TAG, LEAF, ATT, VAL> {
+        attrs: Vec<&'a Attribute<Ns, Att, Val>>,
+    ) -> Patch<'a, Ns, Tag, Leaf, Att, Val> {
         Patch {
             tag: Some(tag),
             patch_path,

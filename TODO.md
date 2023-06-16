@@ -135,6 +135,7 @@
     - > Keyed test for swap failed. Swap must add the TRs that it removed, but there were 997 new nodes
 sauron-v0.50.1-keyed is keyed for 'run benchmark' and keyed for 'remove row benchmark' and non-keyed for 'swap rows benchmark'
     - https://github.com/krausest/js-framework-benchmark/pull/1060#issuecomment-1168247794
+    - This requires using LIS in mt-dom
 - [ ] Make the Generics follow the conventsion like Leaf, instead of all caps LEAF
 
 

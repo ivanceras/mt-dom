@@ -1,7 +1,4 @@
-use crate::node::{
-    Attribute,
-    Node,
-};
+use crate::node::{Attribute, Node};
 use std::fmt::Debug;
 
 /// Represents an element of the virtual node
@@ -18,51 +15,49 @@ use std::fmt::Debug;
 /// The namespace is also needed in attributes where namespace are necessary such as `xlink:href`
 /// where the namespace `xlink` is needed in order for the linked element in an svg image to work.
 #[derive(Clone, Debug, PartialEq, Default)]
-pub struct Element<NS, TAG, LEAF, ATT, VAL>
+pub struct Element<Ns, Tag, Leaf, Att, Val>
 where
-    NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Debug,
-    LEAF: PartialEq + Clone + Debug,
-    ATT: PartialEq + Clone + Debug,
-    VAL: PartialEq + Clone + Debug,
+    Ns: PartialEq + Clone + Debug,
+    Tag: PartialEq + Debug,
+    Leaf: PartialEq + Clone + Debug,
+    Att: PartialEq + Clone + Debug,
+    Val: PartialEq + Clone + Debug,
 {
     /// namespace of this element,
     /// svg elements requires namespace to render correcly in the browser
-    pub namespace: Option<NS>,
+    pub namespace: Option<Ns>,
     /// the element tag, such as div, a, button
-    pub tag: TAG,
+    pub tag: Tag,
     /// attributes for this element
-    pub attrs: Vec<Attribute<NS, ATT, VAL>>,
+    pub attrs: Vec<Attribute<Ns, Att, Val>>,
     /// children elements of this element
-    pub children: Vec<Node<NS, TAG, LEAF, ATT, VAL>>,
+    pub children: Vec<Node<Ns, Tag, Leaf, Att, Val>>,
     /// is the element has a self closing tag
     pub self_closing: bool,
 }
 
-impl<NS, TAG, LEAF, ATT, VAL> Element<NS, TAG, LEAF, ATT, VAL>
+impl<Ns, Tag, Leaf, Att, Val> Element<Ns, Tag, Leaf, Att, Val>
 where
-    NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Debug,
-    LEAF: PartialEq + Clone + Debug,
-    ATT: PartialEq + Clone + Debug,
-    VAL: PartialEq + Clone + Debug,
+    Ns: PartialEq + Clone + Debug,
+    Tag: PartialEq + Debug,
+    Leaf: PartialEq + Clone + Debug,
+    Att: PartialEq + Clone + Debug,
+    Val: PartialEq + Clone + Debug,
 {
     /// create a new instance of an element
     pub fn new(
-        namespace: Option<NS>,
-        tag: TAG,
-        attrs: impl IntoIterator<Item = Attribute<NS, ATT, VAL>>,
-        children: impl IntoIterator<Item = Node<NS, TAG, LEAF, ATT, VAL>>,
+        namespace: Option<Ns>,
+        tag: Tag,
+        attrs: impl IntoIterator<Item = Attribute<Ns, Att, Val>>,
+        children: impl IntoIterator<Item = Node<Ns, Tag, Leaf, Att, Val>>,
         self_closing: bool,
     ) -> Self {
         //unroll the nodelist
         let children = children
             .into_iter()
-            .flat_map(|child| {
-                match child {
-                    Node::NodeList(node_list) => node_list,
-                    _ => vec![child],
-                }
+            .flat_map(|child| match child {
+                Node::NodeList(node_list) => node_list,
+                _ => vec![child],
             })
             .collect();
         Self {
@@ -77,7 +72,7 @@ where
     /// add attributes to this element
     pub fn add_attributes(
         &mut self,
-        attrs: impl IntoIterator<Item = Attribute<NS, ATT, VAL>>,
+        attrs: impl IntoIterator<Item = Attribute<Ns, Att, Val>>,
     ) {
         self.attrs.extend(attrs)
     }
@@ -85,18 +80,18 @@ where
     /// add children virtual node to this element
     pub fn add_children(
         &mut self,
-        children: impl IntoIterator<Item = Node<NS, TAG, LEAF, ATT, VAL>>,
+        children: impl IntoIterator<Item = Node<Ns, Tag, Leaf, Att, Val>>,
     ) {
         self.children.extend(children.into_iter());
     }
 
     /// returns a refernce to the children of this node
-    pub fn get_children(&self) -> &[Node<NS, TAG, LEAF, ATT, VAL>] {
+    pub fn get_children(&self) -> &[Node<Ns, Tag, Leaf, Att, Val>] {
         &self.children
     }
 
     /// returns a mutable reference to the children of this node
-    pub fn children_mut(&mut self) -> &mut [Node<NS, TAG, LEAF, ATT, VAL>] {
+    pub fn children_mut(&mut self) -> &mut [Node<Ns, Tag, Leaf, Att, Val>] {
         &mut self.children
     }
 
@@ -110,7 +105,7 @@ where
     pub fn swap_remove_child(
         &mut self,
         index: usize,
-    ) -> Node<NS, TAG, LEAF, ATT, VAL> {
+    ) -> Node<Ns, Tag, Leaf, Att, Val> {
         self.children.swap_remove(index)
     }
 
@@ -128,42 +123,42 @@ where
     }
 
     /// consume self and return the children
-    pub fn take_children(self) -> Vec<Node<NS, TAG, LEAF, ATT, VAL>> {
+    pub fn take_children(self) -> Vec<Node<Ns, Tag, Leaf, Att, Val>> {
         self.children
     }
 
     /// return a reference to the attribute of this element
-    pub fn get_attributes(&self) -> &[Attribute<NS, ATT, VAL>] {
+    pub fn get_attributes(&self) -> &[Attribute<Ns, Att, Val>] {
         &self.attrs
     }
 
     /// consume self and return the attributes
-    pub fn take_attributes(self) -> Vec<Attribute<NS, ATT, VAL>> {
+    pub fn take_attributes(self) -> Vec<Attribute<Ns, Att, Val>> {
         self.attrs
     }
 
     /// return the namespace of this element
-    pub fn namespace(&self) -> Option<&NS> {
+    pub fn namespace(&self) -> Option<&Ns> {
         self.namespace.as_ref()
     }
 
     /// return the tag of this element
-    pub fn tag(&self) -> &TAG {
+    pub fn tag(&self) -> &Tag {
         &self.tag
     }
 
     /// consume self and return the tag of this element
-    pub fn take_tag(self) -> TAG {
+    pub fn take_tag(self) -> Tag {
         self.tag
     }
 
     /// change the tag of this element
-    pub fn set_tag(&mut self, tag: TAG) {
+    pub fn set_tag(&mut self, tag: Tag) {
         self.tag = tag;
     }
 
     /// remove the attributes with this key
-    pub fn remove_attribute(&mut self, key: &ATT) {
+    pub fn remove_attribute(&mut self, key: &Att) {
         self.attrs.retain(|att| att.name != *key)
     }
 
@@ -171,7 +166,7 @@ where
     /// and add the new values
     pub fn set_attributes(
         &mut self,
-        attrs: impl IntoIterator<Item = Attribute<NS, ATT, VAL>>,
+        attrs: impl IntoIterator<Item = Attribute<Ns, Att, Val>>,
     ) {
         for attr in attrs {
             self.remove_attribute(&attr.name);
@@ -182,7 +177,7 @@ where
     /// merge to existing attributes if it exist
     pub fn merge_attributes(
         &mut self,
-        new_attrs: impl IntoIterator<Item = Attribute<NS, ATT, VAL>>,
+        new_attrs: impl IntoIterator<Item = Attribute<Ns, Att, Val>>,
     ) {
         for new_att in new_attrs {
             if let Some(existing_attr) =
@@ -195,9 +190,9 @@ where
         }
     }
 
-    /// return all the attribute values which the name &ATT
-    pub fn get_attribute_value(&self, name: &ATT) -> Option<Vec<&VAL>> {
-        let result: Vec<&VAL> = self
+    /// return all the attribute values which the name &Att
+    pub fn get_attribute_value(&self, name: &Att) -> Option<Vec<&Val>> {
+        let result: Vec<&Val> = self
             .attrs
             .iter()
             .filter(|att| att.name == *name)

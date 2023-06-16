@@ -56,33 +56,33 @@ use std::{collections::BTreeMap, fmt::Debug, iter::FromIterator};
 /// References: dioxus `diff_keyed_middle` which is also based on infernojs, but instead of using
 /// [Lis](https://en.wikipedia.org/wiki/Longest_increasing_subsequence) we use first subsequence
 /// match even if it is not the longest increasing subsequence
-pub fn diff_keyed_elements<'a, 'b, NS, TAG, LEAF, ATT, VAL, SKIP, REP>(
-    old_element: &'a Element<NS, TAG, LEAF, ATT, VAL>,
-    new_element: &'a Element<NS, TAG, LEAF, ATT, VAL>,
-    key: &ATT,
+pub fn diff_keyed_elements<'a, 'b, Ns, Tag, Leaf, Att, Val, Skip, Rep>(
+    old_element: &'a Element<Ns, Tag, Leaf, Att, Val>,
+    new_element: &'a Element<Ns, Tag, Leaf, Att, Val>,
+    key: &Att,
     path: &TreePath,
-    skip: &SKIP,
-    rep: &REP,
-) -> Vec<Patch<'a, NS, TAG, LEAF, ATT, VAL>>
+    skip: &Skip,
+    rep: &Rep,
+) -> Vec<Patch<'a, Ns, Tag, Leaf, Att, Val>>
 where
-    NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Debug,
-    LEAF: PartialEq + Clone + Debug,
-    ATT: PartialEq + Clone + Debug,
-    VAL: PartialEq + Clone + Debug,
-    SKIP: Fn(
-        &'a Node<NS, TAG, LEAF, ATT, VAL>,
-        &'a Node<NS, TAG, LEAF, ATT, VAL>,
+    Ns: PartialEq + Clone + Debug,
+    Tag: PartialEq + Debug,
+    Leaf: PartialEq + Clone + Debug,
+    Att: PartialEq + Clone + Debug,
+    Val: PartialEq + Clone + Debug,
+    Skip: Fn(
+        &'a Node<Ns, Tag, Leaf, Att, Val>,
+        &'a Node<Ns, Tag, Leaf, Att, Val>,
     ) -> bool,
-    REP: Fn(
-        &'a Node<NS, TAG, LEAF, ATT, VAL>,
-        &'a Node<NS, TAG, LEAF, ATT, VAL>,
+    Rep: Fn(
+        &'a Node<Ns, Tag, Leaf, Att, Val>,
+        &'a Node<Ns, Tag, Leaf, Att, Val>,
     ) -> bool,
 {
     let mut patches = vec![];
 
     // make a map of old_index -> old_key
-    let old_key_index: BTreeMap<usize, Vec<&VAL>> = BTreeMap::from_iter(
+    let old_key_index: BTreeMap<usize, Vec<&Val>> = BTreeMap::from_iter(
         old_element.children.iter().enumerate().filter_map(
             |(old_index, old)| {
                 old.get_attribute_value(key)
@@ -92,7 +92,7 @@ where
     );
 
     // make a map of new_index -> new_key
-    let new_key_index: BTreeMap<usize, Vec<&VAL>> = BTreeMap::from_iter(
+    let new_key_index: BTreeMap<usize, Vec<&Val>> = BTreeMap::from_iter(
         new_element.children.iter().enumerate().filter_map(
             |(new_index, new)| {
                 new.get_attribute_value(key)

@@ -112,16 +112,16 @@ impl TreePath {
     }
 
     /// find the node using the path of this tree path
-    pub fn find_node_by_path<'a, NS, TAG, LEAF, ATT, VAL>(
+    pub fn find_node_by_path<'a, Ns, Tag, Leaf, Att, Val>(
         &self,
-        node: &'a Node<NS, TAG, LEAF, ATT, VAL>,
-    ) -> Option<&'a Node<NS, TAG, LEAF, ATT, VAL>>
+        node: &'a Node<Ns, Tag, Leaf, Att, Val>,
+    ) -> Option<&'a Node<Ns, Tag, Leaf, Att, Val>>
     where
-        NS: PartialEq + Clone + Debug,
-        TAG: PartialEq + Clone + Debug,
-        LEAF: PartialEq + Clone + Debug,
-        ATT: PartialEq + Clone + Debug,
-        VAL: PartialEq + Clone + Debug,
+        Ns: PartialEq + Clone + Debug,
+        Tag: PartialEq + Clone + Debug,
+        Leaf: PartialEq + Clone + Debug,
+        Att: PartialEq + Clone + Debug,
+        Val: PartialEq + Clone + Debug,
     {
         find_node_by_path(node, self)
     }
@@ -141,16 +141,16 @@ impl From<Vec<usize>> for TreePath {
     }
 }
 
-fn traverse_node_by_path<'a, NS, TAG, LEAF, ATT, VAL>(
-    node: &'a Node<NS, TAG, LEAF, ATT, VAL>,
+fn traverse_node_by_path<'a, Ns, Tag, Leaf, Att, Val>(
+    node: &'a Node<Ns, Tag, Leaf, Att, Val>,
     path: &mut TreePath,
-) -> Option<&'a Node<NS, TAG, LEAF, ATT, VAL>>
+) -> Option<&'a Node<Ns, Tag, Leaf, Att, Val>>
 where
-    NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
-    LEAF: PartialEq + Clone + Debug,
-    ATT: PartialEq + Clone + Debug,
-    VAL: PartialEq + Clone + Debug,
+    Ns: PartialEq + Clone + Debug,
+    Tag: PartialEq + Clone + Debug,
+    Leaf: PartialEq + Clone + Debug,
+    Att: PartialEq + Clone + Debug,
+    Val: PartialEq + Clone + Debug,
 {
     println!("\n Traversing path: {:?}", path);
     if path.path.is_empty() {
@@ -168,16 +168,16 @@ where
     }
 }
 
-fn find_node_by_path<'a, NS, TAG, LEAF, ATT, VAL>(
-    node: &'a Node<NS, TAG, LEAF, ATT, VAL>,
+fn find_node_by_path<'a, Ns, Tag, Leaf, Att, Val>(
+    node: &'a Node<Ns, Tag, Leaf, Att, Val>,
     path: &TreePath,
-) -> Option<&'a Node<NS, TAG, LEAF, ATT, VAL>>
+) -> Option<&'a Node<Ns, Tag, Leaf, Att, Val>>
 where
-    NS: PartialEq + Clone + Debug,
-    TAG: PartialEq + Clone + Debug,
-    LEAF: PartialEq + Clone + Debug,
-    ATT: PartialEq + Clone + Debug,
-    VAL: PartialEq + Clone + Debug,
+    Ns: PartialEq + Clone + Debug,
+    Tag: PartialEq + Clone + Debug,
+    Leaf: PartialEq + Clone + Debug,
+    Att: PartialEq + Clone + Debug,
+    Val: PartialEq + Clone + Debug,
 {
     let mut path = path.clone();
     let root_idx = path.path.remove(0); // remove the first 0
