@@ -339,7 +339,9 @@ where
         &mut starts,
     );
 
-    lis_sequence.sort_unstable();
+    // the lis_seuqnce came out from high to low, so we just reverse it back to arrange from low to
+    // high
+    lis_sequence.reverse();
 
     // if a new node gets u32 max and is at the end, then it might be part of our LIS (because u32 max is a valid LIS)
     if lis_sequence.last().map(|f| new_index_to_old_index[*f])
@@ -381,9 +383,10 @@ where
                 all_patches.extend(patches);
             }
         }
-        let tag = old_children[last].tag();
+        let old_index = new_index_to_old_index[last];
+        let tag = old_children[old_index].tag();
         let patch =
-            Patch::insert_after_node(tag, path.traverse(last), new_nodes);
+            Patch::insert_after_node(tag, path.traverse(old_index), new_nodes);
         all_patches.push(patch);
     }
 
