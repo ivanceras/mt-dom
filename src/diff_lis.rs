@@ -68,6 +68,7 @@ where
             // insert at the beginning of the old list
             let foothold = old_element.children.len() - right_offset;
             let old_tag = old_element.children[foothold].tag();
+            dbg!(&foothold);
             let patch = Patch::insert_before_node(
                 old_tag,
                 path.traverse(foothold),
@@ -416,6 +417,7 @@ where
                 }
             }
             if !new_nodes.is_empty() {
+                dbg!(&last);
                 let tag = old_children[last].tag();
                 let patch = Patch::insert_before_node(
                     tag,
@@ -448,10 +450,12 @@ where
             }
         }
         if !new_nodes.is_empty() {
-            let tag = old_children[first_lis].tag();
+            let old_index = new_index_to_old_index[first_lis];
+            dbg!(&first_lis);
+            let tag = old_children[old_index].tag();
             let patch = Patch::insert_before_node(
                 tag,
-                path.traverse(first_lis),
+                path.traverse(old_index),
                 new_nodes,
             );
             all_patches.push(patch);
