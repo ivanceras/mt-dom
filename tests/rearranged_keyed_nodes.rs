@@ -1,8 +1,4 @@
-use mt_dom::{
-    diff::*,
-    patch::*,
-    *,
-};
+use mt_dom::{diff::*, patch::*, *};
 
 pub type MyNode =
     Node<&'static str, &'static str, &'static str, &'static str, &'static str>;
@@ -35,25 +31,13 @@ fn text_changed_non_keyed() {
 
     assert_eq!(
         diff,
-        vec![
-            Patch::remove_node(Some(&"div"), TreePath::new(vec![0])),
-            Patch::remove_node(Some(&"div"), TreePath::new(vec![1])),
-            Patch::insert_after_node(
-                Some(&"div"),
-                TreePath::new(vec![2]),
-                vec![
-                    &element(
-                        "div",
-                        vec![attr("key", "2")],
-                        vec![leaf("line2")]
-                    ),
-                    &element(
-                        "div",
-                        vec![attr("key", "1")],
-                        vec![leaf("line1")]
-                    )
-                ]
-            ),
-        ]
+        vec![Patch::insert_before_node(
+            Some(&"div"),
+            TreePath::new(vec![0]),
+            vec![
+                &element("div", vec![attr("key", "3")], vec![leaf("line3")]),
+                &element("div", vec![attr("key", "2")], vec![leaf("line2")]),
+            ]
+        ),]
     );
 }

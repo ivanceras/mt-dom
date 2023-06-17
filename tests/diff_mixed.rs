@@ -98,7 +98,7 @@ fn mixed_key_and_no_key_with_misordered_2_matched() {
             Patch::remove_node(Some(&"div"), TreePath::new(vec![1])),
             Patch::insert_before_node(
                 Some(&"div"),
-                TreePath::new(vec![1]),
+                TreePath::new(vec![0]),
                 vec![&element("div", vec![], vec![leaf("1")])],
             ),
         ]

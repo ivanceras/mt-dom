@@ -37,8 +37,26 @@ where
         None => return patches,
     };
 
+    dbg!(&left_offset);
+    dbg!(&right_offset);
+
     let mut all_patches = vec![];
     all_patches.extend(patches);
+
+    dbg!(old_element.children.len());
+    dbg!(new_element.children.len());
+
+    println!(
+        "old middle range is: ({}..{})",
+        left_offset,
+        (old_element.children.len() - right_offset)
+    );
+
+    println!(
+        "new middle range is: ({}..{})",
+        left_offset,
+        (new_element.children.len() - right_offset)
+    );
 
     // Ok, we now hopefully have a smaller range of children in the middle
     // within which to re-order nodes with the same keys, remove old nodes with
@@ -258,6 +276,8 @@ where
             },
         ));
 
+    dbg!(&old_key_to_old_index);
+
     let mut shared_keys: Vec<Vec<&Val>> = vec![];
 
     // map each new key to the old key, carrying over the old index
@@ -285,6 +305,9 @@ where
             }
         })
         .collect();
+
+    dbg!(&new_index_to_old_index);
+    dbg!(&shared_keys);
 
     // if none of the old keys are reused by the new children,
     // then we remove all the remaining old children and create the new children afresh.
@@ -343,6 +366,7 @@ where
     // the lis_seuqnce came out from high to low, so we just reverse it back to arrange from low to
     // high
     lis_sequence.reverse();
+    dbg!(&lis_sequence);
 
     // if a new node gets u32 max and is at the end, then it might be part of our LIS (because u32 max is a valid LIS)
     if lis_sequence.last().map(|f| new_index_to_old_index[*f])
@@ -365,7 +389,9 @@ where
 
     // add mount instruction for the first items not covered by the lis
     let last = *lis_sequence.last().unwrap();
-    if last < (new_children.len() - 1) {
+    dbg!(last);
+    dbg!(new_children.len());
+    if dbg!(last < (new_children.len() - 1)) {
         let mut new_nodes = vec![];
         for (idx, new_node) in new_children[(last + 1)..].iter().enumerate() {
             let new_idx = idx + last + 1;
@@ -395,7 +421,7 @@ where
     let mut lis_iter = lis_sequence.iter().rev();
     let last = *lis_iter.next().unwrap();
     for next in lis_iter {
-        if last - next > 1 {
+        if dbg!(last - next > 1) {
             let mut new_nodes = vec![];
             for (idx, new_node) in
                 new_children[(next + 1)..last].iter().enumerate()
@@ -431,10 +457,12 @@ where
 
     // add mount instruction for the last items not covered by the list
     let first_lis = *lis_sequence.first().unwrap();
-    if first_lis > 0 {
+    if dbg!(first_lis > 0) {
         let mut new_nodes = vec![];
         for (idx, new_node) in new_children[..first_lis].iter().enumerate() {
+            dbg!(idx);
             let old_index = new_index_to_old_index[idx];
+            dbg!(old_index);
             if old_index == u32::MAX as usize {
                 new_nodes.push(new_node);
             } else {
@@ -446,9 +474,13 @@ where
                     skip,
                     rep,
                 );
+                dbg!(&patches);
+                //TODO: supposed to just move the already created node
+                new_nodes.push(new_node);
                 all_patches.extend(patches);
             }
         }
+        dbg!(&new_nodes);
         if !new_nodes.is_empty() {
             let old_index = new_index_to_old_index[first_lis];
             dbg!(&first_lis);
