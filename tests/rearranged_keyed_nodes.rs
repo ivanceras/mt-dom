@@ -31,13 +31,25 @@ fn text_changed_non_keyed() {
 
     assert_eq!(
         diff,
-        vec![Patch::insert_before_node(
-            Some(&"div"),
-            TreePath::new(vec![0]),
-            vec![
-                &element("div", vec![attr("key", "3")], vec![leaf("line3")]),
-                &element("div", vec![attr("key", "2")], vec![leaf("line2")]),
-            ]
-        ),]
+        vec![
+            Patch::remove_node(Some(&"div"), TreePath::new(vec![1])),
+            Patch::remove_node(Some(&"div"), TreePath::new(vec![2])),
+            Patch::insert_before_node(
+                Some(&"div"),
+                TreePath::new(vec![0]),
+                vec![
+                    &element(
+                        "div",
+                        vec![attr("key", "3")],
+                        vec![leaf("line3")]
+                    ),
+                    &element(
+                        "div",
+                        vec![attr("key", "2")],
+                        vec![leaf("line2")]
+                    ),
+                ]
+            ),
+        ]
     );
 }
