@@ -174,6 +174,8 @@ where
         &'a Node<Ns, Tag, Leaf, Att, Val>,
     ) -> bool,
 {
+    // keep track of the old index that has been matched already
+    let mut old_index_matched = vec![];
     let mut all_patches = vec![];
 
     let mut left_offset = 0;
@@ -192,6 +194,7 @@ where
         // diff the children and add to patches
         let patches = diff_recursive(old, new, &child_path, key, skip, rep);
         all_patches.extend(patches);
+        old_index_matched.push(index);
         left_offset += 1;
     }
 
@@ -235,11 +238,15 @@ where
         .zip(new_element.children.iter().rev())
         .enumerate()
     {
-        if old.get_attribute_value(key) != new.get_attribute_value(key) {
+        let old_index = old_element.children.len() - index - 1;
+        // break if already matched this old_index or did not matched key
+        if old_index_matched.contains(&old_index)
+            || old.get_attribute_value(key) != new.get_attribute_value(key)
+        {
             println!("right_offset stopped at : {index}");
             break;
         }
-        let child_path = path.traverse(old_element.children.len() - index - 1);
+        let child_path = path.traverse(old_index);
         let patches = diff_recursive(old, new, &child_path, key, skip, rep);
         all_patches.extend(patches);
         right_offset += 1;
