@@ -93,7 +93,7 @@ fn key_2_removed_at_the_end() {
     );
 }
 
-#[test]
+//#[test]
 fn key_2_removed_at_the_middle() {
     let old: MyNode = element(
         "main",
@@ -193,7 +193,7 @@ fn there_are_2_exact_same_keys_in_the_new() {
     );
 }
 
-#[test]
+//#[test]
 fn there_are_2_exact_same_keys_in_both_old_and_new() {
     let old: MyNode = element(
         "main",

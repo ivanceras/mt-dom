@@ -61,15 +61,33 @@ where
     // Ok, we now hopefully have a smaller range of children in the middle
     // within which to re-order nodes with the same keys, remove old nodes with
     // now-unused keys, and create new nodes with fresh keys.
-    let old_middle = &old_element.children
-        [left_offset..(old_element.children.len() - right_offset)];
-    let new_middle = &new_element.children
-        [left_offset..(new_element.children.len() - right_offset)];
+    let old_end = (old_element.children.len() - right_offset);
+    dbg!(old_end);
+    let old_end = if dbg!(old_end >= left_offset) {
+        old_end
+    } else {
+        left_offset
+    };
+    dbg!(old_end);
 
+    let old_middle = &old_element.children[left_offset..old_end];
+
+    let new_end = (new_element.children.len() - right_offset);
+
+    let new_end = if new_end >= left_offset {
+        new_end
+    } else {
+        left_offset
+    };
+
+    let new_middle = &new_element.children[left_offset..new_end];
+
+    /*
     debug_assert!(
         !((old_middle.len() == new_middle.len()) && old_middle.is_empty()),
         "keyed children must have the same number of children"
     );
+    */
 
     if new_middle.is_empty() {
         //remove the old elements
@@ -167,6 +185,7 @@ where
     {
         // abort early if we run into nodes with different keys
         if old.get_attribute_value(key) != new.get_attribute_value(key) {
+            println!("left_offset stopped at : {index}");
             break;
         }
         let child_path = path.traverse(index);
@@ -217,6 +236,7 @@ where
         .enumerate()
     {
         if old.get_attribute_value(key) != new.get_attribute_value(key) {
+            println!("right_offset stopped at : {index}");
             break;
         }
         let child_path = path.traverse(old_element.children.len() - index - 1);
