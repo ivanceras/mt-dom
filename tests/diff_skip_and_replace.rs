@@ -1,9 +1,5 @@
 #![deny(warnings)]
-use mt_dom::{
-    diff::diff_with_functions,
-    patch::*,
-    *,
-};
+use mt_dom::{diff::diff_with_functions, patch::*, *};
 
 type MyNode =
     Node<&'static str, &'static str, &'static str, &'static str, &'static str>;
@@ -24,7 +20,7 @@ fn force_replace() {
         vec![Patch::replace_node(
             Some(&"div"),
             TreePath::new(vec![]),
-            &new
+            vec![&new]
         )],
     );
 }
@@ -103,7 +99,7 @@ fn replace_true_in_attribute_must_replace_old_node_regardless() {
         vec![Patch::replace_node(
             Some(&"div"),
             TreePath::new(vec![]),
-            &new
+            vec![&new]
         )],
     );
 }
@@ -235,7 +231,7 @@ fn replace_and_skip_in_sub_nodes() {
         vec![Patch::replace_node(
             Some(&"div"),
             TreePath::new(vec![1]),
-            &element(
+            vec![&element(
                 "div",
                 vec![
                     attr("replace", "true"),
@@ -259,7 +255,7 @@ fn replace_and_skip_in_sub_nodes() {
                         vec![],
                     ),
                 ],
-            )
+            )]
         )],
     );
 }

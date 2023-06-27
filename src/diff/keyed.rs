@@ -538,9 +538,9 @@ mod test {
         assert_eq!(
             patches,
             vec![
-                Patch::replace_node(None, [0, 0].into(), &leaf("1000")),
-                Patch::replace_node(None, [1, 0].into(), &leaf("2000")),
-                Patch::replace_node(None, [2, 0].into(), &leaf("3000")),
+                Patch::replace_node(None, [0, 0].into(), vec![&leaf("1000")]),
+                Patch::replace_node(None, [1, 0].into(), vec![&leaf("2000")]),
+                Patch::replace_node(None, [2, 0].into(), vec![&leaf("3000")]),
             ]
         );
     }

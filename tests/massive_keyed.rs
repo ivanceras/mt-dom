@@ -220,7 +220,7 @@ fn text_changed() {
         vec![Patch::replace_node(
             None,
             TreePath::new(vec![0, 6, 0]),
-            &leaf("line7_changed")
+            vec![&leaf("line7_changed")]
         )]
     );
 }
@@ -276,7 +276,7 @@ fn text_changed_non_keyed() {
         vec![Patch::replace_node(
             None,
             TreePath::new(vec![0, 6, 0]),
-            &leaf("line7_changed")
+            vec![&leaf("line7_changed")]
         )]
     );
 }
@@ -370,17 +370,17 @@ fn insert_one_line_at_start() {
             Patch::replace_node(
                 None,
                 TreePath::new(vec![0, 2, 0, 0]),
-                &leaf("4")
+                vec![&leaf("4")]
             ),
             Patch::replace_node(
                 None,
                 TreePath::new(vec![0, 1, 0, 0]),
-                &leaf("3")
+                vec![&leaf("3")]
             ),
             Patch::replace_node(
                 None,
                 TreePath::new(vec![0, 0, 0, 0]),
-                &leaf("2")
+                vec![&leaf("2")]
             ),
             Patch::insert_before_node(
                 Some(&"div"),
@@ -496,17 +496,17 @@ fn insert_two_lines_at_start() {
             Patch::replace_node(
                 None,
                 TreePath::new(vec![0, 2, 0, 0]),
-                &leaf("5")
+                vec![&leaf("5")]
             ),
             Patch::replace_node(
                 None,
                 TreePath::new(vec![0, 1, 0, 0]),
-                &leaf("4")
+                vec![&leaf("4")]
             ),
             Patch::replace_node(
                 None,
                 TreePath::new(vec![0, 0, 0, 0]),
-                &leaf("3")
+                vec![&leaf("3")]
             ),
             Patch::insert_before_node(
                 Some(&"div"),

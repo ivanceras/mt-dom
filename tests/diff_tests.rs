@@ -1,8 +1,5 @@
 #![deny(warnings)]
-use mt_dom::{
-    patch::*,
-    *,
-};
+use mt_dom::{patch::*, *};
 
 pub type MyNode =
     Node<&'static str, &'static str, &'static str, &'static str, &'static str>;
@@ -18,7 +15,7 @@ fn test_replace_node() {
         vec![Patch::replace_node(
             Some(&"div"),
             TreePath::new(vec![]),
-            &new
+            vec![&new]
         )],
     );
 }
@@ -31,7 +28,7 @@ fn test_replace_text_node() {
     let diff = diff_with_key(&old, &new, &"key");
     assert_eq!(
         diff,
-        vec![Patch::replace_node(None, TreePath::new(vec![]), &new)],
+        vec![Patch::replace_node(None, TreePath::new(vec![]), vec![&new])],
     );
 }
 
@@ -47,7 +44,7 @@ fn test_replace_node_in_child() {
         vec![Patch::replace_node(
             Some(&"div"),
             TreePath::new(vec![0]),
-            &element("span", vec![], vec![])
+            vec![&element("span", vec![], vec![])]
         )],
         "Should replace the first node"
     );
@@ -87,7 +84,7 @@ fn test_205() {
             Patch::replace_node(
                 Some(&"b"),
                 TreePath::new(vec![1]),
-                &element("i", vec![], vec![])
+                vec![&element("i", vec![], vec![])]
             ),
         ],
     )
@@ -175,7 +172,7 @@ fn leaf_node_changed() {
         vec![Patch::replace_node(
             None,
             TreePath::new(vec![0]),
-            &leaf("text2")
+            vec![&leaf("text2")]
         )]
     )
 }

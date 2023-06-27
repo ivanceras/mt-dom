@@ -108,7 +108,7 @@ where
     /// ex: <div> becomes <span>
     ReplaceNode {
         /// the node that will replace the target node
-        replacement: &'a Node<Ns, Tag, Leaf, Att, Val>,
+        replacement: Vec<&'a Node<Ns, Tag, Leaf, Att, Val>>,
     },
     /// Add attributes that the new node has that the old node does not
     /// Note: the attributes is not a reference since attributes of same
@@ -199,7 +199,7 @@ where
     pub fn replace_node(
         tag: Option<&'a Tag>,
         patch_path: TreePath,
-        replacement: &'a Node<Ns, Tag, Leaf, Att, Val>,
+        replacement: Vec<&'a Node<Ns, Tag, Leaf, Att, Val>>,
     ) -> Patch<'a, Ns, Tag, Leaf, Att, Val> {
         Patch {
             tag,

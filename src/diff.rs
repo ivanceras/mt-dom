@@ -223,7 +223,7 @@ where
         return vec![Patch::replace_node(
             old_node.tag(),
             path.clone(),
-            new_node,
+            vec![new_node],
         )];
     }
 
@@ -235,8 +235,11 @@ where
     match (old_node, new_node) {
         (Node::Leaf(old_leaf), Node::Leaf(new_leaf)) => {
             if old_leaf != new_leaf {
-                let ct =
-                    Patch::replace_node(old_node.tag(), path.clone(), new_node);
+                let ct = Patch::replace_node(
+                    old_node.tag(),
+                    path.clone(),
+                    vec![new_node],
+                );
                 patches.push(ct);
             }
         }

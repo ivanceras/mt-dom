@@ -1,6 +1,7 @@
 //! diff with longest increasing subsequence
 
 use crate::diff::diff_recursive;
+use crate::node_list;
 use crate::{Element, Node, Patch, TreePath};
 use std::collections::BTreeMap;
 use std::fmt::Debug;
@@ -310,21 +311,24 @@ where
     // if none of the old keys are reused by the new children,
     // then we remove all the remaining old children and create the new children afresh.
     if shared_keys.is_empty() {
-        for (index, old) in old_children.iter().enumerate() {
-            let patch = Patch::remove_node(
-                old.tag(),
-                path.traverse(left_offset + index),
+        if old_children.get(0).is_some() {
+            // skip the first one, so we can use it as our foothold for inserting the new children
+            for (index, old) in old_children.iter().skip(1).enumerate() {
+                let patch = Patch::remove_node(
+                    old.tag(),
+                    path.traverse(left_offset + index + 1),
+                );
+                all_patches.push(patch);
+            }
+
+            let patch = Patch::replace_node(
+                old_children[left_offset + 0].tag(),
+                path.traverse(left_offset + 0),
+                new_children.iter().collect(),
             );
             all_patches.push(patch);
+            return all_patches;
         }
-        let old_tag = old_children[left_offset].tag();
-        let patch = Patch::insert_after_node(
-            old_tag,
-            path.traverse(left_offset),
-            new_children.iter().collect(),
-        );
-        all_patches.push(patch);
-        return all_patches;
     }
 
     // remove any old children that are not shared
