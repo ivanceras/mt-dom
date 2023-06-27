@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+- use a better algorithm where longest increasing subsequence is considered
+- comment out test that don't fit with the new algorithm anymore
+- `Patch::replace_node` uses vec of nodes for the replacement nodes.
+- convert ALLCAPS generic type to Capitalize
+- use edition 2021
+
 
 ## 0.22.0
 - Refactor Patch such that, tag and patch_path is the same field in a struct
