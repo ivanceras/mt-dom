@@ -5,8 +5,6 @@ use crate::{
 };
 use std::{cmp, fmt::Debug, mem};
 
-mod keyed;
-
 /// Return the patches needed for `old_node` to have the same DOM as `new_node`
 ///
 /// # Agruments
@@ -249,17 +247,6 @@ where
                 || is_any_children_keyed(new_element, key);
 
             if diff_as_keyed {
-                /*
-                let keyed_patches = keyed::diff_keyed_elements(
-                    old_element,
-                    new_element,
-                    key,
-                    path,
-                    skip,
-                    rep,
-                );
-                patches.extend(keyed_patches);
-                */
                 let keyed_patches = crate::diff_lis::diff_keyed_elements(
                     old_element,
                     new_element,
