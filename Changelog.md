@@ -1,6 +1,7 @@
 # Changelog
 
-## Unreleased
+## 0.54.0
+- bump up the version to align with sauron
 - use a better algorithm where longest increasing subsequence is considered
 - comment out test that don't fit with the new algorithm anymore
 - `Patch::replace_node` uses vec of nodes for the replacement nodes.
