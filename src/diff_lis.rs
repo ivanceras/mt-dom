@@ -1,12 +1,10 @@
 //! diff with longest increasing subsequence
 
 use crate::diff::diff_recursive;
-use crate::node_list;
 use crate::{Element, Node, Patch, TreePath};
 use std::collections::BTreeMap;
 use std::fmt::Debug;
 
-#[allow(unused)]
 pub fn diff_keyed_elements<'a, 'b, Ns, Tag, Leaf, Att, Val, Skip, Rep>(
     old_element: &'a Element<Ns, Tag, Leaf, Att, Val>,
     new_element: &'a Element<Ns, Tag, Leaf, Att, Val>,
@@ -44,7 +42,7 @@ where
     // Ok, we now hopefully have a smaller range of children in the middle
     // within which to re-order nodes with the same keys, remove old nodes with
     // now-unused keys, and create new nodes with fresh keys.
-    let old_end = (old_element.children.len() - right_offset);
+    let old_end = old_element.children.len() - right_offset;
     let old_end = if old_end >= left_offset {
         old_end
     } else {
@@ -53,7 +51,7 @@ where
 
     let old_middle = &old_element.children[left_offset..old_end];
 
-    let new_end = (new_element.children.len() - right_offset);
+    let new_end = new_element.children.len() - right_offset;
 
     let new_end = if new_end >= left_offset {
         new_end
@@ -232,7 +230,6 @@ where
     (all_patches, Some((left_offset, right_offset)))
 }
 
-#[allow(unused)]
 fn diff_keyed_middle<'a, 'b, Ns, Tag, Leaf, Att, Val, Skip, Rep>(
     old_children: &'a [Node<Ns, Tag, Leaf, Att, Val>],
     new_children: &'a [Node<Ns, Tag, Leaf, Att, Val>],
@@ -452,7 +449,6 @@ where
     let first_lis = *lis_sequence.first().unwrap();
     if first_lis > 0 {
         let mut new_nodes = vec![];
-        let mut created_nodes = 0;
         for (idx, new_node) in new_children[..first_lis].iter().enumerate() {
             let old_index = new_index_to_old_index[idx];
             if old_index == u32::MAX as usize {
@@ -466,7 +462,6 @@ where
                     skip,
                     rep,
                 );
-                created_nodes += 1;
                 //TODO: supposed to just move the already created node
                 new_nodes.push(new_node);
                 all_patches.extend(patches);

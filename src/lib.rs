@@ -11,7 +11,6 @@
 #![forbid(unsafe_code)]
 #![deny(clippy::all)]
 #![allow(clippy::type_complexity)]
-#![allow(unused)]
 
 //! mt-dom is a generic virtual dom implementation which doesn't specify the types of the data that
 //! is being processed. It's up to the library user to specify those types
