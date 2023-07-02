@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.54.1
+- Some clippy improvements, and removing unused variables
+
 ## 0.54.0
 - bump up the version to align with sauron
 - use a better algorithm where longest increasing subsequence is considered
