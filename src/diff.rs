@@ -3,7 +3,10 @@ use crate::{
     node::attribute::group_attributes_per_name, Attribute, Element, Node,
     Patch, TreePath,
 };
-use std::{cmp, fmt::Debug, mem};
+use alloc::vec;
+use alloc::vec::Vec;
+use core::fmt::Debug;
+use core::{cmp, mem};
 
 /// Return the patches needed for `old_node` to have the same DOM as `new_node`
 ///

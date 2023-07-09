@@ -1,8 +1,8 @@
 //! patch module
 
-//use crate::node::Text;
 use crate::{Attribute, Node};
-use std::fmt::Debug;
+use alloc::vec::Vec;
+use core::fmt::Debug;
 
 pub use tree_path::TreePath;
 

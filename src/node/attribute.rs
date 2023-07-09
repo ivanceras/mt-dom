@@ -1,5 +1,7 @@
 #![allow(clippy::type_complexity)]
-use std::fmt::Debug;
+use alloc::vec;
+use alloc::vec::Vec;
+use core::fmt::Debug;
 
 /// These are the plain attributes of an element
 #[derive(Clone, Debug, PartialEq, Eq)]

@@ -2,8 +2,10 @@
 
 use crate::diff::diff_recursive;
 use crate::{Element, Node, Patch, TreePath};
-use std::collections::BTreeMap;
-use std::fmt::Debug;
+use alloc::collections::BTreeMap;
+use alloc::vec;
+use alloc::vec::Vec;
+use core::fmt::Debug;
 
 pub fn diff_keyed_elements<'a, 'b, Ns, Tag, Leaf, Att, Val, Skip, Rep>(
     old_element: &'a Element<Ns, Tag, Leaf, Att, Val>,

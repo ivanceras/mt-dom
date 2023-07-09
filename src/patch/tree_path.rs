@@ -1,5 +1,7 @@
 use crate::Node;
-use std::fmt::Debug;
+use alloc::vec;
+use alloc::vec::Vec;
+use core::fmt::Debug;
 
 /// Describe the path traversal of a Node starting from the root node
 ///
@@ -152,12 +154,10 @@ where
     Att: PartialEq + Clone + Debug,
     Val: PartialEq + Clone + Debug,
 {
-    println!("\n Traversing path: {:?}", path);
     if path.path.is_empty() {
         Some(node)
     } else if let Some(children) = node.get_children() {
         let idx = path.path.remove(0);
-        println!("\t idx to see: {}", idx);
         if let Some(child) = &children.get(idx) {
             traverse_node_by_path(child, path)
         } else {
@@ -189,6 +189,9 @@ where
 mod tests {
     use super::*;
     use crate::*;
+    use alloc::format;
+    use alloc::string::String;
+    use alloc::string::ToString;
 
     type MyNode = Node<
         &'static str,
@@ -260,8 +263,6 @@ mod tests {
     ) {
         let id = node.get_attribute_value(&"id").unwrap()[0];
         let class = node.get_attribute_value(&"class").unwrap()[0];
-        println!("\tid: {:?} class: {:?}", id, class);
-        println!("\tnode_idx: {} = {}", node_idx, format_vec(&path));
         assert_eq!(id.to_string(), node_idx.to_string());
         assert_eq!(class.to_string(), format_vec(&path));
         if let Some(children) = node.get_children() {
@@ -281,8 +282,6 @@ mod tests {
     ) {
         let id = node.get_attribute_value(&"id").unwrap()[0];
         let class = node.get_attribute_value(&"class").unwrap()[0];
-        println!("\tid: {:?} class: {:?}", id, class);
-        println!("\tnode_idx: {} = {}", node_idx, format_vec(&path.path));
         assert_eq!(id.to_string(), node_idx.to_string());
         assert_eq!(class.to_string(), format_vec(&path.path));
         if let Some(children) = node.get_children() {
@@ -317,7 +316,6 @@ mod tests {
         let node = sample_node();
         let path = TreePath::new(vec![0]);
         let root = find_node_by_path(&node, &path);
-        dbg!(&root);
         assert_eq!(Some(&node), root);
     }
 
@@ -326,7 +324,6 @@ mod tests {
         let node = sample_node();
         let path = TreePath::new(vec![0, 0]);
         let found = find_node_by_path(&node, &path);
-        dbg!(&found);
         let expected = element(
             "div",
             vec![attr("class", "[0,0]"), attr("id", "1")],
@@ -351,7 +348,6 @@ mod tests {
         let node = sample_node();
         let path = TreePath::new(vec![0, 0, 0]);
         let found = find_node_by_path(&node, &path);
-        dbg!(&found);
         let expected = element(
             "div",
             vec![attr("class", "[0,0,0]"), attr("id", "2")],
@@ -365,7 +361,6 @@ mod tests {
         let node = sample_node();
         let path = TreePath::new(vec![0, 0, 1]);
         let found = find_node_by_path(&node, &path);
-        dbg!(&found);
         let expected = element(
             "div",
             vec![attr("class", "[0,0,1]"), attr("id", "3")],
@@ -379,7 +374,6 @@ mod tests {
         let node = sample_node();
         let path = TreePath::new(vec![0, 1]);
         let found = find_node_by_path(&node, &path);
-        dbg!(&found);
         let expected = element(
             "div",
             vec![attr("class", "[0,1]"), attr("id", "4")],
@@ -409,7 +403,6 @@ mod tests {
         let node = sample_node();
         let path = TreePath::new(vec![0, 1, 0]);
         let found = find_node_by_path(&node, &path);
-        dbg!(&found);
         let expected = element(
             "div",
             vec![attr("class", "[0,1,0]"), attr("id", "5")],
@@ -423,7 +416,6 @@ mod tests {
         let node = sample_node();
         let path = TreePath::new(vec![0, 1, 1]);
         let found = find_node_by_path(&node, &path);
-        dbg!(&found);
         let expected = element(
             "div",
             vec![attr("class", "[0,1,1]"), attr("id", "6")],
@@ -437,7 +429,6 @@ mod tests {
         let node = sample_node();
         let path = TreePath::new(vec![0, 1, 3]);
         let found = find_node_by_path(&node, &path);
-        dbg!(&found);
         assert_eq!(None, found);
     }
 
@@ -446,7 +437,6 @@ mod tests {
         let node = sample_node();
         let path = TreePath::new(vec![0, 0, 0, 0]);
         let found = find_node_by_path(&node, &path);
-        dbg!(&found);
         assert_eq!(None, found);
     }
 
@@ -455,7 +445,6 @@ mod tests {
         let node = sample_node();
         let path = TreePath::new(vec![0, 0, 7]);
         let bond = find_node_by_path(&node, &path);
-        dbg!(&bond);
         assert_eq!(None, bond);
     }
 }

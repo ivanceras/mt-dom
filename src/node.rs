@@ -1,6 +1,7 @@
+use alloc::vec::Vec;
 pub use attribute::Attribute;
+use core::fmt::Debug;
 pub use element::Element;
-use std::fmt::Debug;
 
 pub(crate) mod attribute;
 mod element;

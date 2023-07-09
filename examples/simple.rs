@@ -1,5 +1,5 @@
+use core::fmt;
 use mt_dom::*;
-use std::fmt;
 
 #[derive(Clone)]
 enum Value<'a> {
