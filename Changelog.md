@@ -1,5 +1,25 @@
 # Changelog
 
+## Unreleased
+- Change multiple method names
+   - node.rs Node
+       - as_leaf_ref -> leaf
+       - as_element_mut -> element_mut
+       - as_element_ref -> element_ref
+       - add_children -> with_children
+       - add_children_ref_mut -> add_children
+       - add_attributes -> with_attributes
+       - add_attributes_ref_mut -> add_attributes
+       - get_attributes -> attributes
+       - get_children -> children
+       - get_children_count -> children_count
+       - set_attributes_ref_mut -> set_attributes
+       - get_attribute_value -> attribute_value
+   - element.rs Element
+       - get_children -> children
+       - get_attributes -> attributes
+       - get_attribute_value -> attribute_value
+
 ## 0.54.1
 - Some clippy improvements, and removing unused variables
 

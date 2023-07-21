@@ -156,7 +156,7 @@ where
 {
     if path.path.is_empty() {
         Some(node)
-    } else if let Some(children) = node.get_children() {
+    } else if let Some(children) = node.children() {
         let idx = path.path.remove(0);
         if let Some(child) = &children.get(idx) {
             traverse_node_by_path(child, path)
@@ -261,11 +261,11 @@ mod tests {
         node_idx: &mut usize,
         path: Vec<usize>,
     ) {
-        let id = node.get_attribute_value(&"id").unwrap()[0];
-        let class = node.get_attribute_value(&"class").unwrap()[0];
+        let id = node.attribute_value(&"id").unwrap()[0];
+        let class = node.attribute_value(&"class").unwrap()[0];
         assert_eq!(id.to_string(), node_idx.to_string());
         assert_eq!(class.to_string(), format_vec(&path));
-        if let Some(children) = node.get_children() {
+        if let Some(children) = node.children() {
             for (i, child) in children.iter().enumerate() {
                 *node_idx += 1;
                 let mut child_path = path.clone();
@@ -280,11 +280,11 @@ mod tests {
         path: &TreePath,
         node_idx: &mut usize,
     ) {
-        let id = node.get_attribute_value(&"id").unwrap()[0];
-        let class = node.get_attribute_value(&"class").unwrap()[0];
+        let id = node.attribute_value(&"id").unwrap()[0];
+        let class = node.attribute_value(&"class").unwrap()[0];
         assert_eq!(id.to_string(), node_idx.to_string());
         assert_eq!(class.to_string(), format_vec(&path.path));
-        if let Some(children) = node.get_children() {
+        if let Some(children) = node.children() {
             for (i, child) in children.iter().enumerate() {
                 *node_idx += 1;
                 let mut child_path = path.clone();

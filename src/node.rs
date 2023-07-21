@@ -54,7 +54,7 @@ where
     }
 
     /// returns a reference to the Leaf if the node is a Leaf variant
-    pub fn as_leaf_ref(&self) -> Option<&Leaf> {
+    pub fn leaf(&self) -> Option<&Leaf> {
         match self {
             Node::Leaf(leaf) => Some(leaf),
             _ => None,
@@ -62,7 +62,7 @@ where
     }
 
     /// Get a mutable reference to the element, if this node is an element node
-    pub fn as_element_mut(
+    pub fn element_mut(
         &mut self,
     ) -> Option<&mut Element<Ns, Tag, Leaf, Att, Val>> {
         match *self {
@@ -72,7 +72,7 @@ where
     }
 
     /// returns a reference to the element if this is an element node
-    pub fn as_element_ref(&self) -> Option<&Element<Ns, Tag, Leaf, Att, Val>> {
+    pub fn element_ref(&self) -> Option<&Element<Ns, Tag, Leaf, Att, Val>> {
         match *self {
             Node::Element(ref element) => Some(element),
             _ => None,
@@ -82,11 +82,11 @@ where
     /// Consume a mutable self and add a children to this node it if is an element
     /// will have no effect if it is a text node.
     /// This is used in building the nodes in a builder pattern
-    pub fn add_children(
+    pub fn with_children(
         mut self,
         children: impl IntoIterator<Item = Node<Ns, Tag, Leaf, Att, Val>>,
     ) -> Self {
-        if let Some(element) = self.as_element_mut() {
+        if let Some(element) = self.element_mut() {
             element.add_children(children);
         } else {
             panic!("Can not add children to a text node");
@@ -95,11 +95,11 @@ where
     }
 
     /// add children but not consume self
-    pub fn add_children_ref_mut(
+    pub fn add_children(
         &mut self,
         children: impl IntoIterator<Item = Node<Ns, Tag, Leaf, Att, Val>>,
     ) {
-        if let Some(element) = self.as_element_mut() {
+        if let Some(element) = self.element_mut() {
             element.add_children(children);
         } else {
             panic!("Can not add children to a text node");
@@ -108,11 +108,11 @@ where
 
     /// add attributes to the node and returns itself
     /// this is used in view building
-    pub fn add_attributes(
+    pub fn with_attributes(
         mut self,
         attributes: impl IntoIterator<Item = Attribute<Ns, Att, Val>>,
     ) -> Self {
-        if let Some(elm) = self.as_element_mut() {
+        if let Some(elm) = self.element_mut() {
             elm.add_attributes(attributes);
         } else {
             panic!("Can not add attributes to a text node");
@@ -121,11 +121,11 @@ where
     }
 
     /// add attributes using a mutable reference to self
-    pub fn add_attributes_ref_mut(
+    pub fn add_attributes(
         &mut self,
         attributes: impl IntoIterator<Item = Attribute<Ns, Att, Val>>,
     ) {
-        if let Some(elm) = self.as_element_mut() {
+        if let Some(elm) = self.element_mut() {
             elm.add_attributes(attributes);
         } else {
             panic!("Can not add attributes to a text node");
@@ -134,9 +134,9 @@ where
 
     /// get the attributes of this node
     /// returns None if it is a text node
-    pub fn get_attributes(&self) -> Option<&[Attribute<Ns, Att, Val>]> {
+    pub fn attributes(&self) -> Option<&[Attribute<Ns, Att, Val>]> {
         match *self {
-            Node::Element(ref element) => Some(element.get_attributes()),
+            Node::Element(ref element) => Some(element.attributes()),
             _ => None,
         }
     }
@@ -144,7 +144,7 @@ where
     /// returns the tag of this node if it is an element
     /// otherwise None if it is a text node
     pub fn tag(&self) -> Option<&Tag> {
-        if let Some(e) = self.as_element_ref() {
+        if let Some(e) = self.element_ref() {
             Some(&e.tag)
         } else {
             None
@@ -153,17 +153,17 @@ where
 
     /// return the children of this node if it is an element
     /// returns None if it is a text node
-    pub fn get_children(&self) -> Option<&[Node<Ns, Tag, Leaf, Att, Val>]> {
-        if let Some(element) = self.as_element_ref() {
-            Some(element.get_children())
+    pub fn children(&self) -> Option<&[Node<Ns, Tag, Leaf, Att, Val>]> {
+        if let Some(element) = self.element_ref() {
+            Some(element.children())
         } else {
             None
         }
     }
 
     /// Return the count of the children of this node
-    pub fn get_children_count(&self) -> usize {
-        if let Some(children) = self.get_children() {
+    pub fn children_count(&self) -> usize {
+        if let Some(children) = self.children() {
             children.len()
         } else {
             0
@@ -175,7 +175,7 @@ where
     pub fn children_mut(
         &mut self,
     ) -> Option<&mut [Node<Ns, Tag, Leaf, Att, Val>]> {
-        if let Some(element) = self.as_element_mut() {
+        if let Some(element) = self.element_mut() {
             Some(element.children_mut())
         } else {
             None
@@ -233,11 +233,11 @@ where
     }
 
     /// remove the existing attributes and set with the new value
-    pub fn set_attributes_ref_mut(
+    pub fn set_attributes(
         &mut self,
         attributes: impl IntoIterator<Item = Attribute<Ns, Att, Val>>,
     ) {
-        if let Some(elm) = self.as_element_mut() {
+        if let Some(elm) = self.element_mut() {
             elm.set_attributes(attributes);
         }
     }
@@ -247,16 +247,16 @@ where
         mut self,
         attributes: impl IntoIterator<Item = Attribute<Ns, Att, Val>>,
     ) -> Self {
-        if let Some(elm) = self.as_element_mut() {
+        if let Some(elm) = self.element_mut() {
             elm.merge_attributes(attributes);
         }
         self
     }
 
     /// returh the attribute values of this node which match the attribute name `name`
-    pub fn get_attribute_value(&self, name: &Att) -> Option<Vec<&Val>> {
-        if let Some(elm) = self.as_element_ref() {
-            elm.get_attribute_value(name)
+    pub fn attribute_value(&self, name: &Att) -> Option<Vec<&Val>> {
+        if let Some(elm) = self.element_ref() {
+            elm.attribute_value(name)
         } else {
             None
         }

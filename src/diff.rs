@@ -136,7 +136,7 @@ where
     Att: PartialEq + Clone + Debug,
     Val: PartialEq + Clone + Debug,
 {
-    if let Some(attributes) = node.get_attributes() {
+    if let Some(attributes) = node.attributes() {
         attributes.iter().any(|att| att.name == *key)
     } else {
         false
@@ -171,10 +171,9 @@ where
     }
 
     // replace if the old key does not match the new key
-    if let (Some(old_key), Some(new_key)) = (
-        old_node.get_attribute_value(key),
-        new_node.get_attribute_value(key),
-    ) {
+    if let (Some(old_key), Some(new_key)) =
+        (old_node.attribute_value(key), new_node.attribute_value(key))
+    {
         if old_key != new_key {
             return true;
         }
@@ -429,9 +428,9 @@ where
     let mut remove_attributes: Vec<&Attribute<Ns, Att, Val>> = vec![];
 
     let new_attributes_grouped =
-        group_attributes_per_name(new_element.get_attributes());
+        group_attributes_per_name(new_element.attributes());
     let old_attributes_grouped =
-        group_attributes_per_name(old_element.get_attributes());
+        group_attributes_per_name(old_element.attributes());
 
     // for all new elements that doesn't exist in the old elements
     // or the values differ

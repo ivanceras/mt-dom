@@ -88,7 +88,7 @@ where
     }
 
     /// returns a refernce to the children of this node
-    pub fn get_children(&self) -> &[Node<Ns, Tag, Leaf, Att, Val>] {
+    pub fn children(&self) -> &[Node<Ns, Tag, Leaf, Att, Val>] {
         &self.children
     }
 
@@ -130,7 +130,7 @@ where
     }
 
     /// return a reference to the attribute of this element
-    pub fn get_attributes(&self) -> &[Attribute<Ns, Att, Val>] {
+    pub fn attributes(&self) -> &[Attribute<Ns, Att, Val>] {
         &self.attrs
     }
 
@@ -193,7 +193,7 @@ where
     }
 
     /// return all the attribute values which the name &Att
-    pub fn get_attribute_value(&self, name: &Att) -> Option<Vec<&Val>> {
+    pub fn attribute_value(&self, name: &Att) -> Option<Vec<&Val>> {
         let result: Vec<&Val> = self
             .attrs
             .iter()

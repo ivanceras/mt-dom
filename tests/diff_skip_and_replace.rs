@@ -50,7 +50,7 @@ fn skip_in_attribute() {
     );
 
     let skip = |_old, new: &MyNode| {
-        if let Some(attributes) = new.get_attributes() {
+        if let Some(attributes) = new.attributes() {
             attributes
                 .iter()
                 .filter(|a| a.name == "skip")
@@ -82,7 +82,7 @@ fn replace_true_in_attribute_must_replace_old_node_regardless() {
 
     let skip = |_old, _new| false;
     let replace = |_old, new: &MyNode| {
-        if let Some(attributes) = new.get_attributes() {
+        if let Some(attributes) = new.attributes() {
             attributes
                 .iter()
                 .filter(|a| a.name == "replace")
@@ -203,7 +203,7 @@ fn replace_and_skip_in_sub_nodes() {
     );
 
     let skip = |_old, new: &MyNode| {
-        if let Some(attributes) = new.get_attributes() {
+        if let Some(attributes) = new.attributes() {
             attributes
                 .iter()
                 .filter(|a| a.name == "skip")
@@ -214,7 +214,7 @@ fn replace_and_skip_in_sub_nodes() {
         }
     };
     let replace = |_old, new: &MyNode| {
-        if let Some(attributes) = new.get_attributes() {
+        if let Some(attributes) = new.attributes() {
             attributes
                 .iter()
                 .filter(|a| a.name == "replace")

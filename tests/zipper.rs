@@ -28,7 +28,7 @@ impl Zipper {
         // since we mutate the parents
         // to move the focused nodes out of their list of children.
         // We use swap_remove() for efficiency.
-        if let Some(children) = self.node.get_children() {
+        if let Some(children) = self.node.children() {
             if children.get(index).is_some() {
                 let child = self.node.swap_remove_child(index);
 
@@ -64,8 +64,8 @@ impl Zipper {
         // Insert the node of this Zipper back in its parent.
         // Since we used swap_remove() to remove the child,
         // we need to do the opposite of that.
-        parent_node.add_children_ref_mut(vec![node]);
-        let len = parent_node.get_children_count();
+        parent_node.add_children(vec![node]);
+        let len = parent_node.children_count();
         parent_node.swap_children(index_in_parent, len - 1);
 
         // Return a new Zipper focused on the parent.

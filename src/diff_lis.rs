@@ -165,7 +165,7 @@ where
         .enumerate()
     {
         // abort early if we run into nodes with different keys
-        if old.get_attribute_value(key) != new.get_attribute_value(key) {
+        if old.attribute_value(key) != new.attribute_value(key) {
             break;
         }
         let child_path = path.traverse(index);
@@ -219,7 +219,7 @@ where
         let old_index = old_element.children.len() - index - 1;
         // break if already matched this old_index or did not matched key
         if old_index_matched.contains(&old_index)
-            || old.get_attribute_value(key) != new.get_attribute_value(key)
+            || old.attribute_value(key) != new.attribute_value(key)
         {
             break;
         }
@@ -259,20 +259,19 @@ where
     let mut all_patches = vec![];
 
     debug_assert_ne!(
-        new_children.first().map(|i| i.get_attribute_value(key)),
-        old_children.first().map(|i| i.get_attribute_value(key))
+        new_children.first().map(|i| i.attribute_value(key)),
+        old_children.first().map(|i| i.attribute_value(key))
     );
     debug_assert_ne!(
-        new_children.last().map(|i| i.get_attribute_value(key)),
-        old_children.last().map(|i| i.get_attribute_value(key))
+        new_children.last().map(|i| i.attribute_value(key)),
+        old_children.last().map(|i| i.attribute_value(key))
     );
 
     // make a map of old_index -> old_key
     let old_key_to_old_index: BTreeMap<usize, Vec<&Val>> =
         BTreeMap::from_iter(old_children.iter().enumerate().filter_map(
             |(old_index, old)| {
-                old.get_attribute_value(key)
-                    .map(|old_key| (old_index, old_key))
+                old.attribute_value(key).map(|old_key| (old_index, old_key))
             },
         ));
 
@@ -282,7 +281,7 @@ where
     let new_index_to_old_index: Vec<usize> = new_children
         .iter()
         .map(|new| {
-            if let Some(new_key) = new.get_attribute_value(key) {
+            if let Some(new_key) = new.attribute_value(key) {
                 let index = old_key_to_old_index.iter().find_map(
                     |(old_index, old_key)| {
                         if new_key == *old_key {
@@ -327,7 +326,7 @@ where
 
     // remove any old children that are not shared
     for (index, old_child) in old_children.iter().enumerate() {
-        if let Some(old_key) = old_child.get_attribute_value(key) {
+        if let Some(old_key) = old_child.attribute_value(key) {
             if !shared_keys.contains(&old_key) {
                 let patch = Patch::remove_node(
                     old_child.tag(),
