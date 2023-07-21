@@ -136,7 +136,7 @@
 sauron-v0.50.1-keyed is keyed for 'run benchmark' and keyed for 'remove row benchmark' and non-keyed for 'swap rows benchmark'
     - https://github.com/krausest/js-framework-benchmark/pull/1060#issuecomment-1168247794
     - This requires using LIS in mt-dom
-- [ ] Make the Generics follow the conventsion like Leaf, instead of all caps LEAF
+- [X] Make the Generics follow the conventsion like Leaf, instead of all caps LEAF
 
 
 ## Optimization
@@ -153,5 +153,5 @@ if the current value on this skip_criteria attribute is equal to the stored valu
         skip: Skip
     ) where Skip: Fn(TreePath, Vec<Values>, Node, Node)
     ```
-- [ ] Improve the keyed algorithmn to check from bottom to top for matching keys
-- [ ] employ diff key ends from first to last and then middle using Lis
+- [X] Improve the keyed algorithmn to check from bottom to top for matching keys
+- [X] employ diff key ends from first to last and then middle using Lis
