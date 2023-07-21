@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.55.0
 - Change multiple method names
    - node.rs Node
        - as_leaf_ref -> leaf
