@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.55.1
+- feat: add a huge performance benefits by checking if the nodes, elements and attributes are the same, before proceeding to make a diff
+
 ## 0.55.0
 - Change multiple method names
    - node.rs Node

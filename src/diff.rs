@@ -227,7 +227,7 @@ where
         )];
     }
 
-    // skip diffing if they are essentially the same nodes
+    // skip diffing if they are essentially the same node
     if old_node == new_node {
         return vec![];
     }
