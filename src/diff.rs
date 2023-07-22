@@ -227,6 +227,11 @@ where
         )];
     }
 
+    // skip diffing if they are essentially the same nodes
+    if old_node == new_node {
+        return vec![];
+    }
+
     let mut patches = vec![];
 
     // The following comparison can only contain identical variants, other
@@ -245,29 +250,33 @@ where
         }
         // We're comparing two element nodes
         (Node::Element(old_element), Node::Element(new_element)) => {
-            let diff_as_keyed = is_any_children_keyed(old_element, key)
-                || is_any_children_keyed(new_element, key);
-
-            if diff_as_keyed {
-                let keyed_patches = crate::diff_lis::diff_keyed_elements(
-                    old_element,
-                    new_element,
-                    key,
-                    path,
-                    skip,
-                    rep,
-                );
-                patches.extend(keyed_patches);
+            if old_element == new_element {
+                // no patches added if they are the same
             } else {
-                let non_keyed_patches = diff_non_keyed_elements(
-                    old_element,
-                    new_element,
-                    key,
-                    path,
-                    skip,
-                    rep,
-                );
-                patches.extend(non_keyed_patches);
+                let diff_as_keyed = is_any_children_keyed(old_element, key)
+                    || is_any_children_keyed(new_element, key);
+
+                if diff_as_keyed {
+                    let keyed_patches = crate::diff_lis::diff_keyed_elements(
+                        old_element,
+                        new_element,
+                        key,
+                        path,
+                        skip,
+                        rep,
+                    );
+                    patches.extend(keyed_patches);
+                } else {
+                    let non_keyed_patches = diff_non_keyed_elements(
+                        old_element,
+                        new_element,
+                        key,
+                        path,
+                        skip,
+                        rep,
+                    );
+                    patches.extend(non_keyed_patches);
+                }
             }
         }
         (Node::NodeList(_old_elements), Node::NodeList(_new_elements)) => {
@@ -423,14 +432,20 @@ where
     Att: PartialEq + Clone + Debug,
     Val: PartialEq + Clone + Debug,
 {
+    let new_attributes = new_element.attributes();
+    let old_attributes = old_element.attributes();
+
+    // skip diffing if they the same attributes
+    if old_attributes == new_attributes {
+        return vec![];
+    }
     let mut patches = vec![];
+
     let mut add_attributes: Vec<&Attribute<Ns, Att, Val>> = vec![];
     let mut remove_attributes: Vec<&Attribute<Ns, Att, Val>> = vec![];
 
-    let new_attributes_grouped =
-        group_attributes_per_name(new_element.attributes());
-    let old_attributes_grouped =
-        group_attributes_per_name(old_element.attributes());
+    let new_attributes_grouped = group_attributes_per_name(new_attributes);
+    let old_attributes_grouped = group_attributes_per_name(old_attributes);
 
     // for all new elements that doesn't exist in the old elements
     // or the values differ

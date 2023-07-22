@@ -155,3 +155,4 @@ if the current value on this skip_criteria attribute is equal to the stored valu
     ```
 - [X] Improve the keyed algorithmn to check from bottom to top for matching keys
 - [X] employ diff key ends from first to last and then middle using Lis
+- [X] Maybe check for equality of the old and new node, when they are equal, just skip diffing
