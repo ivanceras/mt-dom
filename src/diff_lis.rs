@@ -318,7 +318,7 @@ where
         let patch = Patch::replace_node(
             old_children[left_offset].tag(),
             path.traverse(left_offset),
-            new_children.iter().collect(),
+            new_children.iter().collect::<Vec<_>>(),
         );
         all_patches.push(patch);
         return all_patches;

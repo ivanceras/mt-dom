@@ -73,8 +73,10 @@ pub struct TreePath {
 
 impl TreePath {
     /// create a TreePath with node index `node_idx` and traversal path `path`
-    pub fn new(path: Vec<usize>) -> Self {
-        Self { path }
+    pub fn new(path: impl IntoIterator<Item = usize>) -> Self {
+        Self {
+            path: path.into_iter().collect(),
+        }
     }
 
     /// create a TreePath which starts at empty vec which is the root node of a DOM tree

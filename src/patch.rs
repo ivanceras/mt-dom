@@ -199,12 +199,14 @@ where
     pub fn replace_node(
         tag: Option<&'a Tag>,
         patch_path: TreePath,
-        replacement: Vec<&'a Node<Ns, Tag, Leaf, Att, Val>>,
+        replacement: impl IntoIterator<Item = &'a Node<Ns, Tag, Leaf, Att, Val>>,
     ) -> Patch<'a, Ns, Tag, Leaf, Att, Val> {
         Patch {
             tag,
             patch_path,
-            patch_type: PatchType::ReplaceNode { replacement },
+            patch_type: PatchType::ReplaceNode {
+                replacement: replacement.into_iter().collect(),
+            },
         }
     }
 
@@ -212,12 +214,14 @@ where
     pub fn add_attributes(
         tag: &'a Tag,
         patch_path: TreePath,
-        attrs: Vec<&'a Attribute<Ns, Att, Val>>,
+        attrs: impl IntoIterator<Item = &'a Attribute<Ns, Att, Val>>,
     ) -> Patch<'a, Ns, Tag, Leaf, Att, Val> {
         Patch {
             tag: Some(tag),
             patch_path,
-            patch_type: PatchType::AddAttributes { attrs },
+            patch_type: PatchType::AddAttributes {
+                attrs: attrs.into_iter().collect(),
+            },
         }
     }
 
