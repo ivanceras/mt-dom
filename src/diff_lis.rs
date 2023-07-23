@@ -113,15 +113,8 @@ where
             all_patches.push(patch);
         }
     } else {
-        let patches = diff_keyed_middle(
-            old_middle,
-            new_middle,
-            key,
-            path,
-            left_offset,
-            skip,
-            rep,
-        );
+        let patches =
+            diff_keyed_middle(old_middle, new_middle, key, path, skip, rep);
         all_patches.extend(patches);
     }
     all_patches
@@ -237,7 +230,6 @@ fn diff_keyed_middle<'a, 'b, Ns, Tag, Leaf, Att, Val, Skip, Rep>(
     new_children: &'a [Node<Ns, Tag, Leaf, Att, Val>],
     key: &Att,
     path: &TreePath,
-    left_offset: usize,
     skip: &Skip,
     rep: &Rep,
 ) -> Vec<Patch<'a, Ns, Tag, Leaf, Att, Val>>
@@ -285,13 +277,13 @@ where
                 let index = old_key_to_old_index.iter().find_map(
                     |(old_index, old_key)| {
                         if new_key == *old_key {
-                            Some(old_index)
+                            Some(*old_index)
                         } else {
                             None
                         }
                     },
                 );
-                if let Some(&index) = index {
+                if let Some(index) = index {
                     shared_keys.push(new_key);
                     index
                 } else {
@@ -303,21 +295,20 @@ where
         })
         .collect();
 
+    dbg!(&shared_keys);
+
     // if none of the old keys are reused by the new children,
     // then we remove all the remaining old children and create the new children afresh.
     if shared_keys.is_empty() && old_children.get(0).is_some() {
         // skip the first one, so we can use it as our foothold for inserting the new children
         for (index, old) in old_children.iter().skip(1).enumerate() {
-            let patch = Patch::remove_node(
-                old.tag(),
-                path.traverse(left_offset + index + 1),
-            );
+            let patch = Patch::remove_node(old.tag(), path.traverse(index + 1));
             all_patches.push(patch);
         }
 
         let patch = Patch::replace_node(
-            old_children[left_offset].tag(),
-            path.traverse(left_offset),
+            old_children[0].tag(),
+            path.traverse(0),
             new_children.iter().collect::<Vec<_>>(),
         );
         all_patches.push(patch);
@@ -328,21 +319,19 @@ where
     for (index, old_child) in old_children.iter().enumerate() {
         if let Some(old_key) = old_child.attribute_value(key) {
             if !shared_keys.contains(&old_key) {
-                let patch = Patch::remove_node(
-                    old_child.tag(),
-                    path.traverse(left_offset + index),
-                );
+                let patch =
+                    Patch::remove_node(old_child.tag(), path.traverse(index));
                 all_patches.push(patch);
             }
         } else {
             // also remove the node that has no key
-            let patch = Patch::remove_node(
-                old_child.tag(),
-                path.traverse(left_offset + index),
-            );
+            let patch =
+                Patch::remove_node(old_child.tag(), path.traverse(index));
             all_patches.push(patch);
         }
     }
+
+    dbg!(&new_index_to_old_index);
 
     // Compute the LIS of this list
     let mut lis_sequence = Vec::with_capacity(new_index_to_old_index.len());
@@ -361,6 +350,8 @@ where
     // the lis_seuqnce came out from high to low, so we just reverse it back to arrange from low to
     // high
     lis_sequence.reverse();
+
+    dbg!(&lis_sequence);
 
     // if a new node gets u32 max and is at the end, then it might be part of our LIS (because u32 max is a valid LIS)
     if lis_sequence.last().map(|f| new_index_to_old_index[*f])
@@ -411,6 +402,7 @@ where
 
     // for each spacing, generate a mount instruction
     let mut lis_iter = lis_sequence.iter().rev();
+    dbg!(&lis_iter);
     let last = *lis_iter.next().unwrap();
     for next in lis_iter {
         if last - next > 1 {
