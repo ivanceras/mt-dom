@@ -146,12 +146,14 @@ where
     pub fn insert_before_node(
         tag: Option<&'a Tag>,
         patch_path: TreePath,
-        nodes: Vec<&'a Node<Ns, Tag, Leaf, Att, Val>>,
+        nodes: impl IntoIterator<Item = &'a Node<Ns, Tag, Leaf, Att, Val>>,
     ) -> Patch<'a, Ns, Tag, Leaf, Att, Val> {
         Patch {
             tag,
             patch_path,
-            patch_type: PatchType::InsertBeforeNode { nodes },
+            patch_type: PatchType::InsertBeforeNode {
+                nodes: nodes.into_iter().collect(),
+            },
         }
     }
 

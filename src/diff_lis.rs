@@ -88,7 +88,7 @@ where
             let patch = Patch::insert_before_node(
                 old_tag,
                 path.traverse(foothold),
-                new_middle.iter().collect(),
+                new_middle.iter().collect::<Vec<_>>(),
             );
             all_patches.push(patch);
         } else if right_offset == 0 {
@@ -477,6 +477,7 @@ where
         if !new_nodes.is_empty() {
             let old_index = new_index_to_old_index[first_lis];
             let tag = old_children[old_index].tag();
+            println!("here!");
             let patch = Patch::insert_before_node(
                 tag,
                 path.traverse(old_index),
