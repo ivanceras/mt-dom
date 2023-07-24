@@ -207,7 +207,7 @@ fn swap_rows_keyed() {
     );
 }
 
-//#[test]
+#[test]
 fn swap_rows_keyed_6_items() {
     let old: MyNode = element(
         "main",
@@ -216,9 +216,9 @@ fn swap_rows_keyed_6_items() {
             element("div", vec![attr("key", "1")], vec![leaf("line1")]),
             element("div", vec![attr("key", "2")], vec![leaf("line2")]),
             element("div", vec![attr("key", "3")], vec![leaf("line3")]),
-            element("div", vec![attr("key", "3.5")], vec![leaf("line3.5")]),
             element("div", vec![attr("key", "4")], vec![leaf("line4")]),
             element("div", vec![attr("key", "5")], vec![leaf("line5")]),
+            element("div", vec![attr("key", "6")], vec![leaf("line6")]),
         ],
     );
 
@@ -227,11 +227,11 @@ fn swap_rows_keyed_6_items() {
         vec![attr("class", "container")],
         vec![
             element("div", vec![attr("key", "1")], vec![leaf("line1")]),
-            element("div", vec![attr("key", "4")], vec![leaf("line4")]),
-            element("div", vec![attr("key", "3")], vec![leaf("line3")]),
-            element("div", vec![attr("key", "3.5")], vec![leaf("line3.5")]),
-            element("div", vec![attr("key", "2")], vec![leaf("line2")]),
             element("div", vec![attr("key", "5")], vec![leaf("line5")]),
+            element("div", vec![attr("key", "3")], vec![leaf("line3")]),
+            element("div", vec![attr("key", "4")], vec![leaf("line4")]),
+            element("div", vec![attr("key", "2")], vec![leaf("line2")]),
+            element("div", vec![attr("key", "6")], vec![leaf("line6")]),
         ],
     );
 
@@ -243,20 +243,21 @@ fn swap_rows_keyed_6_items() {
         diff,
         vec![
             Patch::move_before_node(
-                Some(&"div",),
-                TreePath::new([3]),
-                TreePath::new([1])
-            ),
-            Patch::move_before_node(
                 Some(&"div"),
                 TreePath::new([1]),
                 TreePath::new([4])
+            ),
+            Patch::move_after_node(
+                Some(&"div",),
+                TreePath::new([4]),
+                TreePath::new([1])
             ),
         ]
     );
 }
 
-//#[test]
+// TODO: breaks when there is only 1 lis
+#[test]
 fn swap_rows_keyed_5_items() {
     let old: MyNode = element(
         "main",
@@ -289,15 +290,15 @@ fn swap_rows_keyed_5_items() {
     assert_eq!(
         diff,
         vec![
-            Patch::move_before_node(
+            Patch::move_after_node(
                 Some(&"div",),
-                TreePath::new([3]),
-                TreePath::new([1])
+                TreePath::new([3]), // old index of k4   , in test: 3
+                TreePath::new([0])  // position - 1 of k4, in test: 1
             ),
-            Patch::move_before_node(
+            Patch::move_after_node(
                 Some(&"div"),
-                TreePath::new([1]),
-                TreePath::new([4])
+                TreePath::new([1]), // old index of k2   , in test: 2
+                TreePath::new([2])  // position + 1 of k2, in test: 2
             ),
         ]
     );

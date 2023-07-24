@@ -259,20 +259,27 @@ where
 {
     let mut all_patches = vec![];
 
-    debug_assert_ne!(
-        new_children.first().map(|i| i.attribute_value(key)),
-        old_children.first().map(|i| i.attribute_value(key))
-    );
-    debug_assert_ne!(
-        new_children.last().map(|i| i.attribute_value(key)),
-        old_children.last().map(|i| i.attribute_value(key))
-    );
+    let old_children_keys: Vec<_> = old_children
+        .iter()
+        .map(|c| c.attribute_value(key))
+        .collect();
+
+    let new_children_keys: Vec<_> = new_children
+        .iter()
+        .map(|c| c.attribute_value(key))
+        .collect();
+
+    dbg!(&old_children_keys);
+    dbg!(&new_children_keys);
+
+    debug_assert_ne!(new_children_keys.first(), old_children_keys.first());
+    debug_assert_ne!(new_children_keys.last(), old_children_keys.last());
 
     // make a map of old_index -> old_key
-    let old_key_to_old_index: BTreeMap<usize, Vec<&Val>> =
-        BTreeMap::from_iter(old_children.iter().enumerate().filter_map(
-            |(old_index, old)| {
-                old.attribute_value(key).map(|old_key| (old_index, old_key))
+    let old_key_to_old_index: BTreeMap<usize, &Vec<&Val>> =
+        BTreeMap::from_iter(old_children_keys.iter().enumerate().filter_map(
+            |(old_index, old_key)| {
+                old_key.as_ref().map(|old_key| (old_index, old_key))
             },
         ));
 
@@ -285,7 +292,7 @@ where
             if let Some(new_key) = new.attribute_value(key) {
                 let index = old_key_to_old_index.iter().find_map(
                     |(old_index, old_key)| {
-                        if new_key == *old_key {
+                        if new_key == **old_key {
                             Some(*old_index)
                         } else {
                             None
@@ -387,17 +394,12 @@ where
 
     // add mount instruction for the first items not covered by the lis
     let last = *lis_sequence.last().unwrap();
-    dbg!(&last);
     if last < (new_children.len() - 1) {
         let mut new_nodes = vec![];
-        //let foothold = last + 1;
-        //dbg!(&foothold);
         for (idx, new_node) in new_children[(last + 1)..].iter().enumerate() {
             let new_idx = idx + last + 1;
             let old_index = new_index_to_old_index[new_idx];
             let foothold = left_offset + idx + last + 1;
-            println!("maybe foothold is {}", left_offset + idx + last + 1);
-            println!("or foothold could also be: {}", left_offset + old_index);
             if old_index == u32::MAX as usize {
                 new_nodes.push(new_node);
             } else {
@@ -411,12 +413,14 @@ where
                 );
                 all_patches.extend(patches);
 
+                /*
                 println!(
                     "in first items, move {} to {} or before foothold:{}",
                     left_offset + old_index,
                     left_offset + new_idx,
                     foothold
                 );
+                */
 
                 let patch = Patch::move_before_node(
                     old_children[old_index].tag(),
@@ -428,8 +432,6 @@ where
         }
         let old_index = new_index_to_old_index[last];
         let tag = old_children[old_index].tag();
-        println!("inserting after node");
-        dbg!(&new_nodes);
         if !new_nodes.is_empty() {
             let patch = Patch::insert_after_node(
                 tag,
@@ -442,7 +444,6 @@ where
 
     // for each spacing, generate a mount instruction
     let mut lis_iter = lis_sequence.iter().rev();
-    dbg!(&lis_iter);
     let last = *lis_iter.next().unwrap();
     for next in lis_iter {
         if last - next > 1 {
@@ -484,9 +485,11 @@ where
         let mut new_nodes = vec![];
         for (idx, new_node) in new_children[..first_lis].iter().enumerate() {
             let old_index = new_index_to_old_index[idx];
-
+            println!(
+                "old_index: {old_index}, real: {}",
+                left_offset + old_index
+            );
             let foothold = left_offset + idx;
-            dbg!(&foothold);
 
             if old_index == u32::MAX as usize {
                 new_nodes.push(new_node);
@@ -501,19 +504,20 @@ where
                 );
                 all_patches.extend(patches);
 
+                /*
                 println!(
                     "in last items, move:{} to: {} or after foothold: {}",
                     left_offset + old_index,
                     left_offset + idx,
                     foothold,
                 );
+                */
 
                 let patch = Patch::move_after_node(
                     old_children[old_index].tag(),
                     path.traverse(left_offset + old_index),
                     path.traverse(foothold),
                 );
-                println!("patch: {:?}", patch);
                 all_patches.push(patch);
             }
         }
