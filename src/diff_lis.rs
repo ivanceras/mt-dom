@@ -405,8 +405,8 @@ where
 
                 let patch = Patch::move_before_node(
                     old_children[old_index].tag(),
-                    path.traverse(left_offset + old_index),
-                    path.traverse(foothold),
+                    path.traverse(foothold), //target element
+                    [path.traverse(left_offset + old_index)], //to be move before target element
                 );
                 all_patches.push(patch);
             }
@@ -464,7 +464,7 @@ where
     let first_lis = *lis_sequence.first().unwrap();
     if first_lis > 0 {
         let mut new_nodes = vec![];
-        let mut move_after_nodes = vec![];
+        let mut node_paths = vec![];
         for (idx, new_node) in new_children[..first_lis].iter().enumerate() {
             let old_index = new_index_to_old_index[idx];
             if old_index == u32::MAX as usize {
@@ -479,18 +479,17 @@ where
                     rep,
                 );
                 all_patches.extend(patches);
-
-                let patch = Patch::move_after_node(
-                    old_children[old_index].tag(),
-                    path.traverse(left_offset + old_index),
-                    path.traverse(0),
-                );
-                move_after_nodes.push(patch);
+                node_paths.push(path.traverse(left_offset + old_index));
             }
         }
-        //Note: order matters here, since we are processing from the front
-        //and adding_before will have a reverse effect
-        all_patches.extend(move_after_nodes.into_iter().rev());
+        if !node_paths.is_empty() {
+            let patch = Patch::move_after_node(
+                old_children[0].tag(),
+                path.traverse(0), //target_element
+                node_paths,       //to be move after the target_element
+            );
+            all_patches.push(patch);
+        }
 
         if !new_nodes.is_empty() {
             let old_index = new_index_to_old_index[first_lis];

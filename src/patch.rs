@@ -104,15 +104,17 @@ where
     },
     /// remove the target node
     RemoveNode,
-    /// move the target node before the node of the `path` location
+    /// remove the nodes pointed at these `nodes_path`
+    /// and move them before `target_element` pointed at `patch_path`
     MoveBeforeNode {
         /// before this target location
-        path: TreePath,
+        nodes_path: Vec<TreePath>,
     },
-    /// move the target node after the node of the `path` location
+    /// remove the the nodes pointed at these nodes_path
+    /// and move them after the `target_element` pointed at `patch_path`
     MoveAfterNode {
         /// after this target location
-        path: TreePath,
+        nodes_path: Vec<TreePath>,
     },
 
     /// ReplaceNode a node with another node. This typically happens when a node's tag changes.
@@ -207,29 +209,35 @@ where
         }
     }
 
-    /// move an existing node to before the node at the location
+    /// remove the nodes pointed at the `nodes_path` and insert them before the target element
+    /// pointed at patch_path
     pub fn move_before_node(
         tag: Option<&'a Tag>,
         patch_path: TreePath,
-        path: TreePath,
+        nodes_path: impl IntoIterator<Item = TreePath>,
     ) -> Patch<'a, Ns, Tag, Leaf, Att, Val> {
         Patch {
             tag,
             patch_path,
-            patch_type: PatchType::MoveBeforeNode { path },
+            patch_type: PatchType::MoveBeforeNode {
+                nodes_path: nodes_path.into_iter().collect(),
+            },
         }
     }
 
-    /// move an existing node to after the node at the location
+    /// remove the nodes pointed at the `nodes_path` and insert them after the target element
+    /// pointed at patch_path
     pub fn move_after_node(
         tag: Option<&'a Tag>,
         patch_path: TreePath,
-        path: TreePath,
+        nodes_path: impl IntoIterator<Item = TreePath>,
     ) -> Patch<'a, Ns, Tag, Leaf, Att, Val> {
         Patch {
             tag,
             patch_path,
-            patch_type: PatchType::MoveAfterNode { path },
+            patch_type: PatchType::MoveAfterNode {
+                nodes_path: nodes_path.into_iter().collect(),
+            },
         }
     }
 

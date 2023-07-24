@@ -98,8 +98,8 @@ fn move_key_2_to_after_node_index_6() {
         diff,
         vec![Patch::move_before_node(
             Some(&"div",),
-            TreePath::new([1]),
-            TreePath::new([6])
+            TreePath::new([6]),
+            [TreePath::new([1])]
         ),]
     );
 }
@@ -146,8 +146,8 @@ fn move_key_7_to_before_node_index_1() {
         diff,
         vec![Patch::move_after_node(
             Some(&"div",),
-            TreePath::new([6]),
-            TreePath::new([0])
+            TreePath::new([0]),
+            [TreePath::new([6])]
         ),]
     );
 }
@@ -195,13 +195,13 @@ fn swap_rows_keyed() {
         vec![
             Patch::move_before_node(
                 Some(&"div",),
-                TreePath::new([1]),
-                TreePath::new([6])
+                TreePath::new([6]),
+                [TreePath::new([1])]
             ),
             Patch::move_after_node(
                 Some(&"div"),
-                TreePath::new([6]),
-                TreePath::new([0])
+                TreePath::new([0]),
+                [TreePath::new([6])]
             ),
         ]
     );
@@ -244,13 +244,13 @@ fn swap_rows_keyed_6_items() {
         vec![
             Patch::move_before_node(
                 Some(&"div"),
-                TreePath::new([1]),
-                TreePath::new([4])
+                TreePath::new([4]),
+                [TreePath::new([1])]
             ),
             Patch::move_after_node(
                 Some(&"div",),
-                TreePath::new([4]),
-                TreePath::new([0])
+                TreePath::new([0]),
+                [TreePath::new([4])]
             ),
         ]
     );
@@ -290,17 +290,10 @@ fn swap_rows_keyed_5_items() {
     // k2 is the known lis, so we need to move k3 and k4
     assert_eq!(
         diff,
-        vec![
-            Patch::move_after_node(
-                Some(&"div",),
-                TreePath::new([3]), // old index of k4   , in test: 3
-                TreePath::new([0])  // position - 1 of k4, in test: 1
-            ),
-            Patch::move_after_node(
-                Some(&"div"),
-                TreePath::new([2]), // old index of k3   , in test: 2
-                TreePath::new([0])  // position + 1 of k2, in test: 2
-            ),
-        ]
+        vec![Patch::move_after_node(
+            Some(&"div",),
+            TreePath::new([0]),
+            [TreePath::new([3]), TreePath::new([2])]
+        ),]
     );
 }
