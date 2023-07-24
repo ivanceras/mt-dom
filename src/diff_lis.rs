@@ -464,6 +464,7 @@ where
     let first_lis = *lis_sequence.first().unwrap();
     if first_lis > 0 {
         let mut new_nodes = vec![];
+        let mut move_after_nodes = vec![];
         for (idx, new_node) in new_children[..first_lis].iter().enumerate() {
             let old_index = new_index_to_old_index[idx];
             if old_index == u32::MAX as usize {
@@ -484,9 +485,13 @@ where
                     path.traverse(left_offset + old_index),
                     path.traverse(0),
                 );
-                all_patches.push(patch);
+                move_after_nodes.push(patch);
             }
         }
+        //Note: order matters here, since we are processing from the front
+        //and adding_before will have a reverse effect
+        all_patches.extend(move_after_nodes.into_iter().rev());
+
         if !new_nodes.is_empty() {
             let old_index = new_index_to_old_index[first_lis];
             let tag = old_children[old_index].tag();
