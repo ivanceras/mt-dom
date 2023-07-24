@@ -386,10 +386,11 @@ where
     let last = *lis_sequence.last().unwrap();
     if last < (new_children.len() - 1) {
         let mut new_nodes = vec![];
+        let foothold = left_offset + last + 1;
+        let mut node_paths = vec![];
         for (idx, new_node) in new_children[(last + 1)..].iter().enumerate() {
             let new_idx = idx + last + 1;
             let old_index = new_index_to_old_index[new_idx];
-            let foothold = left_offset + last + 1;
             if old_index == u32::MAX as usize {
                 new_nodes.push(new_node);
             } else {
@@ -403,13 +404,16 @@ where
                 );
                 all_patches.extend(patches);
 
-                let patch = Patch::move_before_node(
-                    old_children[old_index].tag(),
-                    path.traverse(foothold), //target element
-                    [path.traverse(left_offset + old_index)], //to be move before target element
-                );
-                all_patches.push(patch);
+                node_paths.push(path.traverse(left_offset + old_index));
             }
+        }
+        if !node_paths.is_empty() {
+            let patch = Patch::move_before_node(
+                old_children[left_offset + last].tag(),
+                path.traverse(foothold), //target element
+                node_paths,
+            );
+            all_patches.push(patch);
         }
         let old_index = new_index_to_old_index[last];
         let tag = old_children[old_index].tag();
