@@ -390,11 +390,14 @@ where
     dbg!(&last);
     if last < (new_children.len() - 1) {
         let mut new_nodes = vec![];
-        let foothold = last + 1;
-        dbg!(&foothold);
+        //let foothold = last + 1;
+        //dbg!(&foothold);
         for (idx, new_node) in new_children[(last + 1)..].iter().enumerate() {
             let new_idx = idx + last + 1;
             let old_index = new_index_to_old_index[new_idx];
+            let foothold = left_offset + idx + last + 1;
+            println!("maybe foothold is {}", left_offset + idx + last + 1);
+            println!("or foothold could also be: {}", left_offset + old_index);
             if old_index == u32::MAX as usize {
                 new_nodes.push(new_node);
             } else {
@@ -409,16 +412,16 @@ where
                 all_patches.extend(patches);
 
                 println!(
-                    "also move {} to {} or after {}",
+                    "in first items, move {} to {} or before foothold:{}",
                     left_offset + old_index,
                     left_offset + new_idx,
                     foothold
                 );
 
-                let patch = Patch::move_after_node(
+                let patch = Patch::move_before_node(
                     old_children[old_index].tag(),
                     path.traverse(left_offset + old_index),
-                    path.traverse(left_offset + foothold),
+                    path.traverse(foothold),
                 );
                 all_patches.push(patch);
             }
@@ -479,10 +482,12 @@ where
     let first_lis = *lis_sequence.first().unwrap();
     if first_lis > 0 {
         let mut new_nodes = vec![];
-        let foothold = first_lis;
-        dbg!(&foothold);
         for (idx, new_node) in new_children[..first_lis].iter().enumerate() {
             let old_index = new_index_to_old_index[idx];
+
+            let foothold = left_offset + idx;
+            dbg!(&foothold);
+
             if old_index == u32::MAX as usize {
                 new_nodes.push(new_node);
             } else {
@@ -497,24 +502,24 @@ where
                 all_patches.extend(patches);
 
                 println!(
-                    "maybe just move {} to {} or before {}",
+                    "in last items, move:{} to: {} or after foothold: {}",
                     left_offset + old_index,
                     left_offset + idx,
                     foothold,
                 );
 
-                let patch = Patch::move_before_node(
+                let patch = Patch::move_after_node(
                     old_children[old_index].tag(),
                     path.traverse(left_offset + old_index),
-                    path.traverse(left_offset + foothold),
+                    path.traverse(foothold),
                 );
+                println!("patch: {:?}", patch);
                 all_patches.push(patch);
             }
         }
         if !new_nodes.is_empty() {
             let old_index = new_index_to_old_index[first_lis];
             let tag = old_children[old_index].tag();
-            println!("here!");
             dbg!(&new_nodes);
             let patch = Patch::insert_before_node(
                 tag,
