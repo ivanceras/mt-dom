@@ -56,7 +56,7 @@ fn swap_rows_non_keyed() {
     );
 }
 
-//#[test]
+#[test]
 fn swap_rows_keyed() {
     let old: MyNode = element(
         "main",
@@ -97,15 +97,15 @@ fn swap_rows_keyed() {
     assert_eq!(
         diff,
         vec![
-            Patch::remove_node(Some(&"div"), TreePath::new([3])),
-            Patch::remove_node(Some(&"div",), TreePath::new([1])),
-            Patch::insert_before_node(
+            Patch::move_after_node(
+                Some(&"div",),
+                TreePath::new([1]),
+                TreePath::new([6])
+            ),
+            Patch::move_before_node(
                 Some(&"div"),
-                TreePath::new([0]),
-                [
-                    &element("div", [attr("key", "4")], [leaf("line4")],),
-                    &element("div", [attr("key", "3")], [leaf("line3")])
-                ],
+                TreePath::new([6]),
+                TreePath::new([2])
             ),
         ]
     );

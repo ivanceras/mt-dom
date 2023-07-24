@@ -104,6 +104,17 @@ where
     },
     /// remove the target node
     RemoveNode,
+    /// move the target node before the node of the `path` location
+    MoveBeforeNode {
+        /// before this target location
+        path: TreePath,
+    },
+    /// move the target node after the node of the `path` location
+    MoveAfterNode {
+        /// after this target location
+        path: TreePath,
+    },
+
     /// ReplaceNode a node with another node. This typically happens when a node's tag changes.
     /// ex: <div> becomes <span>
     ReplaceNode {
@@ -193,6 +204,32 @@ where
             tag,
             patch_path,
             patch_type: PatchType::RemoveNode,
+        }
+    }
+
+    /// move an existing node to before the node at the location
+    pub fn move_before_node(
+        tag: Option<&'a Tag>,
+        patch_path: TreePath,
+        path: TreePath,
+    ) -> Patch<'a, Ns, Tag, Leaf, Att, Val> {
+        Patch {
+            tag,
+            patch_path,
+            patch_type: PatchType::MoveBeforeNode { path },
+        }
+    }
+
+    /// move an existing node to after the node at the location
+    pub fn move_after_node(
+        tag: Option<&'a Tag>,
+        patch_path: TreePath,
+        path: TreePath,
+    ) -> Patch<'a, Ns, Tag, Leaf, Att, Val> {
+        Patch {
+            tag,
+            patch_path,
+            patch_type: PatchType::MoveAfterNode { path },
         }
     }
 

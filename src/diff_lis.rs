@@ -113,8 +113,16 @@ where
             all_patches.push(patch);
         }
     } else {
-        let patches =
-            diff_keyed_middle(old_middle, new_middle, key, path, skip, rep);
+        println!("left_offset: {left_offset}, right_offset: {right_offset}");
+        let patches = diff_keyed_middle(
+            old_middle,
+            new_middle,
+            left_offset,
+            key,
+            path,
+            skip,
+            rep,
+        );
         all_patches.extend(patches);
     }
     all_patches
@@ -228,6 +236,7 @@ where
 fn diff_keyed_middle<'a, 'b, Ns, Tag, Leaf, Att, Val, Skip, Rep>(
     old_children: &'a [Node<Ns, Tag, Leaf, Att, Val>],
     new_children: &'a [Node<Ns, Tag, Leaf, Att, Val>],
+    left_offset: usize,
     key: &Att,
     path: &TreePath,
     skip: &Skip,
@@ -308,7 +317,7 @@ where
 
         let patch = Patch::replace_node(
             old_children[0].tag(),
-            path.traverse(0),
+            path.traverse(left_offset + 0),
             new_children.iter().collect::<Vec<_>>(),
         );
         all_patches.push(patch);
@@ -319,14 +328,18 @@ where
     for (index, old_child) in old_children.iter().enumerate() {
         if let Some(old_key) = old_child.attribute_value(key) {
             if !shared_keys.contains(&old_key) {
-                let patch =
-                    Patch::remove_node(old_child.tag(), path.traverse(index));
+                let patch = Patch::remove_node(
+                    old_child.tag(),
+                    path.traverse(left_offset + index),
+                );
                 all_patches.push(patch);
             }
         } else {
             // also remove the node that has no key
-            let patch =
-                Patch::remove_node(old_child.tag(), path.traverse(index));
+            let patch = Patch::remove_node(
+                old_child.tag(),
+                path.traverse(left_offset + index),
+            );
             all_patches.push(patch);
         }
     }
@@ -374,8 +387,11 @@ where
 
     // add mount instruction for the first items not covered by the lis
     let last = *lis_sequence.last().unwrap();
+    dbg!(&last);
     if last < (new_children.len() - 1) {
         let mut new_nodes = vec![];
+        let foothold = last + 1;
+        dbg!(&foothold);
         for (idx, new_node) in new_children[(last + 1)..].iter().enumerate() {
             let new_idx = idx + last + 1;
             let old_index = new_index_to_old_index[new_idx];
@@ -391,13 +407,34 @@ where
                     rep,
                 );
                 all_patches.extend(patches);
+
+                println!(
+                    "also move {} to {} or after {}",
+                    left_offset + old_index,
+                    left_offset + new_idx,
+                    foothold
+                );
+
+                let patch = Patch::move_after_node(
+                    old_children[old_index].tag(),
+                    path.traverse(left_offset + old_index),
+                    path.traverse(left_offset + foothold),
+                );
+                all_patches.push(patch);
             }
         }
         let old_index = new_index_to_old_index[last];
         let tag = old_children[old_index].tag();
-        let patch =
-            Patch::insert_after_node(tag, path.traverse(old_index), new_nodes);
-        all_patches.push(patch);
+        println!("inserting after node");
+        dbg!(&new_nodes);
+        if !new_nodes.is_empty() {
+            let patch = Patch::insert_after_node(
+                tag,
+                path.traverse(left_offset + old_index),
+                new_nodes,
+            );
+            all_patches.push(patch);
+        }
     }
 
     // for each spacing, generate a mount instruction
@@ -430,7 +467,7 @@ where
                 let tag = old_children[last].tag();
                 let patch = Patch::insert_before_node(
                     tag,
-                    path.traverse(last),
+                    path.traverse(left_offset + last),
                     new_nodes,
                 );
                 all_patches.push(patch);
@@ -442,6 +479,8 @@ where
     let first_lis = *lis_sequence.first().unwrap();
     if first_lis > 0 {
         let mut new_nodes = vec![];
+        let foothold = first_lis;
+        dbg!(&foothold);
         for (idx, new_node) in new_children[..first_lis].iter().enumerate() {
             let old_index = new_index_to_old_index[idx];
             if old_index == u32::MAX as usize {
@@ -455,13 +494,19 @@ where
                     skip,
                     rep,
                 );
-                //TODO: supposed to just move the already created node
-                new_nodes.push(new_node);
                 all_patches.extend(patches);
 
-                let patch = Patch::remove_node(
+                println!(
+                    "maybe just move {} to {} or before {}",
+                    left_offset + old_index,
+                    left_offset + idx,
+                    foothold,
+                );
+
+                let patch = Patch::move_before_node(
                     old_children[old_index].tag(),
-                    path.traverse(old_index),
+                    path.traverse(left_offset + old_index),
+                    path.traverse(left_offset + foothold),
                 );
                 all_patches.push(patch);
             }
@@ -470,9 +515,10 @@ where
             let old_index = new_index_to_old_index[first_lis];
             let tag = old_children[old_index].tag();
             println!("here!");
+            dbg!(&new_nodes);
             let patch = Patch::insert_before_node(
                 tag,
-                path.traverse(old_index),
+                path.traverse(left_offset + old_index),
                 new_nodes,
             );
             all_patches.push(patch);
