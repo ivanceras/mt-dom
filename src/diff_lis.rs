@@ -316,9 +316,11 @@ where
             all_patches.push(patch);
         }
 
+        let first = 0;
+
         let patch = Patch::replace_node(
-            old_children[0].tag(),
-            path.traverse(left_offset + 0),
+            old_children[left_offset + first].tag(),
+            path.traverse(left_offset + first),
             new_children.iter().collect::<Vec<_>>(),
         );
         all_patches.push(patch);
@@ -486,9 +488,10 @@ where
             }
         }
         if !node_paths.is_empty() {
+            let first = 0;
             let patch = Patch::move_before_node(
-                old_children[left_offset + 0].tag(),
-                path.traverse(left_offset + 0), //target_element
+                old_children[left_offset + first].tag(),
+                path.traverse(left_offset + first), //target_element
                 node_paths, //to be move after the target_element
             );
             dbg!(&patch);
