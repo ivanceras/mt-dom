@@ -389,7 +389,7 @@ where
         for (idx, new_node) in new_children[(last + 1)..].iter().enumerate() {
             let new_idx = idx + last + 1;
             let old_index = new_index_to_old_index[new_idx];
-            let foothold = left_offset + idx + last + 1;
+            let foothold = left_offset + last + 1;
             if old_index == u32::MAX as usize {
                 new_nodes.push(new_node);
             } else {
