@@ -150,6 +150,15 @@ where
         &self.patch_path
     }
 
+    /// return the node paths involve such as those in moving nodes
+    pub fn node_paths(&self) -> &[TreePath] {
+        match &self.patch_type {
+            PatchType::MoveBeforeNode { nodes_path } => nodes_path,
+            PatchType::MoveAfterNode { nodes_path } => nodes_path,
+            _ => &[],
+        }
+    }
+
     /// return the tag of this patch
     pub fn tag(&self) -> Option<&Tag> {
         self.tag
