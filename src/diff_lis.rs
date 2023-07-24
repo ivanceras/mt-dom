@@ -492,6 +492,7 @@ where
                 path.traverse(0), //target_element
                 node_paths,       //to be move after the target_element
             );
+            dbg!(&patch);
             all_patches.push(patch);
         }
 
