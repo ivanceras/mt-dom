@@ -113,7 +113,6 @@ where
             all_patches.push(patch);
         }
     } else {
-        println!("left_offset: {left_offset}, right_offset: {right_offset}");
         let patches = diff_keyed_middle(
             old_middle,
             new_middle,
@@ -269,9 +268,6 @@ where
         .map(|c| c.attribute_value(key))
         .collect();
 
-    dbg!(&old_children_keys);
-    dbg!(&new_children_keys);
-
     debug_assert_ne!(new_children_keys.first(), old_children_keys.first());
     debug_assert_ne!(new_children_keys.last(), old_children_keys.last());
 
@@ -311,8 +307,6 @@ where
         })
         .collect();
 
-    dbg!(&shared_keys);
-
     // if none of the old keys are reused by the new children,
     // then we remove all the remaining old children and create the new children afresh.
     if shared_keys.is_empty() && old_children.get(0).is_some() {
@@ -351,8 +345,6 @@ where
         }
     }
 
-    dbg!(&new_index_to_old_index);
-
     // Compute the LIS of this list
     let mut lis_sequence = Vec::with_capacity(new_index_to_old_index.len());
 
@@ -370,8 +362,6 @@ where
     // the lis_seuqnce came out from high to low, so we just reverse it back to arrange from low to
     // high
     lis_sequence.reverse();
-
-    dbg!(&lis_sequence);
 
     // if a new node gets u32 max and is at the end, then it might be part of our LIS (because u32 max is a valid LIS)
     if lis_sequence.last().map(|f| new_index_to_old_index[*f])
@@ -412,15 +402,6 @@ where
                     rep,
                 );
                 all_patches.extend(patches);
-
-                /*
-                println!(
-                    "in first items, move {} to {} or before foothold:{}",
-                    left_offset + old_index,
-                    left_offset + new_idx,
-                    foothold
-                );
-                */
 
                 let patch = Patch::move_before_node(
                     old_children[old_index].tag(),
@@ -485,12 +466,6 @@ where
         let mut new_nodes = vec![];
         for (idx, new_node) in new_children[..first_lis].iter().enumerate() {
             let old_index = new_index_to_old_index[idx];
-            println!(
-                "old_index: {old_index}, real: {}",
-                left_offset + old_index
-            );
-            let foothold = left_offset + idx;
-
             if old_index == u32::MAX as usize {
                 new_nodes.push(new_node);
             } else {
@@ -504,19 +479,10 @@ where
                 );
                 all_patches.extend(patches);
 
-                /*
-                println!(
-                    "in last items, move:{} to: {} or after foothold: {}",
-                    left_offset + old_index,
-                    left_offset + idx,
-                    foothold,
-                );
-                */
-
                 let patch = Patch::move_after_node(
                     old_children[old_index].tag(),
                     path.traverse(left_offset + old_index),
-                    path.traverse(foothold),
+                    path.traverse(0),
                 );
                 all_patches.push(patch);
             }
@@ -524,7 +490,6 @@ where
         if !new_nodes.is_empty() {
             let old_index = new_index_to_old_index[first_lis];
             let tag = old_children[old_index].tag();
-            dbg!(&new_nodes);
             let patch = Patch::insert_before_node(
                 tag,
                 path.traverse(left_offset + old_index),

@@ -147,7 +147,7 @@ fn move_key_7_to_before_node_index_1() {
         vec![Patch::move_after_node(
             Some(&"div",),
             TreePath::new([6]),
-            TreePath::new([1])
+            TreePath::new([0])
         ),]
     );
 }
@@ -201,7 +201,7 @@ fn swap_rows_keyed() {
             Patch::move_after_node(
                 Some(&"div"),
                 TreePath::new([6]),
-                TreePath::new([1])
+                TreePath::new([0])
             ),
         ]
     );
@@ -250,7 +250,7 @@ fn swap_rows_keyed_6_items() {
             Patch::move_after_node(
                 Some(&"div",),
                 TreePath::new([4]),
-                TreePath::new([1])
+                TreePath::new([0])
             ),
         ]
     );
@@ -287,6 +287,7 @@ fn swap_rows_keyed_5_items() {
 
     dbg!(&diff);
 
+    // k2 is the known lis, so we need to move k3 and k4
     assert_eq!(
         diff,
         vec![
@@ -297,8 +298,8 @@ fn swap_rows_keyed_5_items() {
             ),
             Patch::move_after_node(
                 Some(&"div"),
-                TreePath::new([1]), // old index of k2   , in test: 2
-                TreePath::new([2])  // position + 1 of k2, in test: 2
+                TreePath::new([2]), // old index of k3   , in test: 2
+                TreePath::new([0])  // position + 1 of k2, in test: 2
             ),
         ]
     );
