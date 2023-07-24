@@ -386,7 +386,6 @@ where
     let last = *lis_sequence.last().unwrap();
     if last < (new_children.len() - 1) {
         let mut new_nodes = vec![];
-        let foothold = left_offset + last + 1;
         let mut node_paths = vec![];
         for (idx, new_node) in new_children[(last + 1)..].iter().enumerate() {
             let new_idx = idx + last + 1;
@@ -408,9 +407,9 @@ where
             }
         }
         if !node_paths.is_empty() {
-            let patch = Patch::move_before_node(
+            let patch = Patch::move_after_node(
                 old_children[left_offset + last].tag(),
-                path.traverse(foothold), //target element
+                path.traverse(left_offset + last), //target element
                 node_paths,
             );
             all_patches.push(patch);
@@ -487,10 +486,10 @@ where
             }
         }
         if !node_paths.is_empty() {
-            let patch = Patch::move_after_node(
-                old_children[0].tag(),
-                path.traverse(0), //target_element
-                node_paths,       //to be move after the target_element
+            let patch = Patch::move_before_node(
+                old_children[left_offset + 0].tag(),
+                path.traverse(left_offset + 0), //target_element
+                node_paths, //to be move after the target_element
             );
             dbg!(&patch);
             all_patches.push(patch);
