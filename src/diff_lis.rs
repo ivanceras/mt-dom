@@ -434,36 +434,34 @@ where
     let last = *lis_iter.next().unwrap();
     let lowest = lis_iter.min();
     if let Some(next) = lowest {
-        if last - next > 1 {
-            let mut new_nodes = vec![];
-            for (idx, new_node) in
-                new_children[(next + 1)..last].iter().enumerate()
-            {
-                let new_idx = idx + next + 1;
-                let old_index = new_index_to_old_index[new_idx];
-                if old_index == u32::MAX as usize {
-                    new_nodes.push(new_node)
-                } else {
-                    let patches = diff_recursive(
-                        &old_children[old_index],
-                        new_node,
-                        path,
-                        key,
-                        skip,
-                        rep,
-                    );
-                    all_patches.extend(patches);
-                }
-            }
-            if !new_nodes.is_empty() {
-                let tag = old_children[last].tag();
-                let patch = Patch::insert_before_node(
-                    tag,
-                    path.traverse(left_offset + last),
-                    new_nodes,
+        let mut new_nodes = vec![];
+        for (idx, new_node) in new_children[(next + 1)..last].iter().enumerate()
+        {
+            let new_idx = idx + next + 1;
+            let old_index = new_index_to_old_index[new_idx];
+            if old_index == u32::MAX as usize {
+                new_nodes.push(new_node)
+            } else {
+                let patches = diff_recursive(
+                    &old_children[old_index],
+                    new_node,
+                    path,
+                    key,
+                    skip,
+                    rep,
                 );
-                all_patches.push(patch);
+                all_patches.extend(patches);
             }
+        }
+
+        if !new_nodes.is_empty() {
+            let tag = old_children[last].tag();
+            let patch = Patch::insert_before_node(
+                tag,
+                path.traverse(left_offset + last),
+                new_nodes,
+            );
+            all_patches.push(patch);
         }
     }
 
