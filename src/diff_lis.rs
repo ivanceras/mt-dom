@@ -490,6 +490,8 @@ where
             }
         }
         if !node_paths.is_empty() {
+            // TODO: maybe we can also use after_node (left_offset - 1), or the last element of
+            // matched key
             let first = 0;
             let patch = Patch::move_before_node(
                 old_children[left_offset + first].tag(),

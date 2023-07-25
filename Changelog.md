@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.56.0
+
+- fragile fix: change the order for the generated patch, `before_node` should come first than `after_node` as it is desctructive and order is important to that variant
+- refactor: rename `test/diff_lis.rs` to `test/test_diff_lis.rs` so as not to confused with filenames with the actual algorithm code
+- feat: add `Patch::node_paths` method to return the paths for the nodes that are for_moving
+- fix: a more streamline, and logical algorithm for the the patch variant
+- refactor: create a precomputed keys for old and new children so as not to do it all over again
+- feat: add 2 new Patch Variant `MoveBeforeNode` and `MoveAfterNode`
+    - this is needed for patches that just the matching element from the old to the new in the same tree.
+- make `Patch::insert_before_node` and `Patch::insert_after_node` patch more flexible by using `impl IntoIterator` in the arg.
+- feat: make TreePath and patches argument more flexible to accept array or vec
+
 ## 0.55.2
 - remove unused dep
 
