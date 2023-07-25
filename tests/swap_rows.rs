@@ -42,16 +42,16 @@ fn swap_999() {
     assert_eq!(
         diff,
         vec![
+            Patch::move_before_node(
+                Some(&"li"),
+                TreePath::new([1]),
+                [TreePath::new([998])]
+            ),
             Patch::move_after_node(
                 Some(&"li"),
                 TreePath::new([997]),
                 [TreePath::new([1])]
             ),
-            Patch::move_before_node(
-                Some(&"li"),
-                TreePath::new([1]),
-                [TreePath::new([998])]
-            )
         ]
     );
 }
@@ -246,15 +246,15 @@ fn swap_rows_keyed() {
     assert_eq!(
         diff,
         vec![
-            Patch::move_after_node(
-                Some(&"div",),
-                TreePath::new([5]),
-                [TreePath::new([1])]
-            ),
             Patch::move_before_node(
                 Some(&"div"),
                 TreePath::new([1]),
                 [TreePath::new([6])]
+            ),
+            Patch::move_after_node(
+                Some(&"div",),
+                TreePath::new([5]),
+                [TreePath::new([1])]
             ),
         ]
     );
@@ -295,21 +295,20 @@ fn swap_rows_keyed_6_items() {
     assert_eq!(
         diff,
         vec![
-            Patch::move_after_node(
-                Some(&"div"),
-                TreePath::new([3]),
-                [TreePath::new([1])]
-            ),
             Patch::move_before_node(
                 Some(&"div",),
                 TreePath::new([1]),
                 [TreePath::new([4])]
             ),
+            Patch::move_after_node(
+                Some(&"div"),
+                TreePath::new([3]),
+                [TreePath::new([1])]
+            ),
         ]
     );
 }
 
-// TODO: breaks when there is only 1 lis
 #[test]
 fn swap_rows_keyed_5_items() {
     let old: MyNode = element(

@@ -385,6 +385,7 @@ where
     }
 
     // add mount instruction for the first items not covered by the lis
+    let mut move_after_nodes = vec![];
     let last = *lis_sequence.last().unwrap();
     if last < (new_children.len() - 1) {
         let mut new_nodes = vec![];
@@ -414,7 +415,7 @@ where
                 path.traverse(left_offset + last), //target element
                 node_paths,
             );
-            all_patches.push(patch);
+            move_after_nodes.push(patch);
         }
         let old_index = new_index_to_old_index[last];
         let tag = old_children[old_index].tag();
@@ -466,6 +467,7 @@ where
     }
 
     // add mount instruction for the last items not covered by the list
+    let mut move_before_nodes = vec![];
     let first_lis = *lis_sequence.first().unwrap();
     if first_lis > 0 {
         let mut new_nodes = vec![];
@@ -494,7 +496,7 @@ where
                 path.traverse(left_offset + first), //target_element
                 node_paths, //to be move after the target_element
             );
-            all_patches.push(patch);
+            move_before_nodes.push(patch);
         }
 
         if !new_nodes.is_empty() {
@@ -508,5 +510,7 @@ where
             all_patches.push(patch);
         }
     }
+    all_patches.extend(move_before_nodes);
+    all_patches.extend(move_after_nodes);
     all_patches
 }

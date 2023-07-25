@@ -157,3 +157,4 @@ if the current value on this skip_criteria attribute is equal to the stored valu
 - [X] employ diff key ends from first to last and then middle using Lis
 - [X] Maybe check for equality of the old and new node, when they are equal, just skip diffing
 - [ ] Maybe move Fragment to Node as it's children are not subjected to diffing, but instead replaced all together which would not performant
+- [ ] Minime the use of `vec![]`, when the capacity can be estimated, use `Vec::with_capacity`
