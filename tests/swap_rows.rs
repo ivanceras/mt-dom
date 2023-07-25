@@ -4,6 +4,59 @@ pub type MyNode =
     Node<&'static str, &'static str, &'static str, &'static str, &'static str>;
 
 #[test]
+fn swap_999() {
+    pub type SwapNode =
+        Node<&'static str, &'static str, String, &'static str, String>;
+
+    let old: SwapNode = element(
+        "ul",
+        vec![attr("class", "container".to_string())],
+        (0..1000).map(|i| {
+            element(
+                "li",
+                vec![attr("key", i.to_string())],
+                vec![leaf(format!("line{i}"))],
+            )
+        }),
+    );
+
+    let mut range: Vec<usize> = (0..1000).collect();
+    range.swap(1, 998);
+
+    let new: SwapNode = element(
+        "ul",
+        vec![attr("class", "container".to_string())],
+        range.iter().map(|i| {
+            element(
+                "li",
+                vec![attr("key", i.to_string())],
+                vec![leaf(format!("line{i}"))],
+            )
+        }),
+    );
+
+    let diff = diff_with_key(&old, &new, &"key");
+
+    dbg!(&diff);
+
+    assert_eq!(
+        diff,
+        vec![
+            Patch::move_after_node(
+                Some(&"li"),
+                TreePath::new([997]),
+                [TreePath::new([1])]
+            ),
+            Patch::move_before_node(
+                Some(&"li"),
+                TreePath::new([1]),
+                [TreePath::new([998])]
+            )
+        ]
+    );
+}
+
+#[test]
 fn swap_rows_non_keyed() {
     let old: MyNode = element(
         "main",
