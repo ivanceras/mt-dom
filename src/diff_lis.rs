@@ -113,6 +113,7 @@ where
             all_patches.push(patch);
         }
     } else {
+        let t1 = instant::now();
         let patches = diff_keyed_middle(
             old_middle,
             new_middle,
@@ -122,6 +123,8 @@ where
             skip,
             rep,
         );
+        let t2 = instant::now();
+        log::debug!("diff_keyed_middle took {}ms", t2 - t1);
         all_patches.extend(patches);
     }
     all_patches
@@ -256,6 +259,7 @@ where
         &'a Node<Ns, Tag, Leaf, Att, Val>,
     ) -> bool,
 {
+    let t1 = instant::now();
     let mut all_patches = vec![];
 
     let old_children_keys: Vec<_> = old_children
@@ -281,6 +285,7 @@ where
 
     let mut shared_keys: Vec<Vec<&Val>> = vec![];
 
+    let a1 = instant::now();
     // map each new key to the old key, carrying over the old index
     let new_index_to_old_index: Vec<usize> = new_children
         .iter()
@@ -306,6 +311,8 @@ where
             }
         })
         .collect();
+    let a2 = instant::now();
+    log::info!("building new_index_to_old_index, took {}ms", a2 - a1);
 
     // if none of the old keys are reused by the new children,
     // then we remove all the remaining old children and create the new children afresh.
@@ -347,6 +354,7 @@ where
         }
     }
 
+    let b1 = instant::now();
     // Compute the LIS of this list
     let mut lis_sequence = Vec::with_capacity(new_index_to_old_index.len());
 
@@ -364,6 +372,9 @@ where
     // the lis_seuqnce came out from high to low, so we just reverse it back to arrange from low to
     // high
     lis_sequence.reverse();
+
+    let b2 = instant::now();
+    log::info!("computing lis took: {}ms", b2 - b1);
 
     // if a new node gets u32 max and is at the end, then it might be part of our LIS (because u32 max is a valid LIS)
     if lis_sequence.last().map(|f| new_index_to_old_index[*f])
@@ -383,6 +394,8 @@ where
         );
         all_patches.extend(patches);
     }
+
+    log::info!("reaching location 10 took: {}ms", instant::now() - t1);
 
     // add mount instruction for the first items not covered by the lis
     let mut move_after_nodes = vec![];
@@ -429,12 +442,24 @@ where
         }
     }
 
+    log::info!("reaching location 20 took: {}ms", instant::now() - t1);
+
     // for each spacing, generate a mount instruction
     let mut lis_iter = lis_sequence.iter().rev();
     let last = *lis_iter.next().unwrap();
-    for next in lis_iter {
+    log::info!("we will be iterating... {} times", lis_iter.len());
+    log::info!("new_children has {} elements", new_children.len());
+    let lowest = lis_iter.min();
+    log::info!("lowest: {lowest:?}");
+    if let Some(next) = lowest {
         if last - next > 1 {
             let mut new_nodes = vec![];
+            log::info!(
+                "about to iterate: {} ({}..{})",
+                last - next + 1,
+                next + 1,
+                last
+            );
             for (idx, new_node) in
                 new_children[(next + 1)..last].iter().enumerate()
             {
@@ -465,6 +490,8 @@ where
             }
         }
     }
+
+    log::info!("reaching location 30 took: {}ms", instant::now() - t1);
 
     // add mount instruction for the last items not covered by the list
     let mut move_before_nodes = vec![];
@@ -512,6 +539,8 @@ where
             all_patches.push(patch);
         }
     }
+
+    log::info!("reaching location 4 took: {}ms", instant::now() - t1);
     all_patches.extend(move_before_nodes);
     all_patches.extend(move_after_nodes);
     all_patches
