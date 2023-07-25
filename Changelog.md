@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.56.1
+- fix: and improve performance in `diff_lis::diff_keyed_middle`, by iterating only up to `n` instead of `n^2`.
+
 ## 0.56.0
 
 - fragile fix: change the order for the generated patch, `before_node` should come first than `after_node` as it is desctructive and order is important to that variant
