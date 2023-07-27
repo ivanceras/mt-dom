@@ -153,21 +153,17 @@ where
 
     /// return the children of this node if it is an element
     /// returns None if it is a text node
-    pub fn children(&self) -> Option<&[Node<Ns, Tag, Leaf, Att, Val>]> {
+    pub fn children(&self) -> &[Node<Ns, Tag, Leaf, Att, Val>] {
         if let Some(element) = self.element_ref() {
-            Some(element.children())
+            element.children()
         } else {
-            None
+            &[]
         }
     }
 
     /// Return the count of the children of this node
     pub fn children_count(&self) -> usize {
-        if let Some(children) = self.children() {
-            children.len()
-        } else {
-            0
-        }
+        self.children().len()
     }
 
     /// return the children of this node if it is an element

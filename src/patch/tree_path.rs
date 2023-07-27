@@ -158,15 +158,13 @@ where
 {
     if path.path.is_empty() {
         Some(node)
-    } else if let Some(children) = node.children() {
+    } else {
         let idx = path.path.remove(0);
-        if let Some(child) = &children.get(idx) {
+        if let Some(child) = node.children().get(idx) {
             traverse_node_by_path(child, path)
         } else {
             None
         }
-    } else {
-        None
     }
 }
 
@@ -267,13 +265,11 @@ mod tests {
         let class = node.attribute_value(&"class").unwrap()[0];
         assert_eq!(id.to_string(), node_idx.to_string());
         assert_eq!(class.to_string(), format_vec(&path));
-        if let Some(children) = node.children() {
-            for (i, child) in children.iter().enumerate() {
-                *node_idx += 1;
-                let mut child_path = path.clone();
-                child_path.push(i);
-                assert_traverse_match(child, node_idx, child_path);
-            }
+        for (i, child) in node.children().iter().enumerate() {
+            *node_idx += 1;
+            let mut child_path = path.clone();
+            child_path.push(i);
+            assert_traverse_match(child, node_idx, child_path);
         }
     }
 
@@ -286,13 +282,11 @@ mod tests {
         let class = node.attribute_value(&"class").unwrap()[0];
         assert_eq!(id.to_string(), node_idx.to_string());
         assert_eq!(class.to_string(), format_vec(&path.path));
-        if let Some(children) = node.children() {
-            for (i, child) in children.iter().enumerate() {
-                *node_idx += 1;
-                let mut child_path = path.clone();
-                child_path.path.push(i);
-                traverse_tree_path(child, &child_path, node_idx);
-            }
+        for (i, child) in node.children().iter().enumerate() {
+            *node_idx += 1;
+            let mut child_path = path.clone();
+            child_path.path.push(i);
+            traverse_tree_path(child, &child_path, node_idx);
         }
     }
 

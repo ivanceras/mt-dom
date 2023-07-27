@@ -28,19 +28,15 @@ impl Zipper {
         // since we mutate the parents
         // to move the focused nodes out of their list of children.
         // We use swap_remove() for efficiency.
-        if let Some(children) = self.node.children() {
-            if children.get(index).is_some() {
-                let child = self.node.swap_remove_child(index);
+        if self.node.children().get(index).is_some() {
+            let child = self.node.swap_remove_child(index);
 
-                // Return a new Zipper focused on the specified child.
-                Some(Zipper {
-                    node: child,
-                    parent: Some(Box::new(self)),
-                    index_in_parent: index,
-                })
-            } else {
-                None
-            }
+            // Return a new Zipper focused on the specified child.
+            Some(Zipper {
+                node: child,
+                parent: Some(Box::new(self)),
+                index_in_parent: index,
+            })
         } else {
             None
         }
