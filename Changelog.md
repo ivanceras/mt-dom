@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.57.0
+- feat: **breaking** `Node::children` now returns a slice, ie: `&[Node]` instead of `Option<&[Node]>`,
+   non-element node variant will return an empty slice automatically.
+
 ## 0.56.1
 - fix: and improve performance in `diff_lis::diff_keyed_middle`, by iterating only up to `n` instead of `n^2`
     - [76c7d](https://github.com/ivanceras/mt-dom/commit/76c7de7dc9709e8d78327da3f199e4d225674af4)
