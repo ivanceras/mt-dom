@@ -126,12 +126,13 @@
     }
     ```
 - [X] Start at empty vec for Root node in TreePath
-- [ ] Remove Tags in Patch object
+- [ ] Remove Tags in Patch object, only used for debugging to make sure we are looking for an element with the matching tag
 - [X] Pass TreePath in the diff function
     - add functions to simplify tree path construction
     - add `From<[u8]>` and `From<Vec<u8>>`
-- [ ] Get rid of SKIP, REPLACE function as it has no practical purpose
-- [ ] Make the `isKeyed` test passed in the js-framework-benchmark
+- ~~[ ] Get rid of SKIP, REPLACE function as it has no practical purpose~~
+    - used in sauron
+- [X] Make the `isKeyed` test passed in the js-framework-benchmark
     - > Keyed test for swap failed. Swap must add the TRs that it removed, but there were 997 new nodes
 sauron-v0.50.1-keyed is keyed for 'run benchmark' and keyed for 'remove row benchmark' and non-keyed for 'swap rows benchmark'
     - https://github.com/krausest/js-framework-benchmark/pull/1060#issuecomment-1168247794
@@ -142,7 +143,7 @@ sauron-v0.50.1-keyed is keyed for 'run benchmark' and keyed for 'remove row benc
 ## Optimization
 - Create a data structure which has old_element and its node_idx and the new_element with its node_idx
  that way, referencing to a node with the node_idx is very straigh forward way to diff.
-- [ ] create skip_critera attribute which accepts TreePath and value which can be PartialEq, with which
+- [X] create skip_critera attribute which accepts TreePath and value which can be PartialEq, with which
 if the current value on this skip_criteria attribute is equal to the stored value, the diffing is skipped
     ```rust
     struct Criteria{
@@ -156,5 +157,5 @@ if the current value on this skip_criteria attribute is equal to the stored valu
 - [X] Improve the keyed algorithmn to check from bottom to top for matching keys
 - [X] employ diff key ends from first to last and then middle using Lis
 - [X] Maybe check for equality of the old and new node, when they are equal, just skip diffing
-- [ ] Maybe move Fragment to Node as it's children are not subjected to diffing, but instead replaced all together which would not performant
-- [ ] Minime the use of `vec![]`, when the capacity can be estimated, use `Vec::with_capacity`
+- [x] Maybe move Fragment to Node as it's children are not subjected to diffing, but instead replaced all together which would not performant
+- [ ] Minimize the use of `vec![]`, when the capacity can be estimated, use `Vec::with_capacity`
