@@ -106,9 +106,8 @@ where
     diff_recursive(old_node, new_node, &TreePath::root(), key, skip, rep)
 }
 
-/// returns true if any of the children of this element has key in their attributes
-fn is_any_children_keyed<Ns, Tag, Leaf, Att, Val>(
-    element: &Element<Ns, Tag, Leaf, Att, Val>,
+fn is_any_keyed<Ns, Tag, Leaf, Att, Val>(
+    nodes: &[Node<Ns, Tag, Leaf, Att, Val>],
     key: &Att,
 ) -> bool
 where
@@ -118,10 +117,7 @@ where
     Att: PartialEq + Clone + Debug,
     Val: PartialEq + Clone + Debug,
 {
-    element
-        .children
-        .iter()
-        .any(|child| is_keyed_node(child, key))
+    nodes.iter().any(|child| is_keyed_node(child, key))
 }
 
 /// returns true any attributes of this node attribute has key in it
@@ -250,34 +246,12 @@ where
         }
         // We're comparing two element nodes
         (Node::Element(old_element), Node::Element(new_element)) => {
-            if old_element == new_element {
-                // no patches added if they are the same
-            } else {
-                let diff_as_keyed = is_any_children_keyed(old_element, key)
-                    || is_any_children_keyed(new_element, key);
-
-                if diff_as_keyed {
-                    let keyed_patches = crate::diff_lis::diff_keyed_elements(
-                        old_element,
-                        new_element,
-                        key,
-                        path,
-                        skip,
-                        rep,
-                    );
-                    patches.extend(keyed_patches);
-                } else {
-                    let non_keyed_patches = diff_non_keyed_elements(
-                        old_element,
-                        new_element,
-                        key,
-                        path,
-                        skip,
-                        rep,
-                    );
-                    patches.extend(non_keyed_patches);
-                }
-            }
+            let patch =
+                diff_element(old_element, new_element, key, path, skip, rep);
+            patches.extend(patch);
+        }
+        (Node::Fragment(_old_nodes), Node::Fragment(_new_nodes)) => {
+            todo!()
         }
         (Node::NodeList(_old_elements), Node::NodeList(_new_elements)) => {
             panic!(
@@ -292,19 +266,7 @@ where
     patches
 }
 
-/// In diffing non_keyed elements,
-///  we reuse existing DOM elements as much as possible
-///
-///  The algorithm used here is very simple.
-///
-///  If there are more children in the old_element than the new_element
-///  the excess children is all removed.
-///
-///  If there are more children in the new_element than the old_element
-///  it will be all appended in the old_element.
-///
-///
-fn diff_non_keyed_elements<'a, 'b, Ns, Tag, Leaf, Att, Val, Skip, Rep>(
+fn diff_element<'a, Ns, Tag, Leaf, Att, Val, Skip, Rep>(
     old_element: &'a Element<Ns, Tag, Leaf, Att, Val>,
     new_element: &'a Element<Ns, Tag, Leaf, Att, Val>,
     key: &Att,
@@ -314,8 +276,8 @@ fn diff_non_keyed_elements<'a, 'b, Ns, Tag, Leaf, Att, Val, Skip, Rep>(
 ) -> Vec<Patch<'a, Ns, Tag, Leaf, Att, Val>>
 where
     Ns: PartialEq + Clone + Debug,
-    Leaf: PartialEq + Clone + Debug,
     Tag: PartialEq + Debug,
+    Leaf: PartialEq + Clone + Debug,
     Att: PartialEq + Clone + Debug,
     Val: PartialEq + Clone + Debug,
     Skip: Fn(
@@ -327,13 +289,18 @@ where
         &'a Node<Ns, Tag, Leaf, Att, Val>,
     ) -> bool,
 {
-    let mut patches = vec![];
-    let attributes_patches =
-        create_attribute_patches(old_element, new_element, path);
-    patches.extend(attributes_patches);
+    let diff_as_keyed = is_any_keyed(&old_element.children, key)
+        || is_any_keyed(&new_element.children, key);
 
-    let more_patches = diff_non_keyed_children(
-        &old_element.tag,
+    let mut patches = vec![];
+    if !diff_as_keyed {
+        let attributes_patches =
+            create_attribute_patches(old_element, new_element, path);
+        patches.extend(attributes_patches);
+    }
+
+    let more_patches = diff_nodes(
+        old_element.tag(),
         &old_element.children,
         &new_element.children,
         key,
@@ -341,14 +308,77 @@ where
         skip,
         rep,
     );
+
     patches.extend(more_patches);
     patches
 }
 
-fn diff_non_keyed_children<'a, Ns, Tag, Leaf, Att, Val, Skip, Rep>(
+fn diff_nodes<'a, Ns, Tag, Leaf, Att, Val, Skip, Rep>(
+    old_tag: &'a Tag,
+    old_children: &'a [Node<Ns, Tag, Leaf, Att, Val>],
+    new_children: &'a [Node<Ns, Tag, Leaf, Att, Val>],
+    key: &Att,
+    path: &TreePath,
+    skip: &Skip,
+    rep: &Rep,
+) -> Vec<Patch<'a, Ns, Tag, Leaf, Att, Val>>
+where
+    Ns: PartialEq + Clone + Debug,
+    Tag: PartialEq + Debug,
+    Leaf: PartialEq + Clone + Debug,
+    Att: PartialEq + Clone + Debug,
+    Val: PartialEq + Clone + Debug,
+    Skip: Fn(
+        &'a Node<Ns, Tag, Leaf, Att, Val>,
+        &'a Node<Ns, Tag, Leaf, Att, Val>,
+    ) -> bool,
+    Rep: Fn(
+        &'a Node<Ns, Tag, Leaf, Att, Val>,
+        &'a Node<Ns, Tag, Leaf, Att, Val>,
+    ) -> bool,
+{
+    let diff_as_keyed =
+        is_any_keyed(&old_children, key) || is_any_keyed(&new_children, key);
+
+    if diff_as_keyed {
+        let keyed_patches = crate::diff_lis::diff_keyed_nodes(
+            old_tag,
+            old_children,
+            new_children,
+            key,
+            path,
+            skip,
+            rep,
+        );
+        keyed_patches
+    } else {
+        let non_keyed_patches = diff_non_keyed_nodes(
+            old_tag,
+            old_children,
+            new_children,
+            key,
+            path,
+            skip,
+            rep,
+        );
+        non_keyed_patches
+    }
+}
+
+/// In diffing non_keyed nodes,
+///  we reuse existing DOM elements as much as possible
+///
+///  The algorithm used here is very simple.
+///
+///  If there are more children in the old_element than the new_element
+///  the excess children is all removed.
+///
+///  If there are more children in the new_element than the old_element
+///  it will be all appended in the old_element.
+fn diff_non_keyed_nodes<'a, Ns, Tag, Leaf, Att, Val, Skip, Rep>(
     old_element_tag: &'a Tag,
-    old_children: &'a Vec<Node<Ns, Tag, Leaf, Att, Val>>,
-    new_children: &'a Vec<Node<Ns, Tag, Leaf, Att, Val>>,
+    old_children: &'a [Node<Ns, Tag, Leaf, Att, Val>],
+    new_children: &'a [Node<Ns, Tag, Leaf, Att, Val>],
     key: &Att,
     path: &TreePath,
     skip: &Skip,

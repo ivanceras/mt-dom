@@ -1,15 +1,16 @@
 //! diff with longest increasing subsequence
 
 use crate::diff::diff_recursive;
-use crate::{Element, Node, Patch, TreePath};
+use crate::{Node, Patch, TreePath};
 use alloc::collections::BTreeMap;
 use alloc::vec;
 use alloc::vec::Vec;
 use core::fmt::Debug;
 
-pub fn diff_keyed_elements<'a, 'b, Ns, Tag, Leaf, Att, Val, Skip, Rep>(
-    old_element: &'a Element<Ns, Tag, Leaf, Att, Val>,
-    new_element: &'a Element<Ns, Tag, Leaf, Att, Val>,
+pub fn diff_keyed_nodes<'a, Ns, Tag, Leaf, Att, Val, Skip, Rep>(
+    old_tag: &'a Tag,
+    old_children: &'a [Node<Ns, Tag, Leaf, Att, Val>],
+    new_children: &'a [Node<Ns, Tag, Leaf, Att, Val>],
     key: &Att,
     path: &TreePath,
     skip: &Skip,
@@ -30,8 +31,15 @@ where
         &'a Node<Ns, Tag, Leaf, Att, Val>,
     ) -> bool,
 {
-    let (patches, offsets) =
-        diff_keyed_ends(old_element, new_element, key, path, skip, rep);
+    let (patches, offsets) = diff_keyed_ends(
+        old_tag,
+        &old_children,
+        &new_children,
+        key,
+        path,
+        skip,
+        rep,
+    );
 
     let (left_offset, right_offset) = match offsets {
         Some(offsets) => offsets,
@@ -44,16 +52,16 @@ where
     // Ok, we now hopefully have a smaller range of children in the middle
     // within which to re-order nodes with the same keys, remove old nodes with
     // now-unused keys, and create new nodes with fresh keys.
-    let old_end = old_element.children.len() - right_offset;
+    let old_end = old_children.len() - right_offset;
     let old_end = if old_end >= left_offset {
         old_end
     } else {
         left_offset
     };
 
-    let old_middle = &old_element.children[left_offset..old_end];
+    let old_middle = &old_children[left_offset..old_end];
 
-    let new_end = new_element.children.len() - right_offset;
+    let new_end = new_children.len() - right_offset;
 
     let new_end = if new_end >= left_offset {
         new_end
@@ -61,14 +69,7 @@ where
         left_offset
     };
 
-    let new_middle = &new_element.children[left_offset..new_end];
-
-    /*
-    debug_assert!(
-        !((old_middle.len() == new_middle.len()) && old_middle.is_empty()),
-        "keyed children must have the same number of children"
-    );
-    */
+    let new_middle = &new_children[left_offset..new_end];
 
     if new_middle.is_empty() {
         //remove the old elements
@@ -83,8 +84,8 @@ where
         // there were no old element, so just create the new elements
         if left_offset == 0 {
             // insert at the beginning of the old list
-            let foothold = old_element.children.len() - right_offset;
-            let old_tag = old_element.children[foothold].tag();
+            let foothold = old_children.len() - right_offset;
+            let old_tag = old_children[foothold].tag();
             let patch = Patch::insert_before_node(
                 old_tag,
                 path.traverse(foothold),
@@ -93,8 +94,8 @@ where
             all_patches.push(patch);
         } else if right_offset == 0 {
             // insert at the end of the old list
-            let foothold = old_element.children.len() - 1;
-            let old_tag = old_element.children[foothold].tag();
+            let foothold = old_children.len() - 1;
+            let old_tag = old_children[foothold].tag();
             let patch = Patch::insert_after_node(
                 old_tag,
                 path.traverse(foothold),
@@ -104,7 +105,7 @@ where
         } else {
             // inserting in the middle
             let foothold = left_offset - 1;
-            let old_tag = old_element.children[foothold].tag();
+            let old_tag = old_children[foothold].tag();
             let patch = Patch::insert_after_node(
                 old_tag,
                 path.traverse(foothold),
@@ -127,9 +128,10 @@ where
     all_patches
 }
 
-fn diff_keyed_ends<'a, 'b, Ns, Tag, Leaf, Att, Val, Skip, Rep>(
-    old_element: &'a Element<Ns, Tag, Leaf, Att, Val>,
-    new_element: &'a Element<Ns, Tag, Leaf, Att, Val>,
+fn diff_keyed_ends<'a, Ns, Tag, Leaf, Att, Val, Skip, Rep>(
+    old_tag: &'a Tag,
+    old_children: &'a [Node<Ns, Tag, Leaf, Att, Val>],
+    new_children: &'a [Node<Ns, Tag, Leaf, Att, Val>],
     key: &Att,
     path: &TreePath,
     skip: &Skip,
@@ -158,11 +160,8 @@ where
     let mut all_patches = vec![];
 
     let mut left_offset = 0;
-    for (index, (old, new)) in old_element
-        .children
-        .iter()
-        .zip(new_element.children.iter())
-        .enumerate()
+    for (index, (old, new)) in
+        old_children.iter().zip(new_children.iter()).enumerate()
     {
         // abort early if we run into nodes with different keys
         if old.attribute_value(key) != new.attribute_value(key) {
@@ -178,14 +177,12 @@ where
 
     // if that was all of the old children, then create and append the remaining
     // new children and we're finished
-    if left_offset == old_element.children.len() {
-        if !new_element.children[left_offset..].is_empty() {
+    if left_offset == old_children.len() {
+        if !new_children[left_offset..].is_empty() {
             let patch = Patch::append_children(
-                old_element.tag(),
+                old_tag,
                 path.clone(),
-                new_element.children[left_offset..]
-                    .iter()
-                    .collect::<Vec<_>>(),
+                new_children[left_offset..].iter().collect::<Vec<_>>(),
             );
             all_patches.push(patch);
         }
@@ -194,10 +191,8 @@ where
 
     // and if that was all of the new children, then remove all of the remaining
     // old children and we're finished
-    if left_offset == new_element.children.len() {
-        for (index, old) in
-            old_element.children[left_offset..].iter().enumerate()
-        {
+    if left_offset == new_children.len() {
+        for (index, old) in old_children[left_offset..].iter().enumerate() {
             let patch = Patch::remove_node(
                 old.tag(),
                 path.traverse(left_offset + index),
@@ -209,14 +204,13 @@ where
 
     // if the shared key is less than either length, then we need to walk backwards
     let mut right_offset = 0;
-    for (index, (old, new)) in old_element
-        .children
+    for (index, (old, new)) in old_children
         .iter()
         .rev()
-        .zip(new_element.children.iter().rev())
+        .zip(new_children.iter().rev())
         .enumerate()
     {
-        let old_index = old_element.children.len() - index - 1;
+        let old_index = old_children.len() - index - 1;
         // break if already matched this old_index or did not matched key
         if old_index_matched.contains(&old_index)
             || old.attribute_value(key) != new.attribute_value(key)

@@ -30,8 +30,11 @@ where
 {
     /// Element variant of a virtual node
     Element(Element<Ns, Tag, Leaf, Att, Val>),
-    /// A node containing nodes
+    /// A node containing nodes, this will be unrolled together with the rest of the children of
+    /// the node
     NodeList(Vec<Node<Ns, Tag, Leaf, Att, Val>>),
+    /// A document fragment node, will be created using fragment node and attached to the dom
+    Fragment(Vec<Node<Ns, Tag, Leaf, Att, Val>>),
     /// A Leaf node
     Leaf(Leaf),
 }
