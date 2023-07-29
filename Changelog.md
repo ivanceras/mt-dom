@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.58.0
+- refactor: **breaking** move the fragment variant from sauron to mt-dom
+
 ## 0.57.0
 - feat: **breaking** `Node::children` now returns a slice, ie: `&[Node]` instead of `Option<&[Node]>`,
    non-element node variant will return an empty slice automatically.
