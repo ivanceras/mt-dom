@@ -8,7 +8,7 @@ use alloc::vec::Vec;
 use core::fmt::Debug;
 
 pub fn diff_keyed_nodes<'a, Ns, Tag, Leaf, Att, Val, Skip, Rep>(
-    old_tag: &'a Tag,
+    old_tag: Option<&'a Tag>,
     old_children: &'a [Node<Ns, Tag, Leaf, Att, Val>],
     new_children: &'a [Node<Ns, Tag, Leaf, Att, Val>],
     key: &Att,
@@ -129,7 +129,7 @@ where
 }
 
 fn diff_keyed_ends<'a, Ns, Tag, Leaf, Att, Val, Skip, Rep>(
-    old_tag: &'a Tag,
+    old_tag: Option<&'a Tag>,
     old_children: &'a [Node<Ns, Tag, Leaf, Att, Val>],
     new_children: &'a [Node<Ns, Tag, Leaf, Att, Val>],
     key: &Att,

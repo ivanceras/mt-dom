@@ -250,8 +250,19 @@ where
                 diff_element(old_element, new_element, key, path, skip, rep);
             patches.extend(patch);
         }
-        (Node::Fragment(_old_nodes), Node::Fragment(_new_nodes)) => {
-            todo!()
+        (Node::Fragment(old_nodes), Node::Fragment(new_nodes)) => {
+            // we back track since Fragment is not a real node, but it would still
+            // be traversed from the prior call
+            let patch = diff_nodes(
+                None,
+                old_nodes,
+                new_nodes,
+                key,
+                &path.backtrack(),
+                skip,
+                rep,
+            );
+            patches.extend(patch);
         }
         (Node::NodeList(_old_elements), Node::NodeList(_new_elements)) => {
             panic!(
@@ -300,7 +311,7 @@ where
     }
 
     let more_patches = diff_nodes(
-        old_element.tag(),
+        Some(old_element.tag()),
         &old_element.children,
         &new_element.children,
         key,
@@ -314,7 +325,7 @@ where
 }
 
 fn diff_nodes<'a, Ns, Tag, Leaf, Att, Val, Skip, Rep>(
-    old_tag: &'a Tag,
+    old_tag: Option<&'a Tag>,
     old_children: &'a [Node<Ns, Tag, Leaf, Att, Val>],
     new_children: &'a [Node<Ns, Tag, Leaf, Att, Val>],
     key: &Att,
@@ -376,7 +387,7 @@ where
 ///  If there are more children in the new_element than the old_element
 ///  it will be all appended in the old_element.
 fn diff_non_keyed_nodes<'a, Ns, Tag, Leaf, Att, Val, Skip, Rep>(
-    old_element_tag: &'a Tag,
+    old_element_tag: Option<&'a Tag>,
     old_children: &'a [Node<Ns, Tag, Leaf, Att, Val>],
     new_children: &'a [Node<Ns, Tag, Leaf, Att, Val>],
     key: &Att,

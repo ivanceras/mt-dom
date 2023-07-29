@@ -194,12 +194,12 @@ where
 
     /// create a patch where we add children to the target node
     pub fn append_children(
-        tag: &'a Tag,
+        tag: Option<&'a Tag>,
         patch_path: TreePath,
         children: Vec<&'a Node<Ns, Tag, Leaf, Att, Val>>,
     ) -> Patch<'a, Ns, Tag, Leaf, Att, Val> {
         Patch {
-            tag: Some(tag),
+            tag,
             patch_path,
             patch_type: PatchType::AppendChildren { children },
         }

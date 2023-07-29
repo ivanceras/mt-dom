@@ -296,7 +296,7 @@ fn test_append() {
     assert_eq!(
         diff,
         vec![Patch::append_children(
-            &"div",
+            Some(&"div"),
             TreePath::new(vec![]),
             vec![&element("div", vec![], vec![leaf("2")])],
         )]
@@ -325,7 +325,7 @@ fn test_append_more() {
     assert_eq!(
         diff,
         vec![Patch::append_children(
-            &"div",
+            Some(&"div"),
             TreePath::new(vec![]),
             vec![
                 &element("div", vec![], vec![leaf("2")]),
@@ -366,7 +366,7 @@ fn test_append_at_sub_level() {
     assert_eq!(
         diff,
         vec![Patch::append_children(
-            &"main",
+            Some(&"main"),
             TreePath::new(vec![0]),
             vec![
                 &element("div", vec![], vec![leaf("2")]),

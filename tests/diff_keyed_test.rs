@@ -335,7 +335,7 @@ fn key_2_inserted_at_the_end() {
     assert_eq!(
         diff,
         vec![Patch::append_children(
-            &"main",
+            Some(&"main"),
             TreePath::new(vec![]),
             vec![&element("div", vec![attr("key", "2")], vec![])]
         )]
@@ -373,7 +373,7 @@ fn test_append_at_sub_level() {
     assert_eq!(
         diff,
         vec![Patch::append_children(
-            &"main",
+            Some(&"main"),
             TreePath::new(vec![0]),
             vec![
                 &element("div", vec![attr("key", "2")], vec![leaf("2")]),

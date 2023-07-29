@@ -337,7 +337,7 @@ where
 
 /// create a node list
 pub fn node_list<Ns, Tag, Leaf, Att, Val>(
-    elements: impl IntoIterator<Item = Node<Ns, Tag, Leaf, Att, Val>>,
+    nodes: impl IntoIterator<Item = Node<Ns, Tag, Leaf, Att, Val>>,
 ) -> Node<Ns, Tag, Leaf, Att, Val>
 where
     Ns: PartialEq + Clone + Debug,
@@ -346,5 +346,19 @@ where
     Att: PartialEq + Clone + Debug,
     Val: PartialEq + Clone + Debug,
 {
-    Node::NodeList(elements.into_iter().collect())
+    Node::NodeList(nodes.into_iter().collect())
+}
+
+/// create fragment node
+pub fn fragment<Ns, Tag, Leaf, Att, Val>(
+    nodes: impl IntoIterator<Item = Node<Ns, Tag, Leaf, Att, Val>>,
+) -> Node<Ns, Tag, Leaf, Att, Val>
+where
+    Ns: PartialEq + Clone + Debug,
+    Tag: PartialEq + Debug,
+    Leaf: PartialEq + Clone + Debug,
+    Att: PartialEq + Clone + Debug,
+    Val: PartialEq + Clone + Debug,
+{
+    Node::Fragment(nodes.into_iter().collect())
 }

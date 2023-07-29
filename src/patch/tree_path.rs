@@ -97,6 +97,13 @@ impl TreePath {
         new_path
     }
 
+    /// backtrack to the parent node path
+    pub fn backtrack(&self) -> Self {
+        let mut new_path = self.clone();
+        new_path.path.pop();
+        new_path
+    }
+
     /// remove first node index of this treepath
     /// Everytime a node is traversed, the first element should be removed
     /// until no more index is in this path
