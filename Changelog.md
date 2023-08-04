@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.59.0
+- feat: **breaking** make adding children and add/set attributes function return a Result rather than panic
+
 ## 0.58.0
 - refactor: **breaking** move the fragment variant from sauron to mt-dom
 
