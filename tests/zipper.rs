@@ -60,7 +60,9 @@ impl Zipper {
         // Insert the node of this Zipper back in its parent.
         // Since we used swap_remove() to remove the child,
         // we need to do the opposite of that.
-        parent_node.add_children(vec![node]);
+        parent_node
+            .add_children(vec![node])
+            .expect("add child node");
         let len = parent_node.children_count();
         parent_node.swap_children(index_in_parent, len - 1);
 

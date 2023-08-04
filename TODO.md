@@ -159,3 +159,4 @@ if the current value on this skip_criteria attribute is equal to the stored valu
 - [X] Maybe check for equality of the old and new node, when they are equal, just skip diffing
 - [x] Maybe move Fragment to Node as it's children are not subjected to diffing, but instead replaced all together which would not performant
 - [ ] Minimize the use of `vec![]`, when the capacity can be estimated, use `Vec::with_capacity`
+- [ ] Make this crate `#![no_std]` again, when `core::error` will be out of nightly

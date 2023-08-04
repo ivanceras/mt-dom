@@ -1,6 +1,7 @@
 use alloc::vec::Vec;
 pub use attribute::Attribute;
-use core::fmt::Debug;
+use core::fmt;
+use core::fmt::{Debug, Formatter};
 pub use element::Element;
 
 pub(crate) mod attribute;
@@ -39,6 +40,31 @@ where
     Leaf(Leaf),
 }
 
+#[derive(Debug, Copy, Clone)]
+pub enum Error {
+    AddChildrenNotAllowed,
+    AttributesNotAllowed,
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
+        match self {
+            Self::AddChildrenNotAllowed => {
+                write!(f, "Adding children on this node variant is not allowed")
+            }
+            Self::AttributesNotAllowed => {
+                write!(
+                    f,
+                    "Adding or setting attibutes on this node variant is not allowed"
+                )
+            }
+        }
+    }
+}
+
+///TODO: use core::error when it will go out of nightly
+impl std::error::Error for Error {}
+
 impl<Ns, Tag, Leaf, Att, Val> Node<Ns, Tag, Leaf, Att, Val>
 where
     Ns: PartialEq + Clone + Debug,
@@ -62,6 +88,21 @@ where
             Node::Leaf(leaf) => Some(leaf),
             _ => None,
         }
+    }
+
+    /// returns true if the node is an element variant
+    pub fn is_element(&self) -> bool {
+        matches!(self, Node::Element(_))
+    }
+
+    /// returns true if the node is a Leaf
+    pub fn is_leaf(&self) -> bool {
+        matches!(self, Node::Leaf(_))
+    }
+
+    /// returns true if the Node is a fragment variant
+    pub fn is_fragment(&self) -> bool {
+        matches!(self, Node::Fragment(_))
     }
 
     /// Get a mutable reference to the element, if this node is an element node
@@ -101,11 +142,12 @@ where
     pub fn add_children(
         &mut self,
         children: impl IntoIterator<Item = Node<Ns, Tag, Leaf, Att, Val>>,
-    ) {
+    ) -> Result<(), Error> {
         if let Some(element) = self.element_mut() {
             element.add_children(children);
+            Ok(())
         } else {
-            panic!("Can not add children to a text node");
+            Err(Error::AddChildrenNotAllowed)
         }
     }
 
@@ -127,11 +169,12 @@ where
     pub fn add_attributes(
         &mut self,
         attributes: impl IntoIterator<Item = Attribute<Ns, Att, Val>>,
-    ) {
+    ) -> Result<(), Error> {
         if let Some(elm) = self.element_mut() {
             elm.add_attributes(attributes);
+            Ok(())
         } else {
-            panic!("Can not add attributes to a text node");
+            Err(Error::AttributesNotAllowed)
         }
     }
 
@@ -235,9 +278,12 @@ where
     pub fn set_attributes(
         &mut self,
         attributes: impl IntoIterator<Item = Attribute<Ns, Att, Val>>,
-    ) {
+    ) -> Result<(), Error> {
         if let Some(elm) = self.element_mut() {
             elm.set_attributes(attributes);
+            Ok(())
+        } else {
+            Err(Error::AttributesNotAllowed)
         }
     }
 
