@@ -33,8 +33,8 @@ where
 {
     let (patches, offsets) = diff_keyed_ends(
         old_tag,
-        &old_children,
-        &new_children,
+        old_children,
+        new_children,
         key,
         path,
         skip,

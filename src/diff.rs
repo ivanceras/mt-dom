@@ -349,7 +349,7 @@ where
     ) -> bool,
 {
     let diff_as_keyed =
-        is_any_keyed(&old_children, key) || is_any_keyed(&new_children, key);
+        is_any_keyed(old_children, key) || is_any_keyed(new_children, key);
 
     if diff_as_keyed {
         let keyed_patches = crate::diff_lis::diff_keyed_nodes(
