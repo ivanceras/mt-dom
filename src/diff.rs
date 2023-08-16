@@ -300,15 +300,7 @@ where
         &'a Node<Ns, Tag, Leaf, Att, Val>,
     ) -> bool,
 {
-    let diff_as_keyed = is_any_keyed(&old_element.children, key)
-        || is_any_keyed(&new_element.children, key);
-
-    let mut patches = vec![];
-    if !diff_as_keyed {
-        let attributes_patches =
-            create_attribute_patches(old_element, new_element, path);
-        patches.extend(attributes_patches);
-    }
+    let mut patches = create_attribute_patches(old_element, new_element, path);
 
     let more_patches = diff_nodes(
         Some(old_element.tag()),
