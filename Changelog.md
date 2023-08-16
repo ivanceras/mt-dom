@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.59.1
+- fix issue: https://github.com/ivanceras/sauron/issues/75 , where updates to the parent node with key are ignored
+
 ## 0.59.0
 - feat: **breaking** make adding children and add/set attributes function return a Result rather than panic
 
