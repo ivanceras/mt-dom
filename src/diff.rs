@@ -186,7 +186,8 @@ where
     false
 }
 
-pub(crate) fn diff_recursive<'a, 'b, Ns, Tag, Leaf, Att, Val, Skip, Rep>(
+/// diff the nodes recursively
+pub fn diff_recursive<'a, 'b, Ns, Tag, Leaf, Att, Val, Skip, Rep>(
     old_node: &'a Node<Ns, Tag, Leaf, Att, Val>,
     new_node: &'a Node<Ns, Tag, Leaf, Att, Val>,
     path: &TreePath,
