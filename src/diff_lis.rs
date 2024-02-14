@@ -304,7 +304,7 @@ where
 
     // if none of the old keys are reused by the new children,
     // then we remove all the remaining old children and create the new children afresh.
-    if shared_keys.is_empty() && old_children.get(0).is_some() {
+    if shared_keys.is_empty() && old_children.first().is_some() {
         // skip the first one, so we can use it as our foothold for inserting the new children
         for (index, old) in old_children.iter().skip(1).enumerate() {
             let patch = Patch::remove_node(old.tag(), path.traverse(index + 1));
