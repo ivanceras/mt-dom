@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.59.2
+-  fix: TreePath `find_node_by_path` method, The root node is not on `[0]`, but `[]`
+
 ## 0.59.1
 - fix issue: https://github.com/ivanceras/sauron/issues/75 , where updates to the parent node with key are ignored
 
