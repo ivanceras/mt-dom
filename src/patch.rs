@@ -3,6 +3,7 @@
 use crate::{Attribute, Node};
 use alloc::vec::Vec;
 use core::fmt::Debug;
+use core::hash::Hash;
 
 pub use tree_path::TreePath;
 
@@ -64,7 +65,7 @@ where
     Ns: PartialEq + Clone + Debug,
     Tag: PartialEq + Debug,
     Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Clone + Debug,
+    Att: PartialEq + Eq + Hash + Clone + Debug,
     Val: PartialEq + Clone + Debug,
 {
     /// the tag of the node at patch_path
@@ -82,7 +83,7 @@ where
     Ns: PartialEq + Clone + Debug,
     Tag: PartialEq + Debug,
     Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Clone + Debug,
+    Att: PartialEq + Eq + Hash + Clone + Debug,
     Val: PartialEq + Clone + Debug,
 {
     /// insert the nodes before the node at patch_path
@@ -142,7 +143,7 @@ where
     Ns: PartialEq + Clone + Debug,
     Tag: PartialEq + Debug,
     Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Clone + Debug,
+    Att: PartialEq + Eq + Hash + Clone + Debug,
     Val: PartialEq + Clone + Debug,
 {
     /// return the path to traverse for this patch to get to the target Node

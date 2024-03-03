@@ -3,6 +3,7 @@ pub use attribute::Attribute;
 use core::fmt;
 use core::fmt::{Debug, Formatter};
 pub use element::Element;
+use core::hash::Hash;
 
 pub(crate) mod attribute;
 mod element;
@@ -26,7 +27,7 @@ where
     Ns: PartialEq + Clone + Debug,
     Tag: PartialEq + Debug,
     Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Clone + Debug,
+    Att: PartialEq + Eq + Hash + Clone + Debug,
     Val: PartialEq + Clone + Debug,
 {
     /// Element variant of a virtual node
@@ -70,7 +71,7 @@ where
     Ns: PartialEq + Clone + Debug,
     Tag: PartialEq + Debug,
     Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Clone + Debug,
+    Att: PartialEq + Eq + Hash + Clone + Debug,
     Val: PartialEq + Clone + Debug,
 {
     /// consume self and return the element if it is an element variant
@@ -330,7 +331,7 @@ where
     Ns: PartialEq + Clone + Debug,
     Tag: PartialEq + Debug,
     Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Clone + Debug,
+    Att: PartialEq + Eq + Hash + Clone + Debug,
     Val: PartialEq + Clone + Debug,
 {
     element_ns(None, tag, attrs, children, false)
@@ -361,7 +362,7 @@ where
     Ns: PartialEq + Clone + Debug,
     Tag: PartialEq + Debug,
     Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Clone + Debug,
+    Att: PartialEq + Eq + Hash + Clone + Debug,
     Val: PartialEq + Clone + Debug,
 {
     Node::Element(Element::new(namespace, tag, attrs, children, self_closing))
@@ -375,7 +376,7 @@ where
     Ns: PartialEq + Clone + Debug,
     Tag: PartialEq + Debug,
     Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Clone + Debug,
+    Att: PartialEq + Eq + Hash + Clone + Debug,
     Val: PartialEq + Clone + Debug,
 {
     Node::Leaf(leaf)
@@ -389,7 +390,7 @@ where
     Ns: PartialEq + Clone + Debug,
     Tag: PartialEq + Debug,
     Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Clone + Debug,
+    Att: PartialEq + Eq + Hash + Clone + Debug,
     Val: PartialEq + Clone + Debug,
 {
     Node::NodeList(nodes.into_iter().collect())
@@ -403,7 +404,7 @@ where
     Ns: PartialEq + Clone + Debug,
     Tag: PartialEq + Debug,
     Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Clone + Debug,
+    Att: PartialEq + Eq + Hash + Clone + Debug,
     Val: PartialEq + Clone + Debug,
 {
     Node::Fragment(nodes.into_iter().collect())

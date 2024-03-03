@@ -2,6 +2,7 @@ use crate::node::{Attribute, Node};
 use alloc::vec;
 use alloc::vec::Vec;
 use core::fmt::Debug;
+use core::hash::Hash;
 
 /// Represents an element of the virtual node
 /// An element has a generic tag, this tag could be a static str tag, such as usage in html dom.
@@ -22,7 +23,7 @@ where
     Ns: PartialEq + Clone + Debug,
     Tag: PartialEq + Debug,
     Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Clone + Debug,
+    Att: PartialEq + Eq + Hash + Clone + Debug,
     Val: PartialEq + Clone + Debug,
 {
     /// namespace of this element,
@@ -43,7 +44,7 @@ where
     Ns: PartialEq + Clone + Debug,
     Tag: PartialEq + Debug,
     Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Clone + Debug,
+    Att: PartialEq + Eq + Hash + Clone + Debug,
     Val: PartialEq + Clone + Debug,
 {
     /// create a new instance of an element

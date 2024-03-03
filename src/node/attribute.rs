@@ -2,13 +2,15 @@
 use alloc::vec;
 use alloc::vec::Vec;
 use core::fmt::Debug;
+use indexmap::IndexMap;
+use core::hash::Hash;
 
 /// These are the plain attributes of an element
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Attribute<Ns, Att, Val>
 where
     Ns: PartialEq + Clone + Debug,
-    Att: PartialEq + Clone + Debug,
+    Att: PartialEq + Eq + Hash + Clone + Debug,
     Val: PartialEq + Clone + Debug,
 {
     /// namespace of an attribute.
@@ -25,7 +27,7 @@ where
 impl<Ns, Att, Val> Attribute<Ns, Att, Val>
 where
     Ns: PartialEq + Clone + Debug,
-    Att: PartialEq + Clone + Debug,
+    Att: PartialEq + Eq + Hash + Clone + Debug,
     Val: PartialEq + Clone + Debug,
 {
     /// create a plain attribute with namespace
@@ -77,7 +79,7 @@ where
 pub fn attr<Ns, Att, Val>(name: Att, value: Val) -> Attribute<Ns, Att, Val>
 where
     Ns: PartialEq + Clone + Debug,
-    Att: PartialEq + Clone + Debug,
+    Att: PartialEq + Eq + Hash + Clone + Debug,
     Val: PartialEq + Clone + Debug,
 {
     attr_ns(None, name, value)
@@ -99,7 +101,7 @@ pub fn attr_ns<Ns, Att, Val>(
 ) -> Attribute<Ns, Att, Val>
 where
     Ns: PartialEq + Clone + Debug,
-    Att: PartialEq + Clone + Debug,
+    Att: PartialEq + Eq + Hash + Clone + Debug,
     Val: PartialEq + Clone + Debug,
 {
     Attribute::new(namespace, name, value)
@@ -112,46 +114,44 @@ pub fn merge_attributes_of_same_name<Ns, Att, Val>(
 ) -> Vec<Attribute<Ns, Att, Val>>
 where
     Ns: PartialEq + Clone + Debug,
-    Att: PartialEq + Clone + Debug,
+    Att: PartialEq + Eq + Hash + Clone + Debug,
     Val: PartialEq + Clone + Debug,
 {
-    let mut merged: Vec<Attribute<Ns, Att, Val>> = vec![];
+    //let mut merged: Vec<Attribute<Ns, Att, Val>> = vec![];
+    let mut merged: IndexMap<&Att, Attribute<Ns, Att, Val>> = IndexMap::with_capacity(attributes.len());
     for att in attributes {
         if let Some(existing) =
-            merged.iter_mut().find(|m_att| m_att.name == att.name)
+            merged.get_mut(&att.name)
         {
             existing.value.extend(att.value.clone());
         } else {
-            merged.push(Attribute {
+            merged.insert(&att.name, Attribute {
                 namespace: None,
                 name: att.name.clone(),
                 value: att.value.clone(),
             });
         }
     }
-    merged
+    merged.into_values().collect()
 }
 
 /// group attributes of the same name
 #[doc(hidden)]
 pub fn group_attributes_per_name<Ns, Att, Val>(
     attributes: &[Attribute<Ns, Att, Val>],
-) -> Vec<(&Att, Vec<&Attribute<Ns, Att, Val>>)>
+) -> IndexMap<&Att, Vec<&Attribute<Ns, Att, Val>>>
 where
     Ns: PartialEq + Clone + Debug,
-    Att: PartialEq + Clone + Debug,
+    Att: PartialEq + Eq + Hash + Clone + Debug,
     Val: PartialEq + Clone + Debug,
 {
-    let mut grouped: Vec<(&Att, Vec<&Attribute<Ns, Att, Val>>)> = vec![];
+    let mut grouped: IndexMap<&Att, Vec<&Attribute<Ns, Att, Val>>> = IndexMap::with_capacity(attributes.len());
     for attr in attributes {
-        if let Some(existing) = grouped
-            .iter_mut()
-            .find(|(g_att, _)| **g_att == attr.name)
-            .map(|(_, attr)| attr)
+        if let Some(existing) = grouped.get_mut(&attr.name)
         {
             existing.push(attr);
         } else {
-            grouped.push((&attr.name, vec![attr]))
+            grouped.insert(&attr.name, vec![attr]);
         }
     }
     grouped

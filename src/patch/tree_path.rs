@@ -2,6 +2,7 @@ use crate::Node;
 use alloc::vec;
 use alloc::vec::Vec;
 use core::fmt::Debug;
+use core::hash::Hash;
 
 /// Describe the path traversal of a Node starting from the root node
 ///
@@ -131,7 +132,7 @@ impl TreePath {
         Ns: PartialEq + Clone + Debug,
         Tag: PartialEq + Clone + Debug,
         Leaf: PartialEq + Clone + Debug,
-        Att: PartialEq + Clone + Debug,
+        Att: PartialEq + Eq + Hash + Clone + Debug,
         Val: PartialEq + Clone + Debug,
     {
         let mut path = self.clone();
@@ -161,7 +162,7 @@ where
     Ns: PartialEq + Clone + Debug,
     Tag: PartialEq + Clone + Debug,
     Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Clone + Debug,
+    Att: PartialEq + Eq + Hash + Clone + Debug,
     Val: PartialEq + Clone + Debug,
 {
     if path.path.is_empty() {

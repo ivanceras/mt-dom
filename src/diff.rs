@@ -7,6 +7,7 @@ use alloc::vec;
 use alloc::vec::Vec;
 use core::fmt::Debug;
 use core::{cmp, mem};
+use core::hash::Hash;
 
 /// Return the patches needed for `old_node` to have the same DOM as `new_node`
 ///
@@ -56,7 +57,7 @@ where
     Ns: PartialEq + Clone + Debug,
     Tag: PartialEq + Debug,
     Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Clone + Debug,
+    Att: PartialEq + Eq + Hash + Clone + Debug,
     Val: PartialEq + Clone + Debug,
 {
     diff_recursive(
@@ -91,7 +92,7 @@ where
     Ns: PartialEq + Clone + Debug,
     Tag: PartialEq + Debug,
     Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Clone + Debug,
+    Att: PartialEq + Eq + Hash + Clone + Debug,
     Val: PartialEq + Clone + Debug,
 
     Skip: Fn(
@@ -114,7 +115,7 @@ where
     Ns: PartialEq + Clone + Debug,
     Tag: PartialEq + Debug,
     Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Clone + Debug,
+    Att: PartialEq + Eq + Hash + Clone + Debug,
     Val: PartialEq + Clone + Debug,
 {
     nodes.iter().any(|child| is_keyed_node(child, key))
@@ -129,7 +130,7 @@ where
     Ns: PartialEq + Clone + Debug,
     Tag: PartialEq + Debug,
     Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Clone + Debug,
+    Att: PartialEq + Eq + Hash + Clone + Debug,
     Val: PartialEq + Clone + Debug,
 {
     if let Some(attributes) = node.attributes() {
@@ -149,7 +150,7 @@ where
     Ns: PartialEq + Clone + Debug,
     Tag: PartialEq + Debug,
     Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Clone + Debug,
+    Att: PartialEq + Eq + Hash + Clone + Debug,
     Val: PartialEq + Clone + Debug,
     Rep: Fn(
         &'a Node<Ns, Tag, Leaf, Att, Val>,
@@ -199,7 +200,7 @@ where
     Ns: PartialEq + Clone + Debug,
     Leaf: PartialEq + Clone + Debug,
     Tag: PartialEq + Debug,
-    Att: PartialEq + Clone + Debug,
+    Att: PartialEq + Eq + Hash + Clone + Debug,
     Val: PartialEq + Clone + Debug,
     Skip: Fn(
         &'a Node<Ns, Tag, Leaf, Att, Val>,
@@ -290,7 +291,7 @@ where
     Ns: PartialEq + Clone + Debug,
     Tag: PartialEq + Debug,
     Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Clone + Debug,
+    Att: PartialEq + Eq + Hash + Clone + Debug,
     Val: PartialEq + Clone + Debug,
     Skip: Fn(
         &'a Node<Ns, Tag, Leaf, Att, Val>,
@@ -330,7 +331,7 @@ where
     Ns: PartialEq + Clone + Debug,
     Tag: PartialEq + Debug,
     Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Clone + Debug,
+    Att: PartialEq + Eq + Hash + Clone + Debug,
     Val: PartialEq + Clone + Debug,
     Skip: Fn(
         &'a Node<Ns, Tag, Leaf, Att, Val>,
@@ -392,7 +393,7 @@ where
     Ns: PartialEq + Clone + Debug,
     Tag: PartialEq + Debug,
     Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Clone + Debug,
+    Att: PartialEq + Eq + Hash + Clone + Debug,
     Val: PartialEq + Clone + Debug,
     Skip: Fn(
         &'a Node<Ns, Tag, Leaf, Att, Val>,
@@ -463,7 +464,7 @@ where
     Ns: PartialEq + Clone + Debug,
     Leaf: PartialEq + Clone + Debug,
     Tag: PartialEq + Debug,
-    Att: PartialEq + Clone + Debug,
+    Att: PartialEq + Eq + Hash + Clone + Debug,
     Val: PartialEq + Clone + Debug,
 {
     let new_attributes = new_element.attributes();
@@ -486,16 +487,14 @@ where
     // add it to the AddAttribute patches
     for (new_attr_name, new_attrs) in new_attributes_grouped.iter() {
         let old_attr_values = old_attributes_grouped
-            .iter()
-            .find(|(att_name, _)| att_name == new_attr_name)
-            .map(|(_, attrs)| {
+            .get(new_attr_name)
+            .map(|attrs| {
                 attrs.iter().map(|attr| &attr.value).collect::<Vec<_>>()
             });
 
         let new_attr_values = new_attributes_grouped
-            .iter()
-            .find(|(att_name, _)| att_name == new_attr_name)
-            .map(|(_, attrs)| {
+            .get(new_attr_name)
+            .map(|attrs| {
                 attrs.iter().map(|attr| &attr.value).collect::<Vec<_>>()
             });
 
@@ -513,12 +512,7 @@ where
     // if this attribute name does not exist anymore
     // to the new element, remove it
     for (old_attr_name, old_attrs) in old_attributes_grouped.iter() {
-        if let Some(_pre_attr) = new_attributes_grouped
-            .iter()
-            .find(|(new_attr_name, _)| new_attr_name == old_attr_name)
-        {
-            //
-        } else {
+        if !new_attributes_grouped.contains_key(old_attr_name) {
             remove_attributes.extend(old_attrs);
         }
     }

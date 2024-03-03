@@ -6,6 +6,7 @@ use alloc::collections::BTreeMap;
 use alloc::vec;
 use alloc::vec::Vec;
 use core::fmt::Debug;
+use core::hash::Hash;
 
 pub fn diff_keyed_nodes<'a, Ns, Tag, Leaf, Att, Val, Skip, Rep>(
     old_tag: Option<&'a Tag>,
@@ -20,7 +21,7 @@ where
     Ns: PartialEq + Clone + Debug,
     Tag: PartialEq + Debug,
     Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Clone + Debug,
+    Att: PartialEq + Eq + Hash + Clone + Debug,
     Val: PartialEq + Clone + Debug,
     Skip: Fn(
         &'a Node<Ns, Tag, Leaf, Att, Val>,
@@ -144,7 +145,7 @@ where
     Ns: PartialEq + Clone + Debug,
     Tag: PartialEq + Debug,
     Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Clone + Debug,
+    Att: PartialEq + Eq + Hash + Clone + Debug,
     Val: PartialEq + Clone + Debug,
     Skip: Fn(
         &'a Node<Ns, Tag, Leaf, Att, Val>,
@@ -240,7 +241,7 @@ where
     Ns: PartialEq + Clone + Debug,
     Tag: PartialEq + Debug,
     Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Clone + Debug,
+    Att: PartialEq + Eq + Hash + Clone + Debug,
     Val: PartialEq + Clone + Debug,
     Skip: Fn(
         &'a Node<Ns, Tag, Leaf, Att, Val>,
