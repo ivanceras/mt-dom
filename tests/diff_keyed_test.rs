@@ -14,7 +14,7 @@ fn keyed_no_changed() {
         vec![element("div", vec![attr("key", "1")], vec![])],
     );
 
-    let diff = diff_with_key(&old, &new, &"key");
+    let diff = diff_with_key(&old, &new);
     assert_eq!(diff, vec![]);
 }
 
@@ -35,7 +35,7 @@ fn key_1_removed_at_start() {
         vec![element("div", vec![attr("key", "2")], vec![])],
     );
 
-    let diff = diff_with_key(&old, &new, &"key");
+    let diff = diff_with_key(&old, &new);
     assert_eq!(
         diff,
         vec![Patch::remove_node(Some(&"div"), TreePath::new(vec![0]))]
@@ -59,7 +59,7 @@ fn non_unique_keys_matched_at_old() {
         vec![element("div", vec![attr("key", "2")], vec![])],
     );
 
-    let diff = diff_with_key(&old, &new, &"key");
+    let diff = diff_with_key(&old, &new);
     assert_eq!(
         diff,
         vec![Patch::remove_node(Some(&"div"), TreePath::new(vec![1]))]
@@ -83,7 +83,7 @@ fn key_2_removed_at_the_end() {
         vec![element("div", vec![attr("key", "1")], vec![])],
     );
 
-    let diff = diff_with_key(&old, &new, &"key");
+    let diff = diff_with_key(&old, &new);
     assert_eq!(
         diff,
         vec![Patch::remove_node(Some(&"div"), TreePath::new(vec![1]),)]
@@ -111,7 +111,7 @@ fn key_2_removed_at_the_middle() {
         ],
     );
 
-    let diff = diff_with_key(&old, &new, &"key");
+    let diff = diff_with_key(&old, &new);
     assert_eq!(
         diff,
         vec![Patch::remove_node(Some(&"div"), TreePath::new(vec![1]))]
@@ -140,7 +140,7 @@ fn there_are_2_exact_same_keys_in_the_old() {
         ],
     );
 
-    let diff = diff_with_key(&old, &new, &"key");
+    let diff = diff_with_key(&old, &new);
 
     dbg!(&diff);
 
@@ -179,7 +179,7 @@ fn there_are_2_exact_same_keys_in_the_new() {
         ],
     );
 
-    let diff = diff_with_key(&old, &new, &"key");
+    let diff = diff_with_key(&old, &new);
 
     dbg!(&diff);
 
@@ -223,7 +223,7 @@ fn there_are_2_exact_same_keys_in_both_old_and_new() {
         ],
     );
 
-    let diff = diff_with_key(&old, &new, &"key");
+    let diff = diff_with_key(&old, &new);
 
     dbg!(&diff);
 
@@ -267,7 +267,7 @@ fn key_2_inserted_at_start() {
         ],
     );
 
-    let diff = diff_with_key(&old, &new, &"key");
+    let diff = diff_with_key(&old, &new);
     dbg!(&diff);
 
     assert_eq!(
@@ -294,7 +294,7 @@ fn keyed_element_not_reused() {
         vec![element("div", vec![attr("key", "2")], vec![])],
     );
 
-    let diff = diff_with_key(&old, &new, &"key");
+    let diff = diff_with_key(&old, &new);
     dbg!(&diff);
 
     assert_eq!(
@@ -325,7 +325,7 @@ fn key_2_inserted_at_the_end() {
         ],
     );
 
-    let diff = diff_with_key(&old, &new, &"key");
+    let diff = diff_with_key(&old, &new);
 
     dbg!(&diff);
 
@@ -365,7 +365,7 @@ fn test_append_at_sub_level() {
         )],
     );
 
-    let diff = diff_with_key(&old, &new, &"key");
+    let diff = diff_with_key(&old, &new);
     dbg!(&diff);
     assert_eq!(
         diff,
@@ -401,7 +401,7 @@ fn key_2_inserted_in_the_middle() {
         ],
     );
 
-    let diff = diff_with_key(&old, &new, &"key");
+    let diff = diff_with_key(&old, &new);
 
     dbg!(&diff);
 
@@ -436,7 +436,7 @@ fn key1_removed_at_start_then_key2_has_additional_attributes() {
         )],
     );
 
-    let diff = diff_with_key(&old, &new, &"key");
+    let diff = diff_with_key(&old, &new);
     dbg!(&diff);
     // we add attrubutes at node index 2, and this will become a node index 1
     assert_eq!(
@@ -481,7 +481,7 @@ fn deep_nested_key1_removed_at_start_then_key2_has_additional_attributes() {
         )],
     );
 
-    let diff = diff_with_key(&old, &new, &"key");
+    let diff = diff_with_key(&old, &new);
     dbg!(&diff);
     assert_eq!(
         diff,
@@ -527,7 +527,7 @@ fn deep_nested_more_children_key0_and_key1_removed_at_start_then_key2_has_additi
         )],
     );
 
-    let diff = diff_with_key(&old, &new, &"key");
+    let diff = diff_with_key(&old, &new);
     dbg!(&diff);
     assert_eq!(
         diff,
@@ -595,7 +595,7 @@ fn deep_nested_keyed_with_non_keyed_children() {
         )],
     );
 
-    let diff = diff_with_key(&old, &new, &"key");
+    let diff = diff_with_key(&old, &new);
     dbg!(&diff);
     assert_eq!(
         diff,
@@ -655,7 +655,7 @@ fn text_changed_in_keyed_elements() {
         )],
     );
 
-    let patch = diff_with_key(&old, &update1, &"key");
+    let patch = diff_with_key(&old, &update1);
     dbg!(&patch);
 
     assert_eq!(
@@ -727,7 +727,7 @@ fn text_changed_in_mixed_keyed_and_non_keyed_elements() {
         ],
     );
 
-    let patch = diff_with_key(&old, &update1, &"key");
+    let patch = diff_with_key(&old, &update1);
     dbg!(&patch);
     assert_eq!(
         patch,
@@ -806,7 +806,7 @@ fn test12() {
         ],
     );
 
-    let patch = diff_with_key(&old, &update1, &"key");
+    let patch = diff_with_key(&old, &update1);
     dbg!(&patch);
     assert_eq!(
         patch,
@@ -847,7 +847,7 @@ fn remove_first() {
         ],
     );
 
-    let diff = diff_with_key(&old, &new, &"key");
+    let diff = diff_with_key(&old, &new);
     dbg!(&diff);
     assert_eq!(
         diff,

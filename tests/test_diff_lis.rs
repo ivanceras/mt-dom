@@ -41,7 +41,7 @@ fn key_lis_1_to_9() {
         ],
     );
 
-    let diff = diff_with_key(&old, &new, &"key");
+    let diff = diff_with_key(&old, &new);
 
     dbg!(&diff);
 

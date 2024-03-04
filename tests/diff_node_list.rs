@@ -32,7 +32,7 @@ fn test_node_list() {
 
     println!("old: {:#?}", old);
 
-    let diff = diff_with_key(&old, &new, &"key");
+    let diff = diff_with_key(&old, &new);
     assert_eq!(
         diff,
         vec![Patch::remove_node(Some(&"li"), TreePath::new(vec![2]),)],

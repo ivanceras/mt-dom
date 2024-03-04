@@ -32,7 +32,7 @@ fn test_multiple_replace() {
         )],
     );
 
-    let patches = diff_with_key(&old, &update1, &"key");
+    let patches = diff_with_key(&old, &update1);
 
     dbg!(&patches);
 

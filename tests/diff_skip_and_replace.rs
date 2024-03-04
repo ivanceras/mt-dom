@@ -12,7 +12,7 @@ fn force_replace() {
     let skip = |_old, _new| false;
     let replace = |_old, _new| true;
 
-    let diff = diff_with_functions(&old, &new, &"key", &skip, &replace);
+    let diff = diff_with_functions(&old, &new, &skip, &replace);
     assert_eq!(
         diff,
         vec![Patch::replace_node(
@@ -33,7 +33,7 @@ fn force_skip() {
     let skip = |_old, _new| true;
     let replace = |_old, _new| false;
 
-    let diff = diff_with_functions(&old, &new, &"key", &skip, &replace);
+    let diff = diff_with_functions(&old, &new, &skip, &replace);
     assert_eq!(diff, vec![],);
 }
 
@@ -60,7 +60,7 @@ fn skip_in_attribute() {
     };
     let replace = |_old, _new| false;
 
-    let diff = diff_with_functions(&old, &new, &"key", &skip, &replace);
+    let diff = diff_with_functions(&old, &new, &skip, &replace);
     assert_eq!(diff, vec![],);
 }
 
@@ -91,7 +91,7 @@ fn replace_true_in_attribute_must_replace_old_node_regardless() {
         }
     };
 
-    let diff = diff_with_functions(&old, &new, &"key", &skip, &replace);
+    let diff = diff_with_functions(&old, &new, &skip, &replace);
     assert_eq!(
         diff,
         vec![Patch::replace_node(
@@ -223,7 +223,7 @@ fn replace_and_skip_in_sub_nodes() {
         }
     };
 
-    let diff = diff_with_functions(&old, &new, &"key", &skip, &replace);
+    let diff = diff_with_functions(&old, &new, &skip, &replace);
     assert_eq!(
         diff,
         vec![Patch::replace_node(
