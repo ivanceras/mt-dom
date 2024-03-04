@@ -5,13 +5,16 @@ use core::fmt::Debug;
 use core::hash::Hash;
 use indexmap::IndexMap;
 
+pub type Ns = &'static str;
+pub type Tag = &'static str;
+pub type Att = &'static str;
+pub type Val = u32;
+
+pub static key: &Att = &"key";
+
 /// These are the plain attributes of an element
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Attribute<Ns, Att, Val>
-where
-    Ns: PartialEq + Clone + Debug,
-    Att: PartialEq + Eq + Hash + Clone + Debug,
-    Val: PartialEq + Clone + Debug,
+pub struct Attribute
 {
     /// namespace of an attribute.
     /// This is specifically used by svg attributes
@@ -24,11 +27,7 @@ where
     pub value: Vec<Val>,
 }
 
-impl<Ns, Att, Val> Attribute<Ns, Att, Val>
-where
-    Ns: PartialEq + Clone + Debug,
-    Att: PartialEq + Eq + Hash + Clone + Debug,
-    Val: PartialEq + Clone + Debug,
+impl Attribute
 {
     /// create a plain attribute with namespace
     pub fn new(namespace: Option<Ns>, name: Att, value: Val) -> Self {
@@ -76,11 +75,7 @@ where
 ///     attr("class", "container");
 /// ```
 #[inline]
-pub fn attr<Ns, Att, Val>(name: Att, value: Val) -> Attribute<Ns, Att, Val>
-where
-    Ns: PartialEq + Clone + Debug,
-    Att: PartialEq + Eq + Hash + Clone + Debug,
-    Val: PartialEq + Clone + Debug,
+pub fn attr(name: Att, value: Val) -> Attribute
 {
     attr_ns(None, name, value)
 }
@@ -94,31 +89,23 @@ where
 ///     attr_ns(Some("http://www.w3.org/1999/xlink"), "href", "cool-script.js");
 /// ```
 #[inline]
-pub fn attr_ns<Ns, Att, Val>(
+pub fn attr_ns(
     namespace: Option<Ns>,
     name: Att,
     value: Val,
-) -> Attribute<Ns, Att, Val>
-where
-    Ns: PartialEq + Clone + Debug,
-    Att: PartialEq + Eq + Hash + Clone + Debug,
-    Val: PartialEq + Clone + Debug,
+) -> Attribute
 {
     Attribute::new(namespace, name, value)
 }
 
 /// merge the values of attributes with the same name
 #[doc(hidden)]
-pub fn merge_attributes_of_same_name<Ns, Att, Val>(
-    attributes: &[&Attribute<Ns, Att, Val>],
-) -> Vec<Attribute<Ns, Att, Val>>
-where
-    Ns: PartialEq + Clone + Debug,
-    Att: PartialEq + Eq + Hash + Clone + Debug,
-    Val: PartialEq + Clone + Debug,
+pub fn merge_attributes_of_same_name(
+    attributes: &[&Attribute],
+) -> Vec<Attribute>
 {
-    //let mut merged: Vec<Attribute<Ns, Att, Val>> = vec![];
-    let mut merged: IndexMap<&Att, Attribute<Ns, Att, Val>> =
+    //let mut merged: Vec<Attribute> = vec![];
+    let mut merged: IndexMap<&Att, Attribute> =
         IndexMap::with_capacity(attributes.len());
     for att in attributes {
         if let Some(existing) = merged.get_mut(&att.name) {
@@ -139,15 +126,11 @@ where
 
 /// group attributes of the same name
 #[doc(hidden)]
-pub fn group_attributes_per_name<Ns, Att, Val>(
-    attributes: &[Attribute<Ns, Att, Val>],
-) -> IndexMap<&Att, Vec<&Attribute<Ns, Att, Val>>>
-where
-    Ns: PartialEq + Clone + Debug,
-    Att: PartialEq + Eq + Hash + Clone + Debug,
-    Val: PartialEq + Clone + Debug,
+pub fn group_attributes_per_name(
+    attributes: &[Attribute],
+) -> IndexMap<&Att, Vec<&Attribute>>
 {
-    let mut grouped: IndexMap<&Att, Vec<&Attribute<Ns, Att, Val>>> =
+    let mut grouped: IndexMap<&Att, Vec<&Attribute>> =
         IndexMap::with_capacity(attributes.len());
     for attr in attributes {
         if let Some(existing) = grouped.get_mut(&attr.name) {

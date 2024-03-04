@@ -124,16 +124,10 @@ impl TreePath {
     }
 
     /// find the node using the path of this tree path
-    pub fn find_node_by_path<'a, Ns, Tag, Leaf, Att, Val>(
+    pub fn find_node_by_path<'a>(
         &self,
-        node: &'a Node<Ns, Tag, Leaf, Att, Val>,
-    ) -> Option<&'a Node<Ns, Tag, Leaf, Att, Val>>
-    where
-        Ns: PartialEq + Clone + Debug,
-        Tag: PartialEq + Clone + Debug,
-        Leaf: PartialEq + Clone + Debug,
-        Att: PartialEq + Eq + Hash + Clone + Debug,
-        Val: PartialEq + Clone + Debug,
+        node: &'a Node,
+    ) -> Option<&'a Node>
     {
         let mut path = self.clone();
         traverse_node_by_path(node, &mut path)
@@ -154,16 +148,10 @@ impl From<Vec<usize>> for TreePath {
     }
 }
 
-fn traverse_node_by_path<'a, Ns, Tag, Leaf, Att, Val>(
-    node: &'a Node<Ns, Tag, Leaf, Att, Val>,
+fn traverse_node_by_path<'a>(
+    node: &'a Node,
     path: &mut TreePath,
-) -> Option<&'a Node<Ns, Tag, Leaf, Att, Val>>
-where
-    Ns: PartialEq + Clone + Debug,
-    Tag: PartialEq + Clone + Debug,
-    Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Eq + Hash + Clone + Debug,
-    Val: PartialEq + Clone + Debug,
+) -> Option<&'a Node>
 {
     if path.path.is_empty() {
         Some(node)

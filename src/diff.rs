@@ -8,6 +8,7 @@ use alloc::vec::Vec;
 use core::fmt::Debug;
 use core::hash::Hash;
 use core::{cmp, mem};
+use crate::node::attribute::{Ns, Tag, Att, key, Val};
 
 /// Return the patches needed for `old_node` to have the same DOM as `new_node`
 ///
@@ -48,25 +49,15 @@ use core::{cmp, mem};
 ///     ]
 /// );
 /// ```
-pub fn diff_with_key<'a, Ns, Tag, Leaf, Att, Val>(
-    old_node: &'a Node<Ns, Tag, Leaf, Att, Val>,
-    new_node: &'a Node<Ns, Tag, Leaf, Att, Val>,
-    key: &Att,
-) -> Vec<Patch<'a, Ns, Tag, Leaf, Att, Val>>
-where
-    Ns: PartialEq + Clone + Debug,
-    Tag: PartialEq + Debug,
-    Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Eq + Hash + Clone + Debug,
-    Val: PartialEq + Clone + Debug,
+pub fn diff_with_key<'a>(
+    old_node: &'a Node,
+    new_node: &'a Node,
+) -> Vec<Patch<'a>>
 {
     diff_recursive(
         old_node,
         new_node,
         &TreePath::root(),
-        key,
-        &|_old, _new| false,
-        &|_old, _new| false,
     )
 }
 
@@ -81,57 +72,25 @@ where
 /// Rep fn stands for replace function which decides if the new element should
 /// just replace the old element without diffing
 ///
-pub fn diff_with_functions<'a, Ns, Tag, Leaf, Att, Val, Skip, Rep>(
-    old_node: &'a Node<Ns, Tag, Leaf, Att, Val>,
-    new_node: &'a Node<Ns, Tag, Leaf, Att, Val>,
-    key: &Att,
-    skip: &Skip,
-    rep: &Rep,
-) -> Vec<Patch<'a, Ns, Tag, Leaf, Att, Val>>
-where
-    Ns: PartialEq + Clone + Debug,
-    Tag: PartialEq + Debug,
-    Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Eq + Hash + Clone + Debug,
-    Val: PartialEq + Clone + Debug,
-
-    Skip: Fn(
-        &'a Node<Ns, Tag, Leaf, Att, Val>,
-        &'a Node<Ns, Tag, Leaf, Att, Val>,
-    ) -> bool,
-    Rep: Fn(
-        &'a Node<Ns, Tag, Leaf, Att, Val>,
-        &'a Node<Ns, Tag, Leaf, Att, Val>,
-    ) -> bool,
+pub fn diff_with_functions<'a>(
+    old_node: &'a Node,
+    new_node: &'a Node,
+) -> Vec<Patch<'a>>
 {
-    diff_recursive(old_node, new_node, &TreePath::root(), key, skip, rep)
+    diff_recursive(old_node, new_node, &TreePath::root())
 }
 
-fn is_any_keyed<Ns, Tag, Leaf, Att, Val>(
-    nodes: &[Node<Ns, Tag, Leaf, Att, Val>],
-    key: &Att,
+fn is_any_keyed(
+    nodes: &[Node],
 ) -> bool
-where
-    Ns: PartialEq + Clone + Debug,
-    Tag: PartialEq + Debug,
-    Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Eq + Hash + Clone + Debug,
-    Val: PartialEq + Clone + Debug,
 {
-    nodes.iter().any(|child| is_keyed_node(child, key))
+    nodes.iter().any(|child| is_keyed_node(child))
 }
 
 /// returns true any attributes of this node attribute has key in it
-fn is_keyed_node<Ns, Tag, Leaf, Att, Val>(
-    node: &Node<Ns, Tag, Leaf, Att, Val>,
-    key: &Att,
+fn is_keyed_node(
+    node: &Node,
 ) -> bool
-where
-    Ns: PartialEq + Clone + Debug,
-    Tag: PartialEq + Debug,
-    Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Eq + Hash + Clone + Debug,
-    Val: PartialEq + Clone + Debug,
 {
     if let Some(attributes) = node.attributes() {
         attributes.iter().any(|att| att.name == *key)
@@ -140,32 +99,22 @@ where
     }
 }
 
-fn should_replace<'a, Ns, Tag, Leaf, Att, Val, Rep>(
-    old_node: &'a Node<Ns, Tag, Leaf, Att, Val>,
-    new_node: &'a Node<Ns, Tag, Leaf, Att, Val>,
-    key: &Att,
-    rep: &Rep,
+fn should_replace<'a>(
+    old_node: &'a Node,
+    new_node: &'a Node,
 ) -> bool
-where
-    Ns: PartialEq + Clone + Debug,
-    Tag: PartialEq + Debug,
-    Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Eq + Hash + Clone + Debug,
-    Val: PartialEq + Clone + Debug,
-    Rep: Fn(
-        &'a Node<Ns, Tag, Leaf, Att, Val>,
-        &'a Node<Ns, Tag, Leaf, Att, Val>,
-    ) -> bool,
 {
     // replace if they have different enum variants
     if mem::discriminant(old_node) != mem::discriminant(new_node) {
         return true;
     }
 
+    /*
     // handle explicit replace if the Rep fn evaluates to true
     if rep(old_node, new_node) {
         return true;
     }
+    */
 
     // replace if the old key does not match the new key
     if let (Some(old_key), Some(new_key)) =
@@ -188,36 +137,21 @@ where
 }
 
 /// diff the nodes recursively
-pub fn diff_recursive<'a, Ns, Tag, Leaf, Att, Val, Skip, Rep>(
-    old_node: &'a Node<Ns, Tag, Leaf, Att, Val>,
-    new_node: &'a Node<Ns, Tag, Leaf, Att, Val>,
+pub fn diff_recursive<'a>(
+    old_node: &'a Node,
+    new_node: &'a Node,
     path: &TreePath,
-    key: &Att,
-    skip: &Skip,
-    rep: &Rep,
-) -> Vec<Patch<'a, Ns, Tag, Leaf, Att, Val>>
-where
-    Ns: PartialEq + Clone + Debug,
-    Leaf: PartialEq + Clone + Debug,
-    Tag: PartialEq + Debug,
-    Att: PartialEq + Eq + Hash + Clone + Debug,
-    Val: PartialEq + Clone + Debug,
-    Skip: Fn(
-        &'a Node<Ns, Tag, Leaf, Att, Val>,
-        &'a Node<Ns, Tag, Leaf, Att, Val>,
-    ) -> bool,
-    Rep: Fn(
-        &'a Node<Ns, Tag, Leaf, Att, Val>,
-        &'a Node<Ns, Tag, Leaf, Att, Val>,
-    ) -> bool,
+) -> Vec<Patch<'a>>
 {
+    /*
     // skip diffing if the function evaluates to true
     if skip(old_node, new_node) {
         return vec![];
     }
+    */
 
     // replace node and return early
-    if should_replace(old_node, new_node, key, rep) {
+    if should_replace(old_node, new_node) {
         return vec![Patch::replace_node(
             old_node.tag(),
             path.clone(),
@@ -249,7 +183,7 @@ where
         // We're comparing two element nodes
         (Node::Element(old_element), Node::Element(new_element)) => {
             let patch =
-                diff_element(old_element, new_element, key, path, skip, rep);
+                diff_element(old_element, new_element, path);
             patches.extend(patch);
         }
         (Node::Fragment(old_nodes), Node::Fragment(new_nodes)) => {
@@ -259,10 +193,7 @@ where
                 None,
                 old_nodes,
                 new_nodes,
-                key,
                 &path.backtrack(),
-                skip,
-                rep,
             );
             patches.extend(patch);
         }
@@ -279,28 +210,11 @@ where
     patches
 }
 
-fn diff_element<'a, Ns, Tag, Leaf, Att, Val, Skip, Rep>(
-    old_element: &'a Element<Ns, Tag, Leaf, Att, Val>,
-    new_element: &'a Element<Ns, Tag, Leaf, Att, Val>,
-    key: &Att,
+fn diff_element<'a>(
+    old_element: &'a Element,
+    new_element: &'a Element,
     path: &TreePath,
-    skip: &Skip,
-    rep: &Rep,
-) -> Vec<Patch<'a, Ns, Tag, Leaf, Att, Val>>
-where
-    Ns: PartialEq + Clone + Debug,
-    Tag: PartialEq + Debug,
-    Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Eq + Hash + Clone + Debug,
-    Val: PartialEq + Clone + Debug,
-    Skip: Fn(
-        &'a Node<Ns, Tag, Leaf, Att, Val>,
-        &'a Node<Ns, Tag, Leaf, Att, Val>,
-    ) -> bool,
-    Rep: Fn(
-        &'a Node<Ns, Tag, Leaf, Att, Val>,
-        &'a Node<Ns, Tag, Leaf, Att, Val>,
-    ) -> bool,
+) -> Vec<Patch<'a>>
 {
     let mut patches = create_attribute_patches(old_element, new_element, path);
 
@@ -308,52 +222,29 @@ where
         Some(old_element.tag()),
         &old_element.children,
         &new_element.children,
-        key,
         path,
-        skip,
-        rep,
     );
 
     patches.extend(more_patches);
     patches
 }
 
-fn diff_nodes<'a, Ns, Tag, Leaf, Att, Val, Skip, Rep>(
+fn diff_nodes<'a>(
     old_tag: Option<&'a Tag>,
-    old_children: &'a [Node<Ns, Tag, Leaf, Att, Val>],
-    new_children: &'a [Node<Ns, Tag, Leaf, Att, Val>],
-    key: &Att,
+    old_children: &'a [Node],
+    new_children: &'a [Node],
     path: &TreePath,
-    skip: &Skip,
-    rep: &Rep,
-) -> Vec<Patch<'a, Ns, Tag, Leaf, Att, Val>>
-where
-    Ns: PartialEq + Clone + Debug,
-    Tag: PartialEq + Debug,
-    Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Eq + Hash + Clone + Debug,
-    Val: PartialEq + Clone + Debug,
-    Skip: Fn(
-        &'a Node<Ns, Tag, Leaf, Att, Val>,
-        &'a Node<Ns, Tag, Leaf, Att, Val>,
-    ) -> bool,
-    Rep: Fn(
-        &'a Node<Ns, Tag, Leaf, Att, Val>,
-        &'a Node<Ns, Tag, Leaf, Att, Val>,
-    ) -> bool,
+) -> Vec<Patch<'a>>
 {
     let diff_as_keyed =
-        is_any_keyed(old_children, key) || is_any_keyed(new_children, key);
+        is_any_keyed(old_children) || is_any_keyed(new_children);
 
     if diff_as_keyed {
         let keyed_patches = crate::diff_lis::diff_keyed_nodes(
             old_tag,
             old_children,
             new_children,
-            key,
             path,
-            skip,
-            rep,
         );
         keyed_patches
     } else {
@@ -361,10 +252,7 @@ where
             old_tag,
             old_children,
             new_children,
-            key,
             path,
-            skip,
-            rep,
         );
         non_keyed_patches
     }
@@ -380,29 +268,12 @@ where
 ///
 ///  If there are more children in the new_element than the old_element
 ///  it will be all appended in the old_element.
-fn diff_non_keyed_nodes<'a, Ns, Tag, Leaf, Att, Val, Skip, Rep>(
+fn diff_non_keyed_nodes<'a>(
     old_element_tag: Option<&'a Tag>,
-    old_children: &'a [Node<Ns, Tag, Leaf, Att, Val>],
-    new_children: &'a [Node<Ns, Tag, Leaf, Att, Val>],
-    key: &Att,
+    old_children: &'a [Node],
+    new_children: &'a [Node],
     path: &TreePath,
-    skip: &Skip,
-    rep: &Rep,
-) -> Vec<Patch<'a, Ns, Tag, Leaf, Att, Val>>
-where
-    Ns: PartialEq + Clone + Debug,
-    Tag: PartialEq + Debug,
-    Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Eq + Hash + Clone + Debug,
-    Val: PartialEq + Clone + Debug,
-    Skip: Fn(
-        &'a Node<Ns, Tag, Leaf, Att, Val>,
-        &'a Node<Ns, Tag, Leaf, Att, Val>,
-    ) -> bool,
-    Rep: Fn(
-        &'a Node<Ns, Tag, Leaf, Att, Val>,
-        &'a Node<Ns, Tag, Leaf, Att, Val>,
-    ) -> bool,
+) -> Vec<Patch<'a>>
 {
     let mut patches = vec![];
     let old_child_count = old_children.len();
@@ -418,7 +289,7 @@ where
         let new_child = &new_children.get(index).expect("No new child node");
 
         let more_patches =
-            diff_recursive(old_child, new_child, &child_path, key, skip, rep);
+            diff_recursive(old_child, new_child, &child_path);
         patches.extend(more_patches);
     }
 
@@ -455,17 +326,11 @@ where
 /// Note: The performance bottlenecks
 ///     - allocating new vec
 ///     - merging attributes of the same name
-fn create_attribute_patches<'a, Ns, Tag, Leaf, Att, Val>(
-    old_element: &'a Element<Ns, Tag, Leaf, Att, Val>,
-    new_element: &'a Element<Ns, Tag, Leaf, Att, Val>,
+fn create_attribute_patches<'a>(
+    old_element: &'a Element,
+    new_element: &'a Element,
     path: &TreePath,
-) -> Vec<Patch<'a, Ns, Tag, Leaf, Att, Val>>
-where
-    Ns: PartialEq + Clone + Debug,
-    Leaf: PartialEq + Clone + Debug,
-    Tag: PartialEq + Debug,
-    Att: PartialEq + Eq + Hash + Clone + Debug,
-    Val: PartialEq + Clone + Debug,
+) -> Vec<Patch<'a>>
 {
     let new_attributes = new_element.attributes();
     let old_attributes = old_element.attributes();
@@ -476,8 +341,8 @@ where
     }
     let mut patches = vec![];
 
-    let mut add_attributes: Vec<&Attribute<Ns, Att, Val>> = vec![];
-    let mut remove_attributes: Vec<&Attribute<Ns, Att, Val>> = vec![];
+    let mut add_attributes: Vec<&Attribute> = vec![];
+    let mut remove_attributes: Vec<&Attribute> = vec![];
 
     let new_attributes_grouped = group_attributes_per_name(new_attributes);
     let old_attributes_grouped = group_attributes_per_name(old_attributes);

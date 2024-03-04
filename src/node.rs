@@ -4,6 +4,7 @@ use core::fmt;
 use core::fmt::{Debug, Formatter};
 use core::hash::Hash;
 pub use element::Element;
+use crate::node::attribute::{Ns, Tag, Att, key, Val};
 
 pub(crate) mod attribute;
 mod element;
@@ -22,7 +23,7 @@ mod element;
 /// Val - is the type for the value of the attribute, this will be String, f64, or just another
 /// generics that suits the implementing library which used mt-dom for just dom-diffing purposes
 #[derive(Clone, Debug, PartialEq)]
-pub enum Node<Ns, Tag, Leaf, Att, Val>
+pub enum Node
 where
     Ns: PartialEq + Clone + Debug,
     Tag: PartialEq + Debug,
@@ -31,15 +32,18 @@ where
     Val: PartialEq + Clone + Debug,
 {
     /// Element variant of a virtual node
-    Element(Element<Ns, Tag, Leaf, Att, Val>),
+    Element(Element),
     /// A node containing nodes, this will be unrolled together with the rest of the children of
     /// the node
-    NodeList(Vec<Node<Ns, Tag, Leaf, Att, Val>>),
+    NodeList(Vec<Node>),
     /// A document fragment node, will be created using fragment node and attached to the dom
-    Fragment(Vec<Node<Ns, Tag, Leaf, Att, Val>>),
+    Fragment(Vec<Node>),
     /// A Leaf node
     Leaf(Leaf),
 }
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Leaf;
 
 #[derive(Debug, Copy, Clone)]
 pub enum Error {
@@ -66,7 +70,7 @@ impl fmt::Display for Error {
 ///TODO: use core::error when it will go out of nightly
 impl std::error::Error for Error {}
 
-impl<Ns, Tag, Leaf, Att, Val> Node<Ns, Tag, Leaf, Att, Val>
+impl Node
 where
     Ns: PartialEq + Clone + Debug,
     Tag: PartialEq + Debug,
@@ -76,7 +80,7 @@ where
 {
     /// consume self and return the element if it is an element variant
     /// None if it is a text node
-    pub fn take_element(self) -> Option<Element<Ns, Tag, Leaf, Att, Val>> {
+    pub fn take_element(self) -> Option<Element> {
         match self {
             Node::Element(element) => Some(element),
             _ => None,
@@ -109,7 +113,7 @@ where
     /// Get a mutable reference to the element, if this node is an element node
     pub fn element_mut(
         &mut self,
-    ) -> Option<&mut Element<Ns, Tag, Leaf, Att, Val>> {
+    ) -> Option<&mut Element> {
         match *self {
             Node::Element(ref mut element) => Some(element),
             _ => None,
@@ -117,7 +121,7 @@ where
     }
 
     /// returns a reference to the element if this is an element node
-    pub fn element_ref(&self) -> Option<&Element<Ns, Tag, Leaf, Att, Val>> {
+    pub fn element_ref(&self) -> Option<&Element> {
         match *self {
             Node::Element(ref element) => Some(element),
             _ => None,
@@ -129,7 +133,7 @@ where
     /// This is used in building the nodes in a builder pattern
     pub fn with_children(
         mut self,
-        children: impl IntoIterator<Item = Node<Ns, Tag, Leaf, Att, Val>>,
+        children: impl IntoIterator<Item = Node>,
     ) -> Self {
         if let Some(element) = self.element_mut() {
             element.add_children(children);
@@ -142,7 +146,7 @@ where
     /// add children but not consume self
     pub fn add_children(
         &mut self,
-        children: impl IntoIterator<Item = Node<Ns, Tag, Leaf, Att, Val>>,
+        children: impl IntoIterator<Item = Node>,
     ) -> Result<(), Error> {
         if let Some(element) = self.element_mut() {
             element.add_children(children);
@@ -156,7 +160,7 @@ where
     /// this is used in view building
     pub fn with_attributes(
         mut self,
-        attributes: impl IntoIterator<Item = Attribute<Ns, Att, Val>>,
+        attributes: impl IntoIterator<Item = Attribute>,
     ) -> Self {
         if let Some(elm) = self.element_mut() {
             elm.add_attributes(attributes);
@@ -169,7 +173,7 @@ where
     /// add attributes using a mutable reference to self
     pub fn add_attributes(
         &mut self,
-        attributes: impl IntoIterator<Item = Attribute<Ns, Att, Val>>,
+        attributes: impl IntoIterator<Item = Attribute>,
     ) -> Result<(), Error> {
         if let Some(elm) = self.element_mut() {
             elm.add_attributes(attributes);
@@ -181,7 +185,7 @@ where
 
     /// get the attributes of this node
     /// returns None if it is a text node
-    pub fn attributes(&self) -> Option<&[Attribute<Ns, Att, Val>]> {
+    pub fn attributes(&self) -> Option<&[Attribute]> {
         match *self {
             Node::Element(ref element) => Some(element.attributes()),
             _ => None,
@@ -200,7 +204,7 @@ where
 
     /// return the children of this node if it is an element
     /// returns None if it is a text node
-    pub fn children(&self) -> &[Node<Ns, Tag, Leaf, Att, Val>] {
+    pub fn children(&self) -> &[Node] {
         if let Some(element) = self.element_ref() {
             element.children()
         } else {
@@ -217,7 +221,7 @@ where
     /// returns None if it is a text node
     pub fn children_mut(
         &mut self,
-    ) -> Option<&mut [Node<Ns, Tag, Leaf, Att, Val>]> {
+    ) -> Option<&mut [Node]> {
         if let Some(element) = self.element_mut() {
             Some(element.children_mut())
         } else {
@@ -235,7 +239,7 @@ where
     pub fn swap_remove_child(
         &mut self,
         index: usize,
-    ) -> Node<Ns, Tag, Leaf, Att, Val> {
+    ) -> Node {
         match self {
             Node::Element(element) => element.swap_remove_child(index),
             _ => panic!("text has no child"),
@@ -278,7 +282,7 @@ where
     /// remove the existing attributes and set with the new value
     pub fn set_attributes(
         &mut self,
-        attributes: impl IntoIterator<Item = Attribute<Ns, Att, Val>>,
+        attributes: impl IntoIterator<Item = Attribute>,
     ) -> Result<(), Error> {
         if let Some(elm) = self.element_mut() {
             elm.set_attributes(attributes);
@@ -291,7 +295,7 @@ where
     /// merge to existing attributes if the attribute name already exist
     pub fn merge_attributes(
         mut self,
-        attributes: impl IntoIterator<Item = Attribute<Ns, Att, Val>>,
+        attributes: impl IntoIterator<Item = Attribute>,
     ) -> Self {
         if let Some(elm) = self.element_mut() {
             elm.merge_attributes(attributes);
@@ -322,11 +326,11 @@ where
 ///      );
 /// ```
 #[inline]
-pub fn element<Ns, Tag, Leaf, Att, Val>(
+pub fn element(
     tag: Tag,
-    attrs: impl IntoIterator<Item = Attribute<Ns, Att, Val>>,
-    children: impl IntoIterator<Item = Node<Ns, Tag, Leaf, Att, Val>>,
-) -> Node<Ns, Tag, Leaf, Att, Val>
+    attrs: impl IntoIterator<Item = Attribute>,
+    children: impl IntoIterator<Item = Node>,
+) -> Node
 where
     Ns: PartialEq + Clone + Debug,
     Tag: PartialEq + Debug,
@@ -351,13 +355,13 @@ where
 ///          false
 ///      );
 /// ```
-pub fn element_ns<Ns, Tag, Leaf, Att, Val>(
+pub fn element_ns(
     namespace: Option<Ns>,
     tag: Tag,
-    attrs: impl IntoIterator<Item = Attribute<Ns, Att, Val>>,
-    children: impl IntoIterator<Item = Node<Ns, Tag, Leaf, Att, Val>>,
+    attrs: impl IntoIterator<Item = Attribute>,
+    children: impl IntoIterator<Item = Node>,
     self_closing: bool,
-) -> Node<Ns, Tag, Leaf, Att, Val>
+) -> Node
 where
     Ns: PartialEq + Clone + Debug,
     Tag: PartialEq + Debug,
@@ -369,9 +373,9 @@ where
 }
 
 /// create a leaf node
-pub fn leaf<Ns, Tag, Leaf, Att, Val>(
+pub fn leaf(
     leaf: Leaf,
-) -> Node<Ns, Tag, Leaf, Att, Val>
+) -> Node
 where
     Ns: PartialEq + Clone + Debug,
     Tag: PartialEq + Debug,
@@ -383,9 +387,9 @@ where
 }
 
 /// create a node list
-pub fn node_list<Ns, Tag, Leaf, Att, Val>(
-    nodes: impl IntoIterator<Item = Node<Ns, Tag, Leaf, Att, Val>>,
-) -> Node<Ns, Tag, Leaf, Att, Val>
+pub fn node_list(
+    nodes: impl IntoIterator<Item = Node>,
+) -> Node
 where
     Ns: PartialEq + Clone + Debug,
     Tag: PartialEq + Debug,
@@ -397,9 +401,9 @@ where
 }
 
 /// create fragment node
-pub fn fragment<Ns, Tag, Leaf, Att, Val>(
-    nodes: impl IntoIterator<Item = Node<Ns, Tag, Leaf, Att, Val>>,
-) -> Node<Ns, Tag, Leaf, Att, Val>
+pub fn fragment(
+    nodes: impl IntoIterator<Item = Node>,
+) -> Node
 where
     Ns: PartialEq + Clone + Debug,
     Tag: PartialEq + Debug,

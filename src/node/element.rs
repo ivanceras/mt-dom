@@ -3,6 +3,7 @@ use alloc::vec;
 use alloc::vec::Vec;
 use core::fmt::Debug;
 use core::hash::Hash;
+use crate::node::attribute::{Ns, Tag, Att, key, Val};
 
 /// Represents an element of the virtual node
 /// An element has a generic tag, this tag could be a static str tag, such as usage in html dom.
@@ -18,13 +19,7 @@ use core::hash::Hash;
 /// The namespace is also needed in attributes where namespace are necessary such as `xlink:href`
 /// where the namespace `xlink` is needed in order for the linked element in an svg image to work.
 #[derive(Clone, Debug, PartialEq, Default)]
-pub struct Element<Ns, Tag, Leaf, Att, Val>
-where
-    Ns: PartialEq + Clone + Debug,
-    Tag: PartialEq + Debug,
-    Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Eq + Hash + Clone + Debug,
-    Val: PartialEq + Clone + Debug,
+pub struct Element
 {
     /// namespace of this element,
     /// svg elements requires namespace to render correcly in the browser
@@ -32,27 +27,21 @@ where
     /// the element tag, such as div, a, button
     pub tag: Tag,
     /// attributes for this element
-    pub attrs: Vec<Attribute<Ns, Att, Val>>,
+    pub attrs: Vec<Attribute>,
     /// children elements of this element
-    pub children: Vec<Node<Ns, Tag, Leaf, Att, Val>>,
+    pub children: Vec<Node>,
     /// is the element has a self closing tag
     pub self_closing: bool,
 }
 
-impl<Ns, Tag, Leaf, Att, Val> Element<Ns, Tag, Leaf, Att, Val>
-where
-    Ns: PartialEq + Clone + Debug,
-    Tag: PartialEq + Debug,
-    Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Eq + Hash + Clone + Debug,
-    Val: PartialEq + Clone + Debug,
+impl Element
 {
     /// create a new instance of an element
     pub fn new(
         namespace: Option<Ns>,
         tag: Tag,
-        attrs: impl IntoIterator<Item = Attribute<Ns, Att, Val>>,
-        children: impl IntoIterator<Item = Node<Ns, Tag, Leaf, Att, Val>>,
+        attrs: impl IntoIterator<Item = Attribute>,
+        children: impl IntoIterator<Item = Node>,
         self_closing: bool,
     ) -> Self {
         //unroll the nodelist
@@ -75,7 +64,7 @@ where
     /// add attributes to this element
     pub fn add_attributes(
         &mut self,
-        attrs: impl IntoIterator<Item = Attribute<Ns, Att, Val>>,
+        attrs: impl IntoIterator<Item = Attribute>,
     ) {
         self.attrs.extend(attrs)
     }
@@ -83,18 +72,18 @@ where
     /// add children virtual node to this element
     pub fn add_children(
         &mut self,
-        children: impl IntoIterator<Item = Node<Ns, Tag, Leaf, Att, Val>>,
+        children: impl IntoIterator<Item = Node>,
     ) {
         self.children.extend(children.into_iter());
     }
 
     /// returns a refernce to the children of this node
-    pub fn children(&self) -> &[Node<Ns, Tag, Leaf, Att, Val>] {
+    pub fn children(&self) -> &[Node] {
         &self.children
     }
 
     /// returns a mutable reference to the children of this node
-    pub fn children_mut(&mut self) -> &mut [Node<Ns, Tag, Leaf, Att, Val>] {
+    pub fn children_mut(&mut self) -> &mut [Node] {
         &mut self.children
     }
 
@@ -108,7 +97,7 @@ where
     pub fn swap_remove_child(
         &mut self,
         index: usize,
-    ) -> Node<Ns, Tag, Leaf, Att, Val> {
+    ) -> Node {
         self.children.swap_remove(index)
     }
 
@@ -126,17 +115,17 @@ where
     }
 
     /// consume self and return the children
-    pub fn take_children(self) -> Vec<Node<Ns, Tag, Leaf, Att, Val>> {
+    pub fn take_children(self) -> Vec<Node> {
         self.children
     }
 
     /// return a reference to the attribute of this element
-    pub fn attributes(&self) -> &[Attribute<Ns, Att, Val>] {
+    pub fn attributes(&self) -> &[Attribute] {
         &self.attrs
     }
 
     /// consume self and return the attributes
-    pub fn take_attributes(self) -> Vec<Attribute<Ns, Att, Val>> {
+    pub fn take_attributes(self) -> Vec<Attribute> {
         self.attrs
     }
 
@@ -161,15 +150,15 @@ where
     }
 
     /// remove the attributes with this key
-    pub fn remove_attribute(&mut self, key: &Att) {
-        self.attrs.retain(|att| att.name != *key)
+    pub fn remove_attribute(&mut self, name: &Att) {
+        self.attrs.retain(|att| att.name != *name)
     }
 
     /// remove the existing values of this attribute
     /// and add the new values
     pub fn set_attributes(
         &mut self,
-        attrs: impl IntoIterator<Item = Attribute<Ns, Att, Val>>,
+        attrs: impl IntoIterator<Item = Attribute>,
     ) {
         for attr in attrs {
             self.remove_attribute(&attr.name);
@@ -180,7 +169,7 @@ where
     /// merge to existing attributes if it exist
     pub fn merge_attributes(
         &mut self,
-        new_attrs: impl IntoIterator<Item = Attribute<Ns, Att, Val>>,
+        new_attrs: impl IntoIterator<Item = Attribute>,
     ) {
         for new_att in new_attrs {
             if let Some(existing_attr) =

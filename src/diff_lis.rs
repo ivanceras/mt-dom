@@ -7,39 +7,20 @@ use alloc::vec;
 use alloc::vec::Vec;
 use core::fmt::Debug;
 use core::hash::Hash;
+use crate::node::attribute::{Ns, Tag, Att, key, Val};
 
-pub fn diff_keyed_nodes<'a, Ns, Tag, Leaf, Att, Val, Skip, Rep>(
+pub fn diff_keyed_nodes<'a>(
     old_tag: Option<&'a Tag>,
-    old_children: &'a [Node<Ns, Tag, Leaf, Att, Val>],
-    new_children: &'a [Node<Ns, Tag, Leaf, Att, Val>],
-    key: &Att,
+    old_children: &'a [Node],
+    new_children: &'a [Node],
     path: &TreePath,
-    skip: &Skip,
-    rep: &Rep,
-) -> Vec<Patch<'a, Ns, Tag, Leaf, Att, Val>>
-where
-    Ns: PartialEq + Clone + Debug,
-    Tag: PartialEq + Debug,
-    Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Eq + Hash + Clone + Debug,
-    Val: PartialEq + Clone + Debug,
-    Skip: Fn(
-        &'a Node<Ns, Tag, Leaf, Att, Val>,
-        &'a Node<Ns, Tag, Leaf, Att, Val>,
-    ) -> bool,
-    Rep: Fn(
-        &'a Node<Ns, Tag, Leaf, Att, Val>,
-        &'a Node<Ns, Tag, Leaf, Att, Val>,
-    ) -> bool,
+) -> Vec<Patch<'a>>
 {
     let (patches, offsets) = diff_keyed_ends(
         old_tag,
         old_children,
         new_children,
-        key,
         path,
-        skip,
-        rep,
     );
 
     let (left_offset, right_offset) = match offsets {
@@ -119,42 +100,22 @@ where
             old_middle,
             new_middle,
             left_offset,
-            key,
             path,
-            skip,
-            rep,
         );
         all_patches.extend(patches);
     }
     all_patches
 }
 
-fn diff_keyed_ends<'a, Ns, Tag, Leaf, Att, Val, Skip, Rep>(
+fn diff_keyed_ends<'a>(
     old_tag: Option<&'a Tag>,
-    old_children: &'a [Node<Ns, Tag, Leaf, Att, Val>],
-    new_children: &'a [Node<Ns, Tag, Leaf, Att, Val>],
-    key: &Att,
+    old_children: &'a [Node],
+    new_children: &'a [Node],
     path: &TreePath,
-    skip: &Skip,
-    rep: &Rep,
 ) -> (
-    Vec<Patch<'a, Ns, Tag, Leaf, Att, Val>>,
+    Vec<Patch<'a>>,
     Option<(usize, usize)>,
 )
-where
-    Ns: PartialEq + Clone + Debug,
-    Tag: PartialEq + Debug,
-    Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Eq + Hash + Clone + Debug,
-    Val: PartialEq + Clone + Debug,
-    Skip: Fn(
-        &'a Node<Ns, Tag, Leaf, Att, Val>,
-        &'a Node<Ns, Tag, Leaf, Att, Val>,
-    ) -> bool,
-    Rep: Fn(
-        &'a Node<Ns, Tag, Leaf, Att, Val>,
-        &'a Node<Ns, Tag, Leaf, Att, Val>,
-    ) -> bool,
 {
     // keep track of the old index that has been matched already
     let mut old_index_matched = vec![];
@@ -170,7 +131,7 @@ where
         }
         let child_path = path.traverse(index);
         // diff the children and add to patches
-        let patches = diff_recursive(old, new, &child_path, key, skip, rep);
+        let patches = diff_recursive(old, new, &child_path);
         all_patches.extend(patches);
         old_index_matched.push(index);
         left_offset += 1;
@@ -219,7 +180,7 @@ where
             break;
         }
         let child_path = path.traverse(old_index);
-        let patches = diff_recursive(old, new, &child_path, key, skip, rep);
+        let patches = diff_recursive(old, new, &child_path);
         all_patches.extend(patches);
         right_offset += 1;
     }
@@ -228,29 +189,12 @@ where
 }
 
 /// derived from dioxus core/src/diff.rs
-fn diff_keyed_middle<'a, Ns, Tag, Leaf, Att, Val, Skip, Rep>(
-    old_children: &'a [Node<Ns, Tag, Leaf, Att, Val>],
-    new_children: &'a [Node<Ns, Tag, Leaf, Att, Val>],
+fn diff_keyed_middle<'a>(
+    old_children: &'a [Node],
+    new_children: &'a [Node],
     left_offset: usize,
-    key: &Att,
     path: &TreePath,
-    skip: &Skip,
-    rep: &Rep,
-) -> Vec<Patch<'a, Ns, Tag, Leaf, Att, Val>>
-where
-    Ns: PartialEq + Clone + Debug,
-    Tag: PartialEq + Debug,
-    Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Eq + Hash + Clone + Debug,
-    Val: PartialEq + Clone + Debug,
-    Skip: Fn(
-        &'a Node<Ns, Tag, Leaf, Att, Val>,
-        &'a Node<Ns, Tag, Leaf, Att, Val>,
-    ) -> bool,
-    Rep: Fn(
-        &'a Node<Ns, Tag, Leaf, Att, Val>,
-        &'a Node<Ns, Tag, Leaf, Att, Val>,
-    ) -> bool,
+) -> Vec<Patch<'a>>
 {
     let mut all_patches = vec![];
 
@@ -373,9 +317,6 @@ where
             &old_children[new_index_to_old_index[*idx]],
             &new_children[*idx],
             path,
-            key,
-            skip,
-            rep,
         );
         all_patches.extend(patches);
     }
@@ -396,9 +337,6 @@ where
                     &old_children[old_index],
                     new_node,
                     path,
-                    key,
-                    skip,
-                    rep,
                 );
                 all_patches.extend(patches);
 
@@ -442,9 +380,6 @@ where
                     &old_children[old_index],
                     new_node,
                     path,
-                    key,
-                    skip,
-                    rep,
                 );
                 all_patches.extend(patches);
             }
@@ -476,9 +411,6 @@ where
                     &old_children[old_index],
                     new_node,
                     path,
-                    key,
-                    skip,
-                    rep,
                 );
                 all_patches.extend(patches);
                 node_paths.push(path.traverse(left_offset + old_index));
