@@ -107,12 +107,21 @@ fn should_replace<'a>(
         return true;
     }
 
-    /*
+    let replace = |_old, new: &Node| {
+        if let Some(attributes) = new.attributes() {
+            attributes
+                .iter()
+                .filter(|a| a.name == "replace")
+                .flat_map(|a| a.value())
+                .any(|v| *v == "true")
+        } else {
+            false
+        }
+    };
     // handle explicit replace if the Rep fn evaluates to true
-    if rep(old_node, new_node) {
+    if replace(old_node, new_node) {
         return true;
     }
-    */
 
     // replace if the old key does not match the new key
     if let (Some(old_key), Some(new_key)) =
@@ -141,12 +150,21 @@ pub fn diff_recursive<'a>(
     path: &TreePath,
 ) -> Vec<Patch<'a>>
 {
-    /*
+    let skip = |_old, new: &Node| {
+        if let Some(attributes) = new.attributes() {
+            attributes
+                .iter()
+                .filter(|a| a.name == "skip")
+                .flat_map(|a| a.value())
+                .any(|v| *v == "true")
+        } else {
+            false
+        }
+    };
     // skip diffing if the function evaluates to true
     if skip(old_node, new_node) {
         return vec![];
     }
-    */
 
     // replace node and return early
     if should_replace(old_node, new_node) {

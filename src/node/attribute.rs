@@ -7,7 +7,7 @@ use indexmap::IndexMap;
 pub type Ns = &'static str;
 pub type Tag = &'static str;
 pub type Att = &'static str;
-pub type Val = u32;
+pub type Val = String;
 
 pub static KEY: &Att = &"key";
 

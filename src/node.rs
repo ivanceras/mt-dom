@@ -35,8 +35,7 @@ pub enum Node
     Leaf(Leaf),
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub struct Leaf;
+pub type Leaf = &'static str;
 
 #[derive(Debug, Copy, Clone)]
 pub enum Error {

@@ -172,14 +172,6 @@ mod tests {
     use alloc::string::String;
     use alloc::string::ToString;
 
-    type MyNode = Node<
-        &'static str,
-        &'static str,
-        &'static str,
-        &'static str,
-        &'static str,
-    >;
-
     #[test]
     fn test_traverse() {
         let path = TreePath::from([0]);
@@ -187,8 +179,8 @@ mod tests {
         assert_eq!(path.traverse(1), TreePath::from([0, 1]));
     }
 
-    fn sample_node() -> MyNode {
-        let node: MyNode = element(
+    fn sample_node() -> Node {
+        let node: Node = element(
             "div",
             vec![attr("class", "[]"), attr("id", "0")],
             vec![
@@ -236,7 +228,7 @@ mod tests {
 
     // index is the index of this code with respect to it's sibling
     fn assert_traverse_match(
-        node: &MyNode,
+        node: &Node,
         node_idx: &mut usize,
         path: Vec<usize>,
     ) {
@@ -253,7 +245,7 @@ mod tests {
     }
 
     fn traverse_tree_path(
-        node: &MyNode,
+        node: &Node,
         path: &TreePath,
         node_idx: &mut usize,
     ) {
