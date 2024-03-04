@@ -1,11 +1,9 @@
 //! diff with longest increasing subsequence
 
-use crate::diff::diff_recursive;
-use crate::node::attribute::{Tag, Val, KEY};
-use crate::{Node, Patch, TreePath};
-use alloc::collections::BTreeMap;
-use alloc::vec;
-use alloc::vec::Vec;
+use super::diff::diff_recursive;
+use super::{Tag, Val, KEY};
+use super::{Node, Patch, TreePath};
+use std::collections::BTreeMap;
 
 pub fn diff_keyed_nodes<'a>(
     old_tag: Option<&'a Tag>,

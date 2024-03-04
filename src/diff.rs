@@ -1,12 +1,10 @@
 //! provides diffing algorithm which returns patches
-use crate::node::attribute::{Tag, KEY};
-use crate::{
-    node::attribute::group_attributes_per_name, Attribute, Element, Node,
+use super::{Tag, KEY};
+use super::{
+    group_attributes_per_name, Attribute, Element, Node,
     Patch, TreePath,
 };
-use alloc::vec;
-use alloc::vec::Vec;
-use core::{cmp, mem};
+use std::{cmp, mem};
 
 /// Return the patches needed for `old_node` to have the same DOM as `new_node`
 ///

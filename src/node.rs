@@ -1,8 +1,7 @@
-use crate::node::attribute::{Att, Ns, Tag, Val};
-use alloc::vec::Vec;
+use super::{Att, Ns, Tag, Val};
 pub use attribute::Attribute;
-use core::fmt;
-use core::fmt::{Debug, Formatter};
+use std::fmt;
+use std::fmt::{Debug, Formatter};
 pub use element::Element;
 
 pub(crate) mod attribute;

@@ -1,14 +1,17 @@
 #![allow(clippy::type_complexity)]
-use alloc::vec;
-use alloc::vec::Vec;
-use core::fmt::Debug;
+use std::fmt::Debug;
 use indexmap::IndexMap;
 
+/// The type of the Namspace
 pub type Ns = &'static str;
+/// The type of the Tag
 pub type Tag = &'static str;
+/// The type of Attribute Name
 pub type Att = &'static str;
+/// The type of Value;
 pub type Val = String;
 
+/// The key attribute
 pub static KEY: &Att = &"key";
 
 /// These are the plain attributes of an element

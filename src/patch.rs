@@ -1,9 +1,8 @@
 //! patch module
 
-use crate::node::attribute::Tag;
-use crate::{Attribute, Node};
-use alloc::vec::Vec;
-use core::fmt::Debug;
+use super::Tag;
+use super::{Attribute, Node};
+use std::fmt::Debug;
 
 pub use tree_path::TreePath;
 
