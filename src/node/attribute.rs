@@ -2,7 +2,6 @@
 use alloc::vec;
 use alloc::vec::Vec;
 use core::fmt::Debug;
-use core::hash::Hash;
 use indexmap::IndexMap;
 
 pub type Ns = &'static str;
@@ -10,7 +9,7 @@ pub type Tag = &'static str;
 pub type Att = &'static str;
 pub type Val = u32;
 
-pub static key: &Att = &"key";
+pub static KEY: &Att = &"key";
 
 /// These are the plain attributes of an element
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -115,7 +114,7 @@ pub fn merge_attributes_of_same_name(
                 &att.name,
                 Attribute {
                     namespace: None,
-                    name: att.name.clone(),
+                    name: att.name,
                     value: att.value.clone(),
                 },
             );

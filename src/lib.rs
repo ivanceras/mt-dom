@@ -1,4 +1,3 @@
-/*
 #![deny(
     warnings,
     missing_docs,
@@ -9,7 +8,6 @@
     unstable_features,
     unused_import_braces
 )]
-*/
 #![forbid(unsafe_code)]
 #![deny(clippy::all)]
 #![allow(clippy::type_complexity)]

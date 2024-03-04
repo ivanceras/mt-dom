@@ -5,9 +5,7 @@ use crate::{Node, Patch, TreePath};
 use alloc::collections::BTreeMap;
 use alloc::vec;
 use alloc::vec::Vec;
-use core::fmt::Debug;
-use core::hash::Hash;
-use crate::node::attribute::{Ns, Tag, Att, key, Val};
+use crate::node::attribute::{Tag, KEY, Val};
 
 pub fn diff_keyed_nodes<'a>(
     old_tag: Option<&'a Tag>,
@@ -126,7 +124,7 @@ fn diff_keyed_ends<'a>(
         old_children.iter().zip(new_children.iter()).enumerate()
     {
         // abort early if we run into nodes with different keys
-        if old.attribute_value(key) != new.attribute_value(key) {
+        if old.attribute_value(KEY) != new.attribute_value(KEY) {
             break;
         }
         let child_path = path.traverse(index);
@@ -175,7 +173,7 @@ fn diff_keyed_ends<'a>(
         let old_index = old_children.len() - index - 1;
         // break if already matched this old_index or did not matched key
         if old_index_matched.contains(&old_index)
-            || old.attribute_value(key) != new.attribute_value(key)
+            || old.attribute_value(KEY) != new.attribute_value(KEY)
         {
             break;
         }
@@ -200,12 +198,12 @@ fn diff_keyed_middle<'a>(
 
     let old_children_keys: Vec<_> = old_children
         .iter()
-        .map(|c| c.attribute_value(key))
+        .map(|c| c.attribute_value(KEY))
         .collect();
 
     let new_children_keys: Vec<_> = new_children
         .iter()
-        .map(|c| c.attribute_value(key))
+        .map(|c| c.attribute_value(KEY))
         .collect();
 
     debug_assert_ne!(new_children_keys.first(), old_children_keys.first());
@@ -225,7 +223,7 @@ fn diff_keyed_middle<'a>(
     let new_index_to_old_index: Vec<usize> = new_children
         .iter()
         .map(|new| {
-            if let Some(new_key) = new.attribute_value(key) {
+            if let Some(new_key) = new.attribute_value(KEY) {
                 let index = old_key_to_old_index.iter().find_map(
                     |(old_index, old_key)| {
                         if new_key == **old_key {
@@ -269,7 +267,7 @@ fn diff_keyed_middle<'a>(
 
     // remove any old children that are not shared
     for (index, old_child) in old_children.iter().enumerate() {
-        if let Some(old_key) = old_child.attribute_value(key) {
+        if let Some(old_key) = old_child.attribute_value(KEY) {
             if !shared_keys.contains(&old_key) {
                 let patch = Patch::remove_node(
                     old_child.tag(),

@@ -5,10 +5,8 @@ use crate::{
 };
 use alloc::vec;
 use alloc::vec::Vec;
-use core::fmt::Debug;
-use core::hash::Hash;
 use core::{cmp, mem};
-use crate::node::attribute::{Ns, Tag, Att, key, Val};
+use crate::node::attribute::{Tag, KEY};
 
 /// Return the patches needed for `old_node` to have the same DOM as `new_node`
 ///
@@ -93,7 +91,7 @@ fn is_keyed_node(
 ) -> bool
 {
     if let Some(attributes) = node.attributes() {
-        attributes.iter().any(|att| att.name == *key)
+        attributes.iter().any(|att| att.name == *KEY)
     } else {
         false
     }
@@ -118,7 +116,7 @@ fn should_replace<'a>(
 
     // replace if the old key does not match the new key
     if let (Some(old_key), Some(new_key)) =
-        (old_node.attribute_value(key), new_node.attribute_value(key))
+        (old_node.attribute_value(KEY), new_node.attribute_value(KEY))
     {
         if old_key != new_key {
             return true;

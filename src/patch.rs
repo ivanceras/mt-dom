@@ -3,9 +3,7 @@
 use crate::{Attribute, Node};
 use alloc::vec::Vec;
 use core::fmt::Debug;
-use core::hash::Hash;
-use crate::node::attribute::{Ns, Tag, Att, key, Val};
-use crate::node::Leaf;
+use crate::node::attribute::Tag;
 
 pub use tree_path::TreePath;
 
@@ -63,12 +61,6 @@ mod tree_path;
 /// 2 - is the `nav` element since it is the 3rd node in the `footer` element.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Patch<'a>
-where
-    Ns: PartialEq + Clone + Debug,
-    Tag: PartialEq + Debug,
-    Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Eq + Hash + Clone + Debug,
-    Val: PartialEq + Clone + Debug,
 {
     /// the tag of the node at patch_path
     pub tag: Option<&'a Tag>,
@@ -81,12 +73,6 @@ where
 /// the patch variant
 #[derive(Clone, Debug, PartialEq)]
 pub enum PatchType<'a>
-where
-    Ns: PartialEq + Clone + Debug,
-    Tag: PartialEq + Debug,
-    Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Eq + Hash + Clone + Debug,
-    Val: PartialEq + Clone + Debug,
 {
     /// insert the nodes before the node at patch_path
     InsertBeforeNode {
@@ -141,12 +127,6 @@ where
 }
 
 impl<'a> Patch<'a>
-where
-    Ns: PartialEq + Clone + Debug,
-    Tag: PartialEq + Debug,
-    Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Eq + Hash + Clone + Debug,
-    Val: PartialEq + Clone + Debug,
 {
     /// return the path to traverse for this patch to get to the target Node
     pub fn path(&self) -> &TreePath {

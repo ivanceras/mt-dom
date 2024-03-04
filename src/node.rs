@@ -2,9 +2,8 @@ use alloc::vec::Vec;
 pub use attribute::Attribute;
 use core::fmt;
 use core::fmt::{Debug, Formatter};
-use core::hash::Hash;
 pub use element::Element;
-use crate::node::attribute::{Ns, Tag, Att, key, Val};
+use crate::node::attribute::{Ns, Tag, Att, Val};
 
 pub(crate) mod attribute;
 mod element;
@@ -24,12 +23,6 @@ mod element;
 /// generics that suits the implementing library which used mt-dom for just dom-diffing purposes
 #[derive(Clone, Debug, PartialEq)]
 pub enum Node
-where
-    Ns: PartialEq + Clone + Debug,
-    Tag: PartialEq + Debug,
-    Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Eq + Hash + Clone + Debug,
-    Val: PartialEq + Clone + Debug,
 {
     /// Element variant of a virtual node
     Element(Element),
@@ -42,7 +35,7 @@ where
     Leaf(Leaf),
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Leaf;
 
 #[derive(Debug, Copy, Clone)]
@@ -71,12 +64,6 @@ impl fmt::Display for Error {
 impl std::error::Error for Error {}
 
 impl Node
-where
-    Ns: PartialEq + Clone + Debug,
-    Tag: PartialEq + Debug,
-    Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Eq + Hash + Clone + Debug,
-    Val: PartialEq + Clone + Debug,
 {
     /// consume self and return the element if it is an element variant
     /// None if it is a text node
@@ -331,12 +318,6 @@ pub fn element(
     attrs: impl IntoIterator<Item = Attribute>,
     children: impl IntoIterator<Item = Node>,
 ) -> Node
-where
-    Ns: PartialEq + Clone + Debug,
-    Tag: PartialEq + Debug,
-    Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Eq + Hash + Clone + Debug,
-    Val: PartialEq + Clone + Debug,
 {
     element_ns(None, tag, attrs, children, false)
 }
@@ -362,12 +343,6 @@ pub fn element_ns(
     children: impl IntoIterator<Item = Node>,
     self_closing: bool,
 ) -> Node
-where
-    Ns: PartialEq + Clone + Debug,
-    Tag: PartialEq + Debug,
-    Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Eq + Hash + Clone + Debug,
-    Val: PartialEq + Clone + Debug,
 {
     Node::Element(Element::new(namespace, tag, attrs, children, self_closing))
 }
@@ -376,12 +351,6 @@ where
 pub fn leaf(
     leaf: Leaf,
 ) -> Node
-where
-    Ns: PartialEq + Clone + Debug,
-    Tag: PartialEq + Debug,
-    Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Eq + Hash + Clone + Debug,
-    Val: PartialEq + Clone + Debug,
 {
     Node::Leaf(leaf)
 }
@@ -390,12 +359,6 @@ where
 pub fn node_list(
     nodes: impl IntoIterator<Item = Node>,
 ) -> Node
-where
-    Ns: PartialEq + Clone + Debug,
-    Tag: PartialEq + Debug,
-    Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Eq + Hash + Clone + Debug,
-    Val: PartialEq + Clone + Debug,
 {
     Node::NodeList(nodes.into_iter().collect())
 }
@@ -404,12 +367,6 @@ where
 pub fn fragment(
     nodes: impl IntoIterator<Item = Node>,
 ) -> Node
-where
-    Ns: PartialEq + Clone + Debug,
-    Tag: PartialEq + Debug,
-    Leaf: PartialEq + Clone + Debug,
-    Att: PartialEq + Eq + Hash + Clone + Debug,
-    Val: PartialEq + Clone + Debug,
 {
     Node::Fragment(nodes.into_iter().collect())
 }

@@ -2,8 +2,7 @@ use crate::node::{Attribute, Node};
 use alloc::vec;
 use alloc::vec::Vec;
 use core::fmt::Debug;
-use core::hash::Hash;
-use crate::node::attribute::{Ns, Tag, Att, key, Val};
+use crate::node::attribute::{Ns, Tag, Att, Val};
 
 /// Represents an element of the virtual node
 /// An element has a generic tag, this tag could be a static str tag, such as usage in html dom.
