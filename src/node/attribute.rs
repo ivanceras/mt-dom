@@ -74,9 +74,9 @@ impl Attribute
 ///     attr("class", "container");
 /// ```
 #[inline]
-pub fn attr(name: Att, value: Val) -> Attribute
+pub fn attr(name: Att, value: impl Into<Val>) -> Attribute
 {
-    attr_ns(None, name, value)
+    attr_ns(None, name, value.into())
 }
 
 /// Create an attribute with namespace

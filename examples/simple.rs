@@ -8,8 +8,8 @@ fn main() {
         element(
             "div",
             vec![
-                attr("class", "container".into()),
-                attr("id", "elm1".into()),
+                attr("class", "container"),
+                attr("id", "elm"),
             ],
             vec![],
         );
@@ -19,8 +19,8 @@ fn main() {
         element(
             "div",
             vec![
-                attr("class", "container".into()),
-                attr("id", "elm2".into()),
+                attr("class", "container"),
+                attr("id", "elm2"),
             ],
             vec![],
         );
