@@ -161,7 +161,7 @@ fn there_are_2_exact_same_keys_in_the_old() {
 }
 
 //TODO: currently can not deal with repeated keys
-//#[test]
+#[test]
 fn there_are_2_exact_same_keys_in_the_new() {
     let old: MyNode = element(
         "main",
@@ -191,12 +191,12 @@ fn there_are_2_exact_same_keys_in_the_new() {
         vec![
             Patch::replace_node(
                 None,
-                TreePath::new(vec![0, 0]),
+                TreePath::new([0, 0]),
                 vec![&leaf("1")]
             ),
-            Patch::insert_before_node(
+            Patch::insert_after_node(
                 Some(&"div"),
-                TreePath::new(vec![1]),
+                TreePath::new([0]),
                 vec![&element("div", vec![attr("key", "1")], vec![leaf("1")])]
             ),
         ]
