@@ -1,7 +1,5 @@
 use mt_dom::*;
-pub type MyNode =
-    Node<&'static str, &'static str, &'static str, &'static str, &'static str>;
 fn main() {
-    let div: MyNode = element("div", [attr("key", "1")], [leaf("hello")]);
+    let div: Node = element("div", [attr("key", "1".into())], [leaf("hello")]);
     println!("{:#?}", div);
 }

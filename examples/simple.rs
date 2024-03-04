@@ -1,55 +1,30 @@
 use core::fmt;
 use mt_dom::*;
 
-#[derive(Clone)]
-enum Value<'a> {
-    Simple(String),
-    Callback(&'a dyn FnMut(usize) -> String),
-}
-
-impl<'a> PartialEq for Value<'a> {
-    fn eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (Value::Simple(this), Value::Simple(o)) => this == o,
-            _ => true,
-        }
-    }
-}
-
-impl<'a> fmt::Debug for Value<'a> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Value::Callback(_) => f.debug_tuple("Callback").finish(),
-            Value::Simple(s) => f.debug_tuple("Simple").field(s).finish(),
-        }
-    }
-}
 
 fn main() {
     println!("simple..");
-    let elm1: Node<&'static str, &'static str, (), &'static str, Value> =
+    let elm1: Node =
         element(
             "div",
             vec![
-                attr("class", Value::Simple("container".to_string())),
-                attr("id", Value::Simple("elm1".to_string())),
-                attr("click", Value::Callback(&|x: usize| x.to_string())),
+                attr("class", "container".into()),
+                attr("id", "elm1".into()),
             ],
             vec![],
         );
     println!("elm1: {:#?}", elm1);
 
-    let elm2: Node<&'static str, &'static str, (), &'static str, Value> =
+    let elm2: Node =
         element(
             "div",
             vec![
-                attr("class", Value::Simple("container".to_string())),
-                attr("id", Value::Simple("elm2".to_string())),
-                attr("click", Value::Callback(&|x: usize| x.to_string())),
+                attr("class", "container".into()),
+                attr("id", "elm2".into()),
             ],
             vec![],
         );
 
-    let diff = diff_with_key(&elm1, &elm2, &"key");
+    let diff = diff_with_key(&elm1, &elm2);
     println!("patches: {:#?}", diff);
 }
