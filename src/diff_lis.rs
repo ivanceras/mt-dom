@@ -228,7 +228,7 @@ where
 }
 
 /// derived from dioxus core/src/diff.rs
-fn diff_keyed_middle<'a, 'b, Ns, Tag, Leaf, Att, Val, Skip, Rep>(
+fn diff_keyed_middle<'a, Ns, Tag, Leaf, Att, Val, Skip, Rep>(
     old_children: &'a [Node<Ns, Tag, Leaf, Att, Val>],
     new_children: &'a [Node<Ns, Tag, Leaf, Att, Val>],
     left_offset: usize,

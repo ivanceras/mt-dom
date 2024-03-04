@@ -140,7 +140,7 @@ where
     }
 }
 
-fn should_replace<'a, 'b, Ns, Tag, Leaf, Att, Val, Rep>(
+fn should_replace<'a, Ns, Tag, Leaf, Att, Val, Rep>(
     old_node: &'a Node<Ns, Tag, Leaf, Att, Val>,
     new_node: &'a Node<Ns, Tag, Leaf, Att, Val>,
     key: &Att,
@@ -188,7 +188,7 @@ where
 }
 
 /// diff the nodes recursively
-pub fn diff_recursive<'a, 'b, Ns, Tag, Leaf, Att, Val, Skip, Rep>(
+pub fn diff_recursive<'a, Ns, Tag, Leaf, Att, Val, Skip, Rep>(
     old_node: &'a Node<Ns, Tag, Leaf, Att, Val>,
     new_node: &'a Node<Ns, Tag, Leaf, Att, Val>,
     path: &TreePath,
