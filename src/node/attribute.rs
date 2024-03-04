@@ -13,8 +13,7 @@ pub static KEY: &Att = &"key";
 
 /// These are the plain attributes of an element
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Attribute
-{
+pub struct Attribute {
     /// namespace of an attribute.
     /// This is specifically used by svg attributes
     /// such as xlink-href
@@ -26,8 +25,7 @@ pub struct Attribute
     pub value: Vec<Val>,
 }
 
-impl Attribute
-{
+impl Attribute {
     /// create a plain attribute with namespace
     pub fn new(namespace: Option<Ns>, name: Att, value: Val) -> Self {
         Attribute {
@@ -73,8 +71,7 @@ impl Attribute
 /// let class: Attribute = attr("class", "container");
 /// ```
 #[inline]
-pub fn attr(name: Att, value: impl Into<Val>) -> Attribute
-{
+pub fn attr(name: Att, value: impl Into<Val>) -> Attribute {
     attr_ns(None, name, value)
 }
 
@@ -90,8 +87,7 @@ pub fn attr_ns(
     namespace: Option<Ns>,
     name: Att,
     value: impl Into<Val>,
-) -> Attribute
-{
+) -> Attribute {
     Attribute::new(namespace, name, value.into())
 }
 
@@ -99,8 +95,7 @@ pub fn attr_ns(
 #[doc(hidden)]
 pub fn merge_attributes_of_same_name(
     attributes: &[&Attribute],
-) -> Vec<Attribute>
-{
+) -> Vec<Attribute> {
     //let mut merged: Vec<Attribute> = vec![];
     let mut merged: IndexMap<&Att, Attribute> =
         IndexMap::with_capacity(attributes.len());
@@ -125,8 +120,7 @@ pub fn merge_attributes_of_same_name(
 #[doc(hidden)]
 pub fn group_attributes_per_name(
     attributes: &[Attribute],
-) -> IndexMap<&Att, Vec<&Attribute>>
-{
+) -> IndexMap<&Att, Vec<&Attribute>> {
     let mut grouped: IndexMap<&Att, Vec<&Attribute>> =
         IndexMap::with_capacity(attributes.len());
     for attr in attributes {

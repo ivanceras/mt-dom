@@ -1,9 +1,9 @@
 //! patch module
 
+use crate::node::attribute::Tag;
 use crate::{Attribute, Node};
 use alloc::vec::Vec;
 use core::fmt::Debug;
-use crate::node::attribute::Tag;
 
 pub use tree_path::TreePath;
 
@@ -60,8 +60,7 @@ mod tree_path;
 /// 1 - is the `footer` element since it is the 2nd element of the body.
 /// 2 - is the `nav` element since it is the 3rd node in the `footer` element.
 #[derive(Clone, Debug, PartialEq)]
-pub struct Patch<'a>
-{
+pub struct Patch<'a> {
     /// the tag of the node at patch_path
     pub tag: Option<&'a Tag>,
     /// the path to traverse to get to the target element
@@ -72,8 +71,7 @@ pub struct Patch<'a>
 
 /// the patch variant
 #[derive(Clone, Debug, PartialEq)]
-pub enum PatchType<'a>
-{
+pub enum PatchType<'a> {
     /// insert the nodes before the node at patch_path
     InsertBeforeNode {
         /// the nodes to be inserted before patch_path
@@ -126,8 +124,7 @@ pub enum PatchType<'a>
     },
 }
 
-impl<'a> Patch<'a>
-{
+impl<'a> Patch<'a> {
     /// return the path to traverse for this patch to get to the target Node
     pub fn path(&self) -> &TreePath {
         &self.patch_path

@@ -123,11 +123,7 @@ impl TreePath {
     }
 
     /// find the node using the path of this tree path
-    pub fn find_node_by_path<'a>(
-        &self,
-        node: &'a Node,
-    ) -> Option<&'a Node>
-    {
+    pub fn find_node_by_path<'a>(&self, node: &'a Node) -> Option<&'a Node> {
         let mut path = self.clone();
         traverse_node_by_path(node, &mut path)
     }
@@ -150,8 +146,7 @@ impl From<Vec<usize>> for TreePath {
 fn traverse_node_by_path<'a>(
     node: &'a Node,
     path: &mut TreePath,
-) -> Option<&'a Node>
-{
+) -> Option<&'a Node> {
     if path.path.is_empty() {
         Some(node)
     } else {
@@ -244,11 +239,7 @@ mod tests {
         }
     }
 
-    fn traverse_tree_path(
-        node: &Node,
-        path: &TreePath,
-        node_idx: &mut usize,
-    ) {
+    fn traverse_tree_path(node: &Node, path: &TreePath, node_idx: &mut usize) {
         let id = node.attribute_value(&"id").unwrap()[0];
         let class = node.attribute_value(&"class").unwrap()[0];
         assert_eq!(id.to_string(), node_idx.to_string());

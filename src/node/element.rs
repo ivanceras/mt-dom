@@ -1,8 +1,8 @@
+use crate::node::attribute::{Att, Ns, Tag, Val};
 use crate::node::{Attribute, Node};
 use alloc::vec;
 use alloc::vec::Vec;
 use core::fmt::Debug;
-use crate::node::attribute::{Ns, Tag, Att, Val};
 
 /// Represents an element of the virtual node
 /// An element has a generic tag, this tag could be a static str tag, such as usage in html dom.
@@ -18,8 +18,7 @@ use crate::node::attribute::{Ns, Tag, Att, Val};
 /// The namespace is also needed in attributes where namespace are necessary such as `xlink:href`
 /// where the namespace `xlink` is needed in order for the linked element in an svg image to work.
 #[derive(Clone, Debug, PartialEq, Default)]
-pub struct Element
-{
+pub struct Element {
     /// namespace of this element,
     /// svg elements requires namespace to render correcly in the browser
     pub namespace: Option<Ns>,
@@ -33,8 +32,7 @@ pub struct Element
     pub self_closing: bool,
 }
 
-impl Element
-{
+impl Element {
     /// create a new instance of an element
     pub fn new(
         namespace: Option<Ns>,
@@ -69,10 +67,7 @@ impl Element
     }
 
     /// add children virtual node to this element
-    pub fn add_children(
-        &mut self,
-        children: impl IntoIterator<Item = Node>,
-    ) {
+    pub fn add_children(&mut self, children: impl IntoIterator<Item = Node>) {
         self.children.extend(children.into_iter());
     }
 
@@ -93,10 +88,7 @@ impl Element
     /// # Panics
     /// Panics if index is out of bounds in children
     ///
-    pub fn swap_remove_child(
-        &mut self,
-        index: usize,
-    ) -> Node {
+    pub fn swap_remove_child(&mut self, index: usize) -> Node {
         self.children.swap_remove(index)
     }
 

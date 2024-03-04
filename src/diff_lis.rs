@@ -1,25 +1,20 @@
 //! diff with longest increasing subsequence
 
 use crate::diff::diff_recursive;
+use crate::node::attribute::{Tag, Val, KEY};
 use crate::{Node, Patch, TreePath};
 use alloc::collections::BTreeMap;
 use alloc::vec;
 use alloc::vec::Vec;
-use crate::node::attribute::{Tag, KEY, Val};
 
 pub fn diff_keyed_nodes<'a>(
     old_tag: Option<&'a Tag>,
     old_children: &'a [Node],
     new_children: &'a [Node],
     path: &TreePath,
-) -> Vec<Patch<'a>>
-{
-    let (patches, offsets) = diff_keyed_ends(
-        old_tag,
-        old_children,
-        new_children,
-        path,
-    );
+) -> Vec<Patch<'a>> {
+    let (patches, offsets) =
+        diff_keyed_ends(old_tag, old_children, new_children, path);
 
     let (left_offset, right_offset) = match offsets {
         Some(offsets) => offsets,
@@ -94,12 +89,8 @@ pub fn diff_keyed_nodes<'a>(
             all_patches.push(patch);
         }
     } else {
-        let patches = diff_keyed_middle(
-            old_middle,
-            new_middle,
-            left_offset,
-            path,
-        );
+        let patches =
+            diff_keyed_middle(old_middle, new_middle, left_offset, path);
         all_patches.extend(patches);
     }
     all_patches
@@ -110,11 +101,7 @@ fn diff_keyed_ends<'a>(
     old_children: &'a [Node],
     new_children: &'a [Node],
     path: &TreePath,
-) -> (
-    Vec<Patch<'a>>,
-    Option<(usize, usize)>,
-)
-{
+) -> (Vec<Patch<'a>>, Option<(usize, usize)>) {
     // keep track of the old index that has been matched already
     let mut old_index_matched = vec![];
     let mut all_patches = vec![];
@@ -192,8 +179,7 @@ fn diff_keyed_middle<'a>(
     new_children: &'a [Node],
     left_offset: usize,
     path: &TreePath,
-) -> Vec<Patch<'a>>
-{
+) -> Vec<Patch<'a>> {
     let mut all_patches = vec![];
 
     let old_children_keys: Vec<_> = old_children
@@ -331,11 +317,8 @@ fn diff_keyed_middle<'a>(
             if old_index == u32::MAX as usize {
                 new_nodes.push(new_node);
             } else {
-                let patches = diff_recursive(
-                    &old_children[old_index],
-                    new_node,
-                    path,
-                );
+                let patches =
+                    diff_recursive(&old_children[old_index], new_node, path);
                 all_patches.extend(patches);
 
                 node_paths.push(path.traverse(left_offset + old_index));
@@ -374,11 +357,8 @@ fn diff_keyed_middle<'a>(
             if old_index == u32::MAX as usize {
                 new_nodes.push(new_node)
             } else {
-                let patches = diff_recursive(
-                    &old_children[old_index],
-                    new_node,
-                    path,
-                );
+                let patches =
+                    diff_recursive(&old_children[old_index], new_node, path);
                 all_patches.extend(patches);
             }
         }
@@ -405,11 +385,8 @@ fn diff_keyed_middle<'a>(
             if old_index == u32::MAX as usize {
                 new_nodes.push(new_node);
             } else {
-                let patches = diff_recursive(
-                    &old_children[old_index],
-                    new_node,
-                    path,
-                );
+                let patches =
+                    diff_recursive(&old_children[old_index], new_node, path);
                 all_patches.extend(patches);
                 node_paths.push(path.traverse(left_offset + old_index));
             }

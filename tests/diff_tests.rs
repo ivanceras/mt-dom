@@ -1,7 +1,6 @@
 #![deny(warnings)]
 use mt_dom::{patch::*, *};
 
-
 #[test]
 fn test_replace_node() {
     let old: Node = element("div", vec![], vec![]);

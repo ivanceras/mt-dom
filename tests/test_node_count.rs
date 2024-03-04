@@ -1,7 +1,6 @@
 #![deny(warnings)]
 use mt_dom::*;
 
-
 #[test]
 fn node_count1() {
     let old: Node = element("div", vec![], vec![]);

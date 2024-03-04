@@ -1,4 +1,5 @@
 //! provides diffing algorithm which returns patches
+use crate::node::attribute::{Tag, KEY};
 use crate::{
     node::attribute::group_attributes_per_name, Attribute, Element, Node,
     Patch, TreePath,
@@ -6,7 +7,6 @@ use crate::{
 use alloc::vec;
 use alloc::vec::Vec;
 use core::{cmp, mem};
-use crate::node::attribute::{Tag, KEY};
 
 /// Return the patches needed for `old_node` to have the same DOM as `new_node`
 ///
@@ -45,31 +45,16 @@ use crate::node::attribute::{Tag, KEY};
 ///     ]
 /// );
 /// ```
-pub fn diff<'a>(
-    old_node: &'a Node,
-    new_node: &'a Node,
-) -> Vec<Patch<'a>>
-{
-    diff_recursive(
-        old_node,
-        new_node,
-        &TreePath::root(),
-    )
+pub fn diff<'a>(old_node: &'a Node, new_node: &'a Node) -> Vec<Patch<'a>> {
+    diff_recursive(old_node, new_node, &TreePath::root())
 }
 
-
-fn is_any_keyed(
-    nodes: &[Node],
-) -> bool
-{
+fn is_any_keyed(nodes: &[Node]) -> bool {
     nodes.iter().any(|child| is_keyed_node(child))
 }
 
 /// returns true any attributes of this node attribute has key in it
-fn is_keyed_node(
-    node: &Node,
-) -> bool
-{
+fn is_keyed_node(node: &Node) -> bool {
     if let Some(attributes) = node.attributes() {
         attributes.iter().any(|att| att.name == *KEY)
     } else {
@@ -77,11 +62,7 @@ fn is_keyed_node(
     }
 }
 
-fn should_replace<'a>(
-    old_node: &'a Node,
-    new_node: &'a Node,
-) -> bool
-{
+fn should_replace<'a>(old_node: &'a Node, new_node: &'a Node) -> bool {
     // replace if they have different enum variants
     if mem::discriminant(old_node) != mem::discriminant(new_node) {
         return true;
@@ -128,8 +109,7 @@ pub fn diff_recursive<'a>(
     old_node: &'a Node,
     new_node: &'a Node,
     path: &TreePath,
-) -> Vec<Patch<'a>>
-{
+) -> Vec<Patch<'a>> {
     let skip = |_old, new: &Node| {
         if let Some(attributes) = new.attributes() {
             attributes
@@ -178,19 +158,14 @@ pub fn diff_recursive<'a>(
         }
         // We're comparing two element nodes
         (Node::Element(old_element), Node::Element(new_element)) => {
-            let patch =
-                diff_element(old_element, new_element, path);
+            let patch = diff_element(old_element, new_element, path);
             patches.extend(patch);
         }
         (Node::Fragment(old_nodes), Node::Fragment(new_nodes)) => {
             // we back track since Fragment is not a real node, but it would still
             // be traversed from the prior call
-            let patch = diff_nodes(
-                None,
-                old_nodes,
-                new_nodes,
-                &path.backtrack(),
-            );
+            let patch =
+                diff_nodes(None, old_nodes, new_nodes, &path.backtrack());
             patches.extend(patch);
         }
         (Node::NodeList(_old_elements), Node::NodeList(_new_elements)) => {
@@ -210,8 +185,7 @@ fn diff_element<'a>(
     old_element: &'a Element,
     new_element: &'a Element,
     path: &TreePath,
-) -> Vec<Patch<'a>>
-{
+) -> Vec<Patch<'a>> {
     let mut patches = create_attribute_patches(old_element, new_element, path);
 
     let more_patches = diff_nodes(
@@ -230,8 +204,7 @@ fn diff_nodes<'a>(
     old_children: &'a [Node],
     new_children: &'a [Node],
     path: &TreePath,
-) -> Vec<Patch<'a>>
-{
+) -> Vec<Patch<'a>> {
     let diff_as_keyed =
         is_any_keyed(old_children) || is_any_keyed(new_children);
 
@@ -244,12 +217,8 @@ fn diff_nodes<'a>(
         );
         keyed_patches
     } else {
-        let non_keyed_patches = diff_non_keyed_nodes(
-            old_tag,
-            old_children,
-            new_children,
-            path,
-        );
+        let non_keyed_patches =
+            diff_non_keyed_nodes(old_tag, old_children, new_children, path);
         non_keyed_patches
     }
 }
@@ -269,8 +238,7 @@ fn diff_non_keyed_nodes<'a>(
     old_children: &'a [Node],
     new_children: &'a [Node],
     path: &TreePath,
-) -> Vec<Patch<'a>>
-{
+) -> Vec<Patch<'a>> {
     let mut patches = vec![];
     let old_child_count = old_children.len();
     let new_child_count = new_children.len();
@@ -284,8 +252,7 @@ fn diff_non_keyed_nodes<'a>(
             &old_children.get(index).expect("No old_node child node");
         let new_child = &new_children.get(index).expect("No new child node");
 
-        let more_patches =
-            diff_recursive(old_child, new_child, &child_path);
+        let more_patches = diff_recursive(old_child, new_child, &child_path);
         patches.extend(more_patches);
     }
 
@@ -326,8 +293,7 @@ fn create_attribute_patches<'a>(
     old_element: &'a Element,
     new_element: &'a Element,
     path: &TreePath,
-) -> Vec<Patch<'a>>
-{
+) -> Vec<Patch<'a>> {
     let new_attributes = new_element.attributes();
     let old_attributes = old_element.attributes();
 

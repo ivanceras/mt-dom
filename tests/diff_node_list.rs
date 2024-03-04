@@ -1,7 +1,6 @@
 #![deny(warnings)]
 use mt_dom::{patch::*, *};
 
-
 #[test]
 fn test_node_list() {
     let old_list = node_list([

@@ -1,6 +1,5 @@
 use mt_dom::{diff::*, patch::*, *};
 
-
 #[test]
 fn key_lis_1_to_9() {
     let old: Node = element(

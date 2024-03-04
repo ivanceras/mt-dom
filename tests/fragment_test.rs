@@ -1,6 +1,5 @@
 use mt_dom::{diff::*, patch::*, *};
 
-
 #[test]
 fn using_fragments() {
     let old: Node = fragment(vec![

@@ -186,11 +186,7 @@ fn there_are_2_exact_same_keys_in_the_new() {
     assert_eq!(
         diff,
         vec![
-            Patch::replace_node(
-                None,
-                TreePath::new([0, 0]),
-                vec![&leaf("1")]
-            ),
+            Patch::replace_node(None, TreePath::new([0, 0]), vec![&leaf("1")]),
             Patch::insert_after_node(
                 Some(&"div"),
                 TreePath::new([0]),

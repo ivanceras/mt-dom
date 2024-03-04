@@ -1,6 +1,5 @@
 use mt_dom::{diff::*, patch::*, *};
 
-
 #[test]
 fn key_inserted_at_start() {
     let old: Node = element(

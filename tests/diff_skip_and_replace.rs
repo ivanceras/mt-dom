@@ -1,13 +1,19 @@
 #![deny(warnings)]
 use mt_dom::{diff::diff, patch::*, *};
 
-
 #[test]
 fn force_replace() {
     let old: Node =
         element("div", vec![attr("class", "[0]"), attr("id", "0")], vec![]);
-    let new =
-        element("div", vec![attr("class", "[0]"), attr("id", "0"), attr("replace", "true")], vec![]);
+    let new = element(
+        "div",
+        vec![
+            attr("class", "[0]"),
+            attr("id", "0"),
+            attr("replace", "true"),
+        ],
+        vec![],
+    );
 
     let diff = diff(&old, &new);
     assert_eq!(
@@ -24,8 +30,11 @@ fn force_replace() {
 fn force_skip() {
     let old: Node =
         element("div", vec![attr("class", "[0]"), attr("id", "0")], vec![]);
-    let new =
-        element("div", vec![attr("class", "[0]"), attr("id", "0"), attr("skip", "true")], vec![]);
+    let new = element(
+        "div",
+        vec![attr("class", "[0]"), attr("id", "0"), attr("skip", "true")],
+        vec![],
+    );
 
     let diff = diff(&old, &new);
     assert_eq!(diff, vec![],);
@@ -167,7 +176,6 @@ fn replace_and_skip_in_sub_nodes() {
             ),
         ],
     );
-
 
     let diff = diff(&old, &new);
     assert_eq!(

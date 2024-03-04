@@ -1,6 +1,5 @@
 use mt_dom::{diff::*, patch::*, *};
 
-
 #[test]
 fn swap_999() {
     let old: Node = element(

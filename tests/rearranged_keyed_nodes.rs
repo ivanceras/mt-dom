@@ -1,6 +1,5 @@
 use mt_dom::{diff::*, patch::*, *};
 
-
 #[test]
 //TODO: this also breaks
 fn text_changed_keyed() {

@@ -1,7 +1,6 @@
 use mt_dom::*;
 use std::fmt::Debug;
 
-
 /// A zipper is a technique of representing an aggregate data structure so that it is convenient for writing programs
 /// that traverse the structure arbitrarily and update its contents
 #[derive(Clone, Debug, PartialEq)]

@@ -1,9 +1,9 @@
+use crate::node::attribute::{Att, Ns, Tag, Val};
 use alloc::vec::Vec;
 pub use attribute::Attribute;
 use core::fmt;
 use core::fmt::{Debug, Formatter};
 pub use element::Element;
-use crate::node::attribute::{Ns, Tag, Att, Val};
 
 pub(crate) mod attribute;
 mod element;
@@ -22,8 +22,7 @@ mod element;
 /// Val - is the type for the value of the attribute, this will be String, f64, or just another
 /// generics that suits the implementing library which used mt-dom for just dom-diffing purposes
 #[derive(Clone, Debug, PartialEq)]
-pub enum Node
-{
+pub enum Node {
     /// Element variant of a virtual node
     Element(Element),
     /// A node containing nodes, this will be unrolled together with the rest of the children of
@@ -62,8 +61,7 @@ impl fmt::Display for Error {
 ///TODO: use core::error when it will go out of nightly
 impl std::error::Error for Error {}
 
-impl Node
-{
+impl Node {
     /// consume self and return the element if it is an element variant
     /// None if it is a text node
     pub fn take_element(self) -> Option<Element> {
@@ -97,9 +95,7 @@ impl Node
     }
 
     /// Get a mutable reference to the element, if this node is an element node
-    pub fn element_mut(
-        &mut self,
-    ) -> Option<&mut Element> {
+    pub fn element_mut(&mut self) -> Option<&mut Element> {
         match *self {
             Node::Element(ref mut element) => Some(element),
             _ => None,
@@ -205,9 +201,7 @@ impl Node
 
     /// return the children of this node if it is an element
     /// returns None if it is a text node
-    pub fn children_mut(
-        &mut self,
-    ) -> Option<&mut [Node]> {
+    pub fn children_mut(&mut self) -> Option<&mut [Node]> {
         if let Some(element) = self.element_mut() {
             Some(element.children_mut())
         } else {
@@ -222,10 +216,7 @@ impl Node
     /// # Panics
     /// Panics if this is a text node
     ///
-    pub fn swap_remove_child(
-        &mut self,
-        index: usize,
-    ) -> Node {
+    pub fn swap_remove_child(&mut self, index: usize) -> Node {
         match self {
             Node::Element(element) => element.swap_remove_child(index),
             _ => panic!("text has no child"),
@@ -315,8 +306,7 @@ pub fn element(
     tag: Tag,
     attrs: impl IntoIterator<Item = Attribute>,
     children: impl IntoIterator<Item = Node>,
-) -> Node
-{
+) -> Node {
     element_ns(None, tag, attrs, children, false)
 }
 
@@ -339,31 +329,21 @@ pub fn element_ns(
     attrs: impl IntoIterator<Item = Attribute>,
     children: impl IntoIterator<Item = Node>,
     self_closing: bool,
-) -> Node
-{
+) -> Node {
     Node::Element(Element::new(namespace, tag, attrs, children, self_closing))
 }
 
 /// create a leaf node
-pub fn leaf(
-    leaf: impl Into<Leaf>,
-) -> Node
-{
+pub fn leaf(leaf: impl Into<Leaf>) -> Node {
     Node::Leaf(leaf.into())
 }
 
 /// create a node list
-pub fn node_list(
-    nodes: impl IntoIterator<Item = Node>,
-) -> Node
-{
+pub fn node_list(nodes: impl IntoIterator<Item = Node>) -> Node {
     Node::NodeList(nodes.into_iter().collect())
 }
 
 /// create fragment node
-pub fn fragment(
-    nodes: impl IntoIterator<Item = Node>,
-) -> Node
-{
+pub fn fragment(nodes: impl IntoIterator<Item = Node>) -> Node {
     Node::Fragment(nodes.into_iter().collect())
 }

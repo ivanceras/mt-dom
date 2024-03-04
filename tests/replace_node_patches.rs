@@ -1,6 +1,5 @@
 use mt_dom::{diff::*, patch::*, *};
 
-
 #[test]
 fn test_multiple_replace() {
     let old: Node = element(
