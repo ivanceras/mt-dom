@@ -70,13 +70,12 @@ impl Attribute
 /// # Example
 /// ```rust
 /// use mt_dom::{Attribute,attr};
-/// let class: Attribute<&'static str, &'static str, &'static str> =
-///     attr("class", "container");
+/// let class: Attribute = attr("class", "container");
 /// ```
 #[inline]
 pub fn attr(name: Att, value: impl Into<Val>) -> Attribute
 {
-    attr_ns(None, name, value.into())
+    attr_ns(None, name, value)
 }
 
 /// Create an attribute with namespace
@@ -84,17 +83,16 @@ pub fn attr(name: Att, value: impl Into<Val>) -> Attribute
 /// ```rust
 /// use mt_dom::{Attribute,attr_ns};
 ///
-/// let href: Attribute<&'static str, &'static str, &'static str> =
-///     attr_ns(Some("http://www.w3.org/1999/xlink"), "href", "cool-script.js");
+/// let href: Attribute = attr_ns(Some("http://www.w3.org/1999/xlink"), "href", "cool-script.js");
 /// ```
 #[inline]
 pub fn attr_ns(
     namespace: Option<Ns>,
     name: Att,
-    value: Val,
+    value: impl Into<Val>,
 ) -> Attribute
 {
-    Attribute::new(namespace, name, value)
+    Attribute::new(namespace, name, value.into())
 }
 
 /// merge the values of attributes with the same name

@@ -3,12 +3,9 @@ use mt_dom::{diff::*, patch::*, *};
 
 #[test]
 fn swap_999() {
-    pub type SwapNode =
-        Node<&'static str, &'static str, String, &'static str, String>;
-
-    let old: SwapNode = element(
+    let old: Node = element(
         "ul",
-        vec![attr("class", "container".to_string())],
+        vec![attr("class", "container")],
         (0..1000).map(|i| {
             element(
                 "li",
@@ -21,9 +18,9 @@ fn swap_999() {
     let mut range: Vec<usize> = (0..1000).collect();
     range.swap(1, 998);
 
-    let new: SwapNode = element(
+    let new: Node = element(
         "ul",
-        vec![attr("class", "container".to_string())],
+        vec![attr("class", "container")],
         range.iter().map(|i| {
             element(
                 "li",

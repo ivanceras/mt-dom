@@ -7,12 +7,9 @@ fn force_replace() {
     let old: Node =
         element("div", vec![attr("class", "[0]"), attr("id", "0")], vec![]);
     let new =
-        element("div", vec![attr("class", "[0]"), attr("id", "0")], vec![]);
+        element("div", vec![attr("class", "[0]"), attr("id", "0"), attr("replace", "true")], vec![]);
 
-    let skip = |_old, _new| false;
-    let replace = |_old, _new| true;
-
-    let diff = diff_with_functions(&old, &new, &skip, &replace);
+    let diff = diff_with_functions(&old, &new);
     assert_eq!(
         diff,
         vec![Patch::replace_node(
@@ -28,12 +25,9 @@ fn force_skip() {
     let old: Node =
         element("div", vec![attr("class", "[0]"), attr("id", "0")], vec![]);
     let new =
-        element("div", vec![attr("class", "[0]"), attr("id", "0")], vec![]);
+        element("div", vec![attr("class", "[0]"), attr("id", "0"), attr("skip", "true")], vec![]);
 
-    let skip = |_old, _new| true;
-    let replace = |_old, _new| false;
-
-    let diff = diff_with_functions(&old, &new, &skip, &replace);
+    let diff = diff_with_functions(&old, &new);
     assert_eq!(diff, vec![],);
 }
 
@@ -47,20 +41,7 @@ fn skip_in_attribute() {
         vec![],
     );
 
-    let skip = |_old, new: &Node| {
-        if let Some(attributes) = new.attributes() {
-            attributes
-                .iter()
-                .filter(|a| a.name == "skip")
-                .flat_map(|a| a.value())
-                .any(|v| *v == "true")
-        } else {
-            false
-        }
-    };
-    let replace = |_old, _new| false;
-
-    let diff = diff_with_functions(&old, &new, &skip, &replace);
+    let diff = diff_with_functions(&old, &new);
     assert_eq!(diff, vec![],);
 }
 
@@ -78,20 +59,7 @@ fn replace_true_in_attribute_must_replace_old_node_regardless() {
         vec![],
     );
 
-    let skip = |_old, _new| false;
-    let replace = |_old, new: &Node| {
-        if let Some(attributes) = new.attributes() {
-            attributes
-                .iter()
-                .filter(|a| a.name == "replace")
-                .flat_map(|a| a.value())
-                .any(|v| *v == "true")
-        } else {
-            false
-        }
-    };
-
-    let diff = diff_with_functions(&old, &new, &skip, &replace);
+    let diff = diff_with_functions(&old, &new);
     assert_eq!(
         diff,
         vec![Patch::replace_node(
@@ -200,30 +168,8 @@ fn replace_and_skip_in_sub_nodes() {
         ],
     );
 
-    let skip = |_old, new: &Node| {
-        if let Some(attributes) = new.attributes() {
-            attributes
-                .iter()
-                .filter(|a| a.name == "skip")
-                .flat_map(|a| a.value())
-                .any(|v| *v == "true")
-        } else {
-            false
-        }
-    };
-    let replace = |_old, new: &Node| {
-        if let Some(attributes) = new.attributes() {
-            attributes
-                .iter()
-                .filter(|a| a.name == "replace")
-                .flat_map(|a| a.value())
-                .any(|v| *v == "true")
-        } else {
-            false
-        }
-    };
 
-    let diff = diff_with_functions(&old, &new, &skip, &replace);
+    let diff = diff_with_functions(&old, &new);
     assert_eq!(
         diff,
         vec![Patch::replace_node(

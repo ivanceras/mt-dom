@@ -35,7 +35,7 @@ pub enum Node
     Leaf(Leaf),
 }
 
-pub type Leaf = &'static str;
+pub type Leaf = String;
 
 #[derive(Debug, Copy, Clone)]
 pub enum Error {
@@ -304,8 +304,7 @@ impl Node
 /// ```rust
 /// use mt_dom::{Node,element,attr};
 ///
-/// let div:Node<&'static str, &'static str, &'static str, &'static str, &'static str> =
-///     element(
+/// let div:Node = element(
 ///          "div",
 ///          vec![attr("class", "container")],
 ///          vec![],
@@ -326,8 +325,7 @@ pub fn element(
 /// ```rust
 /// use mt_dom::{Node,element_ns,attr};
 ///
-/// let svg:Node<&'static str, &'static str, (), &'static str, &'static str> =
-///     element_ns(
+/// let svg: Node = element_ns(
 ///         Some("http://www.w3.org/2000/svg"),
 ///          "svg",
 ///          vec![attr("width","400"), attr("height","400")],
@@ -348,10 +346,10 @@ pub fn element_ns(
 
 /// create a leaf node
 pub fn leaf(
-    leaf: Leaf,
+    leaf: impl Into<Leaf>,
 ) -> Node
 {
-    Node::Leaf(leaf)
+    Node::Leaf(leaf.into())
 }
 
 /// create a node list

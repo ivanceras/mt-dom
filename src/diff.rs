@@ -19,10 +19,8 @@ use crate::node::attribute::{Tag, KEY};
 /// ```rust
 /// use mt_dom::{diff::*, patch::*, *};
 ///
-/// pub type MyNode =
-///    Node<&'static str, &'static str, &'static str, &'static str, &'static str>;
 ///
-/// let old: MyNode = element(
+/// let old: Node = element(
 ///     "main",
 ///     vec![attr("class", "container")],
 ///     vec![
@@ -31,13 +29,13 @@ use crate::node::attribute::{Tag, KEY};
 ///     ],
 /// );
 ///
-/// let new: MyNode = element(
+/// let new: Node = element(
 ///     "main",
 ///     vec![attr("class", "container")],
 ///     vec![element("div", vec![attr("key", "2")], vec![])],
 /// );
 ///
-/// let diff = diff_with_key(&old, &new, &"key");
+/// let diff = diff_with_key(&old, &new);
 /// assert_eq!(
 ///     diff,
 ///     vec![Patch::remove_node(

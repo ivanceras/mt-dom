@@ -194,7 +194,7 @@ fn test_class_will_not_be_merged_on_different_calls() {
             vec![&Attribute::with_multiple_values(
                 None,
                 "class",
-                vec!["class1", "class2"]
+                vec!["class1".into(), "class2".into()]
             )]
         )]
     )
