@@ -25,7 +25,7 @@ pub use diff::{diff, diff_recursive};
 pub use node::{
     attribute::{
         attr, attr_ns, group_attributes_per_name, merge_attributes_of_same_name,
-        Tag, KEY, Val, Ns, Att,
+        Tag, KEY, AttributeValue, Namespace, AttributeName,
     },
     element, element_ns, fragment, leaf, node_list, Attribute, Element, Node,
 };

@@ -1,4 +1,4 @@
-use super::attribute::{Att, Ns, Tag, Val};
+use super::attribute::{AttributeName, Namespace, Tag, AttributeValue};
 use super::{Attribute, Node};
 use std::fmt::Debug;
 
@@ -19,7 +19,7 @@ use std::fmt::Debug;
 pub struct Element {
     /// namespace of this element,
     /// svg elements requires namespace to render correcly in the browser
-    pub namespace: Option<Ns>,
+    pub namespace: Option<Namespace>,
     /// the element tag, such as div, a, button
     pub tag: Tag,
     /// attributes for this element
@@ -33,7 +33,7 @@ pub struct Element {
 impl Element {
     /// create a new instance of an element
     pub fn new(
-        namespace: Option<Ns>,
+        namespace: Option<Namespace>,
         tag: Tag,
         attrs: impl IntoIterator<Item = Attribute>,
         children: impl IntoIterator<Item = Node>,
@@ -119,7 +119,7 @@ impl Element {
     }
 
     /// return the namespace of this element
-    pub fn namespace(&self) -> Option<&Ns> {
+    pub fn namespace(&self) -> Option<&Namespace> {
         self.namespace.as_ref()
     }
 
@@ -139,7 +139,7 @@ impl Element {
     }
 
     /// remove the attributes with this key
-    pub fn remove_attribute(&mut self, name: &Att) {
+    pub fn remove_attribute(&mut self, name: &AttributeName) {
         self.attrs.retain(|att| att.name != *name)
     }
 
@@ -171,9 +171,9 @@ impl Element {
         }
     }
 
-    /// return all the attribute values which the name &Att
-    pub fn attribute_value(&self, name: &Att) -> Option<Vec<&Val>> {
-        let result: Vec<&Val> = self
+    /// return all the attribute values which the name &AttributeName
+    pub fn attribute_value(&self, name: &AttributeName) -> Option<Vec<&AttributeValue>> {
+        let result: Vec<&AttributeValue> = self
             .attrs
             .iter()
             .filter(|att| att.name == *name)

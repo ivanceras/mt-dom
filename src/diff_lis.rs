@@ -1,7 +1,7 @@
 //! diff with longest increasing subsequence
 
 use super::diff::diff_recursive;
-use super::{Tag, Val, KEY};
+use super::{Tag, AttributeValue, KEY};
 use super::{Node, Patch, TreePath};
 use std::collections::BTreeMap;
 
@@ -194,14 +194,14 @@ fn diff_keyed_middle<'a>(
     debug_assert_ne!(new_children_keys.last(), old_children_keys.last());
 
     // make a map of old_index -> old_key
-    let old_key_to_old_index: BTreeMap<usize, &Vec<&Val>> =
+    let old_key_to_old_index: BTreeMap<usize, &Vec<&AttributeValue>> =
         BTreeMap::from_iter(old_children_keys.iter().enumerate().filter_map(
             |(old_index, old_key)| {
                 old_key.as_ref().map(|old_key| (old_index, old_key))
             },
         ));
 
-    let mut shared_keys: Vec<Vec<&Val>> = vec![];
+    let mut shared_keys: Vec<Vec<&AttributeValue>> = vec![];
 
     // map each new key to the old key, carrying over the old index
     let new_index_to_old_index: Vec<usize> = new_children

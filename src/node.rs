@@ -1,4 +1,4 @@
-use super::{Att, Ns, Tag, Val};
+use super::{AttributeName, Namespace, Tag, AttributeValue};
 pub use attribute::Attribute;
 use std::fmt;
 use std::fmt::{Debug, Formatter};
@@ -13,12 +13,12 @@ mod element;
 ///
 /// Much of the types are Generics
 ///
-/// Ns - is the type for the namespace, this will be &'static str when used in html based virtual dom implementation
+/// Namespace - is the type for the namespace, this will be &'static str when used in html based virtual dom implementation
 /// Tag - is the type for the element tag, this will be &'static str when used in html based virtual
 /// dom impmenentation
-/// Att - is the type for the attribute name, this will be &'static str when used in html based
+/// AttributeName - is the type for the attribute name, this will be &'static str when used in html based
 /// virtual dom implementation
-/// Val - is the type for the value of the attribute, this will be String, f64, or just another
+/// AttributeValue - is the type for the value of the attribute, this will be String, f64, or just another
 /// generics that suits the implementing library which used mt-dom for just dom-diffing purposes
 #[derive(Clone, Debug, PartialEq)]
 pub enum Node {
@@ -280,7 +280,7 @@ impl Node {
     }
 
     /// returh the attribute values of this node which match the attribute name `name`
-    pub fn attribute_value(&self, name: &Att) -> Option<Vec<&Val>> {
+    pub fn attribute_value(&self, name: &AttributeName) -> Option<Vec<&AttributeValue>> {
         if let Some(elm) = self.element_ref() {
             elm.attribute_value(name)
         } else {
@@ -323,7 +323,7 @@ pub fn element(
 ///      );
 /// ```
 pub fn element_ns(
-    namespace: Option<Ns>,
+    namespace: Option<Namespace>,
     tag: Tag,
     attrs: impl IntoIterator<Item = Attribute>,
     children: impl IntoIterator<Item = Node>,
