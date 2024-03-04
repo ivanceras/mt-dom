@@ -1,11 +1,9 @@
 use mt_dom::{diff::*, patch::*, *};
 
-pub type MyNode =
-    Node<&'static str, &'static str, &'static str, &'static str, &'static str>;
 // should have no changes
 #[test]
 fn mixed_key_and_no_key_with_no_change() {
-    let old: MyNode = element(
+    let old: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![
@@ -15,7 +13,7 @@ fn mixed_key_and_no_key_with_no_change() {
         ],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![
@@ -32,7 +30,7 @@ fn mixed_key_and_no_key_with_no_change() {
 
 #[test]
 fn mixed_key_and_no_key_with_2_matched() {
-    let old: MyNode = element(
+    let old: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![
@@ -43,7 +41,7 @@ fn mixed_key_and_no_key_with_2_matched() {
         ],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![
@@ -75,7 +73,7 @@ fn mixed_key_and_no_key_with_2_matched() {
 
 #[test]
 fn mixed_key_and_no_key_with_misordered_2_matched() {
-    let old: MyNode = element(
+    let old: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![
@@ -86,7 +84,7 @@ fn mixed_key_and_no_key_with_misordered_2_matched() {
         ],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![

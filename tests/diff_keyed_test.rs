@@ -1,17 +1,14 @@
 use mt_dom::{diff::*, patch::*, *};
 
-pub type MyNode =
-    Node<&'static str, &'static str, &'static str, &'static str, &'static str>;
-
 #[test]
 fn keyed_no_changed() {
-    let old: MyNode = element(
+    let old: Node = element(
         "div",
         vec![attr("class", "container")],
         vec![element("div", vec![attr("key", "1")], vec![])],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "div",
         vec![attr("class", "container")],
         vec![element("div", vec![attr("key", "1")], vec![])],
@@ -23,7 +20,7 @@ fn keyed_no_changed() {
 
 #[test]
 fn key_1_removed_at_start() {
-    let old: MyNode = element(
+    let old: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![
@@ -32,7 +29,7 @@ fn key_1_removed_at_start() {
         ],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![element("div", vec![attr("key", "2")], vec![])],
@@ -47,7 +44,7 @@ fn key_1_removed_at_start() {
 
 #[test]
 fn non_unique_keys_matched_at_old() {
-    let old: MyNode = element(
+    let old: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![
@@ -56,7 +53,7 @@ fn non_unique_keys_matched_at_old() {
         ],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![element("div", vec![attr("key", "2")], vec![])],
@@ -71,7 +68,7 @@ fn non_unique_keys_matched_at_old() {
 
 #[test]
 fn key_2_removed_at_the_end() {
-    let old: MyNode = element(
+    let old: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![
@@ -80,7 +77,7 @@ fn key_2_removed_at_the_end() {
         ],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![element("div", vec![attr("key", "1")], vec![])],
@@ -95,7 +92,7 @@ fn key_2_removed_at_the_end() {
 
 #[test]
 fn key_2_removed_at_the_middle() {
-    let old: MyNode = element(
+    let old: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![
@@ -105,7 +102,7 @@ fn key_2_removed_at_the_middle() {
         ],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![
@@ -124,7 +121,7 @@ fn key_2_removed_at_the_middle() {
 //TODO: currently can not deal with repeated keys
 //#[test]
 fn there_are_2_exact_same_keys_in_the_old() {
-    let old: MyNode = element(
+    let old: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![
@@ -134,7 +131,7 @@ fn there_are_2_exact_same_keys_in_the_old() {
         ],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![
@@ -163,7 +160,7 @@ fn there_are_2_exact_same_keys_in_the_old() {
 //TODO: currently can not deal with repeated keys
 #[test]
 fn there_are_2_exact_same_keys_in_the_new() {
-    let old: MyNode = element(
+    let old: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![
@@ -172,7 +169,7 @@ fn there_are_2_exact_same_keys_in_the_new() {
         ],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![
@@ -206,7 +203,7 @@ fn there_are_2_exact_same_keys_in_the_new() {
 //TODO: currently can not deal with repeated keys
 //#[test]
 fn there_are_2_exact_same_keys_in_both_old_and_new() {
-    let old: MyNode = element(
+    let old: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![
@@ -216,7 +213,7 @@ fn there_are_2_exact_same_keys_in_both_old_and_new() {
         ],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![
@@ -255,13 +252,13 @@ fn there_are_2_exact_same_keys_in_both_old_and_new() {
 
 #[test]
 fn key_2_inserted_at_start() {
-    let old: MyNode = element(
+    let old: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![element("div", vec![attr("key", "1")], vec![])],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![
@@ -285,13 +282,13 @@ fn key_2_inserted_at_start() {
 
 #[test]
 fn keyed_element_not_reused() {
-    let old: MyNode = element(
+    let old: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![element("div", vec![attr("key", "1")], vec![])],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![element("div", vec![attr("key", "2")], vec![])],
@@ -313,13 +310,13 @@ fn keyed_element_not_reused() {
 // altered to work with diff using lis
 #[test]
 fn key_2_inserted_at_the_end() {
-    let old: MyNode = element(
+    let old: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![element("div", vec![attr("key", "1")], vec![])],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![
@@ -344,7 +341,7 @@ fn key_2_inserted_at_the_end() {
 
 #[test]
 fn test_append_at_sub_level() {
-    let old: MyNode = element(
+    let old: Node = element(
         "div",
         vec![attr("id", "some-id"), attr("class", "some-class")],
         vec![element(
@@ -354,7 +351,7 @@ fn test_append_at_sub_level() {
         )],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "div",
         vec![attr("id", "some-id"), attr("class", "some-class")],
         vec![element(
@@ -385,7 +382,7 @@ fn test_append_at_sub_level() {
 
 #[test]
 fn key_2_inserted_in_the_middle() {
-    let old: MyNode = element(
+    let old: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![
@@ -394,7 +391,7 @@ fn key_2_inserted_in_the_middle() {
         ],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![
@@ -420,7 +417,7 @@ fn key_2_inserted_in_the_middle() {
 
 #[test]
 fn key1_removed_at_start_then_key2_has_additional_attributes() {
-    let old: MyNode = element(
+    let old: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![
@@ -429,7 +426,7 @@ fn key1_removed_at_start_then_key2_has_additional_attributes() {
         ],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![element(
@@ -457,7 +454,7 @@ fn key1_removed_at_start_then_key2_has_additional_attributes() {
 
 #[test]
 fn deep_nested_key1_removed_at_start_then_key2_has_additional_attributes() {
-    let old: MyNode = element(
+    let old: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![element(
@@ -470,7 +467,7 @@ fn deep_nested_key1_removed_at_start_then_key2_has_additional_attributes() {
         )],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![element(
@@ -502,7 +499,7 @@ fn deep_nested_key1_removed_at_start_then_key2_has_additional_attributes() {
 #[test]
 fn deep_nested_more_children_key0_and_key1_removed_at_start_then_key2_has_additional_attributes(
 ) {
-    let old: MyNode = element(
+    let old: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![element(
@@ -516,7 +513,7 @@ fn deep_nested_more_children_key0_and_key1_removed_at_start_then_key2_has_additi
         )],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![element(
@@ -548,7 +545,7 @@ fn deep_nested_more_children_key0_and_key1_removed_at_start_then_key2_has_additi
 
 #[test]
 fn deep_nested_keyed_with_non_keyed_children() {
-    let old: MyNode = element(
+    let old: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![element(
@@ -573,7 +570,7 @@ fn deep_nested_keyed_with_non_keyed_children() {
         )],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![element(
@@ -626,7 +623,7 @@ fn deep_nested_keyed_with_non_keyed_children() {
 
 #[test]
 fn text_changed_in_keyed_elements() {
-    let old: MyNode = element(
+    let old: Node = element(
         "main",
         vec![attr("class", "test4")],
         vec![element(
@@ -641,7 +638,7 @@ fn text_changed_in_keyed_elements() {
     );
 
     // we remove the key1, and change the text in item3
-    let update1: MyNode = element(
+    let update1: Node = element(
         "main",
         vec![attr("class", "test4")],
         vec![element(
@@ -676,7 +673,7 @@ fn text_changed_in_keyed_elements() {
 
 #[test]
 fn text_changed_in_mixed_keyed_and_non_keyed_elements() {
-    let old: MyNode = element(
+    let old: Node = element(
         "main",
         vec![attr("class", "test4")],
         vec![
@@ -706,7 +703,7 @@ fn text_changed_in_mixed_keyed_and_non_keyed_elements() {
     );
 
     // we remove the key1, and change the text in item3
-    let update1: MyNode = element(
+    let update1: Node = element(
         "main",
         vec![attr("class", "test4")],
         vec![
@@ -753,7 +750,7 @@ fn text_changed_in_mixed_keyed_and_non_keyed_elements() {
 /// mixed of keyed and non-keyed elements
 #[test]
 fn test12() {
-    let old: MyNode = element(
+    let old: Node = element(
         "main",
         vec![attr("class", "test4")],
         vec![
@@ -784,7 +781,7 @@ fn test12() {
     );
 
     // we remove the key1, and change the text in item3
-    let update1: MyNode = element(
+    let update1: Node = element(
         "main",
         vec![attr("class", "test4")],
         vec![
@@ -831,7 +828,7 @@ fn test12() {
 
 #[test]
 fn remove_first() {
-    let old: MyNode = element(
+    let old: Node = element(
         "div",
         vec![attr("id", "some-id"), attr("class", "some-class")],
         vec![
@@ -841,7 +838,7 @@ fn remove_first() {
         ],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "div",
         vec![attr("id", "some-id"), attr("class", "some-class")],
         vec![

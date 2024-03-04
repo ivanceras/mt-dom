@@ -1,11 +1,9 @@
 use mt_dom::{diff::*, patch::*, *};
 
-pub type MyNode =
-    Node<&'static str, &'static str, &'static str, &'static str, &'static str>;
 
 #[test]
 fn key_lis_1_to_9() {
-    let old: MyNode = element(
+    let old: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![
@@ -21,7 +19,7 @@ fn key_lis_1_to_9() {
         ],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![

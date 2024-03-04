@@ -1,16 +1,14 @@
 use mt_dom::{diff::*, patch::*, *};
 
-pub type MyNode =
-    Node<&'static str, &'static str, &'static str, &'static str, &'static str>;
 #[test]
 fn class_changed() {
-    let old: MyNode = element(
+    let old: Node = element(
         "main",
         vec![attr("class", "class1")],
         vec![leaf("Content of class")],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "main",
         vec![attr("class", "class2")],
         vec![leaf("Content of class")],
@@ -32,7 +30,7 @@ fn class_changed() {
 
 #[test]
 fn parent_of_matching_keyed_are_ignored() {
-    let old: MyNode = element(
+    let old: Node = element(
         "ul",
         [attr("class", "original")],
         [
@@ -42,7 +40,7 @@ fn parent_of_matching_keyed_are_ignored() {
         ],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "ul",
         [attr("class", "changed")],
         [

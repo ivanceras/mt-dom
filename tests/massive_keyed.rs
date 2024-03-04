@@ -1,11 +1,9 @@
 use mt_dom::{diff::*, patch::*, *};
 
-pub type MyNode =
-    Node<&'static str, &'static str, &'static str, &'static str, &'static str>;
 
 #[test]
 fn key_inserted_at_start() {
-    let old: MyNode = element(
+    let old: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![
@@ -21,7 +19,7 @@ fn key_inserted_at_start() {
         ],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![
@@ -56,7 +54,7 @@ fn key_inserted_at_start() {
 #[test]
 fn key_inserted_at_middle() {
     pretty_env_logger::try_init().ok();
-    let old: MyNode = element(
+    let old: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![
@@ -72,7 +70,7 @@ fn key_inserted_at_middle() {
         ],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![
@@ -109,7 +107,7 @@ fn key_inserted_at_middle() {
 #[test]
 fn wrapped_elements() {
     pretty_env_logger::try_init().ok();
-    let old: MyNode = element(
+    let old: Node = element(
         "article",
         vec![],
         vec![element(
@@ -129,7 +127,7 @@ fn wrapped_elements() {
         )],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "article",
         vec![],
         vec![element(
@@ -169,7 +167,7 @@ fn wrapped_elements() {
 #[test]
 fn text_changed() {
     pretty_env_logger::try_init().ok();
-    let old: MyNode = element(
+    let old: Node = element(
         "article",
         vec![],
         vec![element(
@@ -189,7 +187,7 @@ fn text_changed() {
         )],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "article",
         vec![],
         vec![element(
@@ -228,7 +226,7 @@ fn text_changed() {
 #[test]
 fn text_changed_non_keyed() {
     pretty_env_logger::try_init().ok();
-    let old: MyNode = element(
+    let old: Node = element(
         "article",
         vec![],
         vec![element(
@@ -248,7 +246,7 @@ fn text_changed_non_keyed() {
         )],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "article",
         vec![],
         vec![element(
@@ -284,7 +282,7 @@ fn text_changed_non_keyed() {
 #[test]
 fn insert_one_line_at_start() {
     pretty_env_logger::try_init().ok();
-    let old: MyNode = element(
+    let old: Node = element(
         "article",
         vec![],
         vec![element(
@@ -319,7 +317,7 @@ fn insert_one_line_at_start() {
         )],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "article",
         vec![],
         vec![element(
@@ -401,7 +399,7 @@ fn insert_one_line_at_start() {
 #[test]
 fn insert_two_lines_at_start() {
     pretty_env_logger::try_init().ok();
-    let old: MyNode = element(
+    let old: Node = element(
         "article",
         vec![],
         vec![element(
@@ -436,7 +434,7 @@ fn insert_two_lines_at_start() {
         )],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "article",
         vec![],
         vec![element(

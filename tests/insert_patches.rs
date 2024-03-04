@@ -1,10 +1,8 @@
 use mt_dom::{diff::*, patch::*, *};
 
-pub type MyNode =
-    Node<&'static str, &'static str, &'static str, &'static str, &'static str>;
 #[test]
 fn insert_on_deep_level_keyed() {
-    let old: MyNode = element(
+    let old: Node = element(
         "main",
         vec![attr("key", "container")],
         vec![
@@ -13,7 +11,7 @@ fn insert_on_deep_level_keyed() {
         ],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "main",
         vec![attr("key", "container")],
         vec![
@@ -39,7 +37,7 @@ fn insert_on_deep_level_keyed() {
 
 #[test]
 fn insert_on_deep_multi_level_level_keyed() {
-    let old: MyNode = element(
+    let old: Node = element(
         "main",
         vec![attr("key", "container")],
         vec![
@@ -55,7 +53,7 @@ fn insert_on_deep_multi_level_level_keyed() {
         ],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "main",
         vec![attr("key", "container")],
         vec![
@@ -88,7 +86,7 @@ fn insert_on_deep_multi_level_level_keyed() {
 
 #[test]
 fn insert_on_deep_multi_level_keyed_non_keyed_keyed() {
-    let old: MyNode = element(
+    let old: Node = element(
         "main",
         vec![attr("key", "container")],
         vec![
@@ -104,7 +102,7 @@ fn insert_on_deep_multi_level_keyed_non_keyed_keyed() {
         ],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "main",
         vec![attr("key", "container")],
         vec![
@@ -137,7 +135,7 @@ fn insert_on_deep_multi_level_keyed_non_keyed_keyed() {
 
 #[test]
 fn insert_on_deep_level_non_keyed_container() {
-    let old: MyNode = element(
+    let old: Node = element(
         "main",
         vec![],
         vec![
@@ -146,7 +144,7 @@ fn insert_on_deep_level_non_keyed_container() {
         ],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "main",
         vec![],
         vec![

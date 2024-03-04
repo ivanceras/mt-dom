@@ -1,11 +1,9 @@
 use mt_dom::{diff::*, patch::*, *};
 
-pub type MyNode =
-    Node<&'static str, &'static str, &'static str, &'static str, &'static str>;
 
 #[test]
 fn using_fragments() {
-    let old: MyNode = fragment(vec![
+    let old: Node = fragment(vec![
         element("div", vec![attr("key", "1")], vec![leaf("line1")]),
         element("div", vec![attr("key", "2")], vec![leaf("line2")]),
         element("div", vec![attr("key", "3")], vec![leaf("line3")]),
@@ -17,7 +15,7 @@ fn using_fragments() {
         element("div", vec![attr("key", "9")], vec![leaf("line9")]),
     ]);
 
-    let new: MyNode = fragment(vec![
+    let new: Node = fragment(vec![
         element("div", vec![attr("key", "XXX")], vec![leaf("lineXXX")]),
         element("div", vec![attr("key", "1")], vec![leaf("line1")]),
         element("div", vec![attr("key", "2")], vec![leaf("line2")]),

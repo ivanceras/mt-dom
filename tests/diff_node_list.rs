@@ -1,8 +1,6 @@
 #![deny(warnings)]
 use mt_dom::{patch::*, *};
 
-pub type MyNode =
-    Node<&'static str, &'static str, &'static str, &'static str, &'static str>;
 
 #[test]
 fn test_node_list() {
@@ -11,7 +9,7 @@ fn test_node_list() {
         element("li", [attr("key", "2")], []),
     ]);
 
-    let old: MyNode = element(
+    let old: Node = element(
         "div",
         [],
         [
@@ -22,7 +20,7 @@ fn test_node_list() {
     );
 
     let new_list = node_list([element("li", [attr("key", "1")], [])]);
-    let new: MyNode = element(
+    let new: Node = element(
         "div",
         [],
         [

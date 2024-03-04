@@ -1,12 +1,10 @@
 #![deny(warnings)]
 use mt_dom::{patch::*, *};
 
-pub type MyNode =
-    Node<&'static str, &'static str, &'static str, &'static str, &'static str>;
 
 #[test]
 fn test_replace_node() {
-    let old: MyNode = element("div", vec![], vec![]);
+    let old: Node = element("div", vec![], vec![]);
     let new = element("span", vec![], vec![]);
 
     let diff = diff_with_key(&old, &new, &"key");
@@ -22,7 +20,7 @@ fn test_replace_node() {
 
 #[test]
 fn test_replace_text_node() {
-    let old: MyNode = leaf("hello");
+    let old: Node = leaf("hello");
     let new = element("span", vec![], vec![]);
 
     let diff = diff_with_key(&old, &new, &"key");
@@ -34,7 +32,7 @@ fn test_replace_text_node() {
 
 #[test]
 fn test_replace_node_in_child() {
-    let old: MyNode =
+    let old: Node =
         element("main", vec![], vec![element("div", vec![], vec![])]);
     let new = element("main", vec![], vec![element("span", vec![], vec![])]);
 
@@ -52,7 +50,7 @@ fn test_replace_node_in_child() {
 
 #[test]
 fn test_205() {
-    let old: MyNode = element(
+    let old: Node = element(
         "div",
         vec![],
         vec![
@@ -92,13 +90,13 @@ fn test_205() {
 
 #[test]
 fn test_no_changed() {
-    let old: MyNode = element(
+    let old: Node = element(
         "div",
         vec![attr("id", "some-id"), attr("class", "some-class")],
         vec![],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "div",
         vec![attr("id", "some-id"), attr("class", "some-class")],
         vec![],
@@ -110,13 +108,13 @@ fn test_no_changed() {
 
 #[test]
 fn test_attribute_order_changed() {
-    let old: MyNode = element(
+    let old: Node = element(
         "div",
         vec![attr("id", "some-id"), attr("class", "some-class")],
         vec![],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "div",
         vec![attr("class", "some-class"), attr("id", "some-id")],
         vec![],
@@ -128,7 +126,7 @@ fn test_attribute_order_changed() {
 
 #[test]
 fn test_class_changed() {
-    let old: MyNode = element(
+    let old: Node = element(
         "div",
         vec![attr("id", "some-id"), attr("class", "some-class")],
         vec![],
@@ -153,7 +151,7 @@ fn test_class_changed() {
 
 #[test]
 fn leaf_node_changed() {
-    let old: MyNode = element(
+    let old: Node = element(
         "div",
         vec![attr("id", "some-id"), attr("class", "some-class")],
         vec![leaf("text1")],
@@ -179,7 +177,7 @@ fn leaf_node_changed() {
 
 #[test]
 fn test_class_will_not_be_merged_on_different_calls() {
-    let old: MyNode = element("div", vec![], vec![]);
+    let old: Node = element("div", vec![], vec![]);
 
     let new = element(
         "div",
@@ -204,7 +202,7 @@ fn test_class_will_not_be_merged_on_different_calls() {
 
 #[test]
 fn test_class_removed() {
-    let old: MyNode = element(
+    let old: Node = element(
         "div",
         vec![attr("id", "some-id"), attr("class", "some-class")],
         vec![],
@@ -225,7 +223,7 @@ fn test_class_removed() {
 
 #[test]
 fn test_multiple_calls_to_style() {
-    let old: MyNode = element(
+    let old: Node = element(
         "div",
         vec![
             attr("style", "display:flex"),
@@ -259,9 +257,9 @@ fn test_multiple_calls_to_style() {
 
 #[test]
 fn inner_html_func_calls() {
-    let old: MyNode = element("div", vec![], vec![]);
+    let old: Node = element("div", vec![], vec![]);
 
-    let new: MyNode =
+    let new: Node =
         element("div", vec![attr("inner_html", "<h1>Hello</h2>")], vec![]);
 
     let diff = diff_with_key(&old, &new, &"key");
@@ -277,13 +275,13 @@ fn inner_html_func_calls() {
 
 #[test]
 fn test_append() {
-    let old: MyNode = element(
+    let old: Node = element(
         "div",
         vec![attr("id", "some-id"), attr("class", "some-class")],
         vec![element("div", vec![], vec![leaf("1")])],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "div",
         vec![attr("id", "some-id"), attr("class", "some-class")],
         vec![
@@ -305,13 +303,13 @@ fn test_append() {
 
 #[test]
 fn test_append_more() {
-    let old: MyNode = element(
+    let old: Node = element(
         "div",
         vec![attr("id", "some-id"), attr("class", "some-class")],
         vec![element("div", vec![], vec![leaf("1")])],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "div",
         vec![attr("id", "some-id"), attr("class", "some-class")],
         vec![
@@ -337,7 +335,7 @@ fn test_append_more() {
 
 #[test]
 fn test_append_at_sub_level() {
-    let old: MyNode = element(
+    let old: Node = element(
         "div",
         vec![attr("id", "some-id"), attr("class", "some-class")],
         vec![element(
@@ -347,7 +345,7 @@ fn test_append_at_sub_level() {
         )],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "div",
         vec![attr("id", "some-id"), attr("class", "some-class")],
         vec![element(

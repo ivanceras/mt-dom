@@ -1,13 +1,11 @@
 use mt_dom::{diff::*, patch::*, *};
 
-pub type MyNode =
-    Node<&'static str, &'static str, &'static str, &'static str, &'static str>;
 
 #[test]
 //TODO: this also breaks
 fn text_changed_keyed() {
     pretty_env_logger::try_init().ok();
-    let old: MyNode = element(
+    let old: Node = element(
         "main",
         vec![attr("class", "container"), attr("key", "container")],
         vec![
@@ -17,7 +15,7 @@ fn text_changed_keyed() {
         ],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "main",
         vec![attr("class", "container"), attr("key", "container")],
         vec![

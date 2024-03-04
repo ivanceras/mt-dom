@@ -1,11 +1,9 @@
 use mt_dom::{diff::*, patch::*, *};
 
-pub type MyNode =
-    Node<&'static str, &'static str, &'static str, &'static str, &'static str>;
 
 #[test]
 fn test_multiple_replace() {
-    let old: MyNode = element(
+    let old: Node = element(
         "main",
         vec![attr("class", "multi_replace")],
         vec![element(
@@ -20,7 +18,7 @@ fn test_multiple_replace() {
     );
 
     // we remove the key1
-    let update1: MyNode = element(
+    let update1: Node = element(
         "main",
         vec![attr("class", "multi_replace")],
         vec![element(

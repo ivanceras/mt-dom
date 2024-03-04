@@ -1,12 +1,10 @@
 #![deny(warnings)]
 use mt_dom::*;
 
-pub type MyNode =
-    Node<&'static str, &'static str, &'static str, &'static str, &'static str>;
 
 #[test]
 fn node_count1() {
-    let old: MyNode = element("div", vec![], vec![]);
+    let old: Node = element("div", vec![], vec![]);
 
     assert_eq!(1, old.node_count());
     assert_eq!(0, old.descendant_node_count());
@@ -14,7 +12,7 @@ fn node_count1() {
 
 #[test]
 fn node_count3() {
-    let old: MyNode = element("div", vec![], vec![leaf("0"), leaf("1")]);
+    let old: Node = element("div", vec![], vec![leaf("0"), leaf("1")]);
 
     // 4 instead of 3, because we automatically inserted a separator in between 2 sibling texts
     assert_eq!(3, old.node_count());
@@ -22,7 +20,7 @@ fn node_count3() {
 
 #[test]
 fn node_count5() {
-    let old: MyNode = element(
+    let old: Node = element(
         "div",
         vec![],
         vec![
@@ -44,7 +42,7 @@ fn node_count5() {
 
 #[test]
 fn node_count6() {
-    let old: MyNode = element(
+    let old: Node = element(
         "div",
         vec![],
         vec![

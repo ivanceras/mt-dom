@@ -1,7 +1,5 @@
 use mt_dom::{diff::*, patch::*, *};
 
-pub type MyNode =
-    Node<&'static str, &'static str, &'static str, &'static str, &'static str>;
 
 #[test]
 fn swap_999() {
@@ -58,7 +56,7 @@ fn swap_999() {
 
 #[test]
 fn swap_rows_non_keyed() {
-    let old: MyNode = element(
+    let old: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![
@@ -70,7 +68,7 @@ fn swap_rows_non_keyed() {
         ],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![
@@ -111,7 +109,7 @@ fn swap_rows_non_keyed() {
 
 #[test]
 fn move_key_2_to_after_node_index_6() {
-    let old: MyNode = element(
+    let old: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![
@@ -127,7 +125,7 @@ fn move_key_2_to_after_node_index_6() {
         ],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![
@@ -159,7 +157,7 @@ fn move_key_2_to_after_node_index_6() {
 
 #[test]
 fn move_key_7_to_before_node_index_1() {
-    let old: MyNode = element(
+    let old: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![
@@ -175,7 +173,7 @@ fn move_key_7_to_before_node_index_1() {
         ],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![
@@ -207,7 +205,7 @@ fn move_key_7_to_before_node_index_1() {
 
 #[test]
 fn swap_rows_keyed() {
-    let old: MyNode = element(
+    let old: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![
@@ -223,7 +221,7 @@ fn swap_rows_keyed() {
         ],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![
@@ -262,7 +260,7 @@ fn swap_rows_keyed() {
 
 #[test]
 fn swap_rows_keyed_6_items() {
-    let old: MyNode = element(
+    let old: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![
@@ -275,7 +273,7 @@ fn swap_rows_keyed_6_items() {
         ],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![
@@ -311,7 +309,7 @@ fn swap_rows_keyed_6_items() {
 
 #[test]
 fn swap_rows_keyed_5_items() {
-    let old: MyNode = element(
+    let old: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![
@@ -323,7 +321,7 @@ fn swap_rows_keyed_5_items() {
         ],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "main",
         vec![attr("class", "container")],
         vec![

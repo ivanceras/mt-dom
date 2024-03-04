@@ -1,21 +1,19 @@
 use mt_dom::*;
 use std::fmt::Debug;
 
-type MyNode =
-    Node<&'static str, &'static str, &'static str, &'static str, &'static str>;
 
 /// A zipper is a technique of representing an aggregate data structure so that it is convenient for writing programs
 /// that traverse the structure arbitrarily and update its contents
 #[derive(Clone, Debug, PartialEq)]
 pub struct Zipper {
-    node: MyNode,
+    node: Node,
     parent: Option<Box<Zipper>>,
     index_in_parent: usize,
 }
 
 impl Zipper {
     /// create a Zipper for a Node
-    pub fn new(node: MyNode) -> Zipper {
+    pub fn new(node: Node) -> Zipper {
         Zipper {
             node,
             parent: None,
@@ -74,7 +72,7 @@ impl Zipper {
         }
     }
 
-    pub fn finish(mut self) -> MyNode {
+    pub fn finish(mut self) -> Node {
         while let Some(_) = self.parent {
             self = self.parent();
         }
@@ -82,7 +80,7 @@ impl Zipper {
     }
 }
 
-fn zipper_traverse_node(node: MyNode, path: &mut Vec<usize>) -> Option<MyNode> {
+fn zipper_traverse_node(node: Node, path: &mut Vec<usize>) -> Option<Node> {
     if path.is_empty() {
         Some(node)
     } else {
@@ -96,7 +94,7 @@ fn zipper_traverse_node(node: MyNode, path: &mut Vec<usize>) -> Option<MyNode> {
     }
 }
 
-fn find_node_by_zipper(node: MyNode, path: &[usize]) -> Option<MyNode> {
+fn find_node_by_zipper(node: Node, path: &[usize]) -> Option<Node> {
     let mut path = path.to_vec();
     let root_idx = path.remove(0); // remove the first 0
     assert_eq!(0, root_idx, "path must start with 0");
@@ -110,8 +108,8 @@ mod tests {
     use super::*;
     use crate::*;
 
-    fn sample_node() -> MyNode {
-        let node: MyNode = element(
+    fn sample_node() -> Node {
+        let node: Node = element(
             "div",
             vec![attr("class", "[0]"), attr("id", "0")],
             vec![

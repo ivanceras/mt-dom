@@ -1,12 +1,10 @@
 #![deny(warnings)]
 use mt_dom::{diff::diff_with_functions, patch::*, *};
 
-type MyNode =
-    Node<&'static str, &'static str, &'static str, &'static str, &'static str>;
 
 #[test]
 fn force_replace() {
-    let old: MyNode =
+    let old: Node =
         element("div", vec![attr("class", "[0]"), attr("id", "0")], vec![]);
     let new =
         element("div", vec![attr("class", "[0]"), attr("id", "0")], vec![]);
@@ -27,7 +25,7 @@ fn force_replace() {
 
 #[test]
 fn force_skip() {
-    let old: MyNode =
+    let old: Node =
         element("div", vec![attr("class", "[0]"), attr("id", "0")], vec![]);
     let new =
         element("div", vec![attr("class", "[0]"), attr("id", "0")], vec![]);
@@ -41,7 +39,7 @@ fn force_skip() {
 
 #[test]
 fn skip_in_attribute() {
-    let old: MyNode =
+    let old: Node =
         element("div", vec![attr("class", "[0]"), attr("id", "0")], vec![]);
     let new = element(
         "div",
@@ -49,7 +47,7 @@ fn skip_in_attribute() {
         vec![],
     );
 
-    let skip = |_old, new: &MyNode| {
+    let skip = |_old, new: &Node| {
         if let Some(attributes) = new.attributes() {
             attributes
                 .iter()
@@ -68,7 +66,7 @@ fn skip_in_attribute() {
 
 #[test]
 fn replace_true_in_attribute_must_replace_old_node_regardless() {
-    let old: MyNode =
+    let old: Node =
         element("div", vec![attr("class", "[0]"), attr("id", "0")], vec![]);
     let new = element(
         "div",
@@ -81,7 +79,7 @@ fn replace_true_in_attribute_must_replace_old_node_regardless() {
     );
 
     let skip = |_old, _new| false;
-    let replace = |_old, new: &MyNode| {
+    let replace = |_old, new: &Node| {
         if let Some(attributes) = new.attributes() {
             attributes
                 .iter()
@@ -106,7 +104,7 @@ fn replace_true_in_attribute_must_replace_old_node_regardless() {
 
 #[test]
 fn replace_and_skip_in_sub_nodes() {
-    let old: MyNode = element(
+    let old: Node = element(
         "div",
         vec![attr("class", "[0]"), attr("id", "0")],
         vec![
@@ -150,7 +148,7 @@ fn replace_and_skip_in_sub_nodes() {
         ],
     );
 
-    let new: MyNode = element(
+    let new: Node = element(
         "div",
         vec![attr("class", "[0]"), attr("id", "0")],
         vec![
@@ -202,7 +200,7 @@ fn replace_and_skip_in_sub_nodes() {
         ],
     );
 
-    let skip = |_old, new: &MyNode| {
+    let skip = |_old, new: &Node| {
         if let Some(attributes) = new.attributes() {
             attributes
                 .iter()
@@ -213,7 +211,7 @@ fn replace_and_skip_in_sub_nodes() {
             false
         }
     };
-    let replace = |_old, new: &MyNode| {
+    let replace = |_old, new: &Node| {
         if let Some(attributes) = new.attributes() {
             attributes
                 .iter()
