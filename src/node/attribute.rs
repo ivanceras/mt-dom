@@ -2,8 +2,8 @@
 use alloc::vec;
 use alloc::vec::Vec;
 use core::fmt::Debug;
-use indexmap::IndexMap;
 use core::hash::Hash;
+use indexmap::IndexMap;
 
 /// These are the plain attributes of an element
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -118,18 +118,20 @@ where
     Val: PartialEq + Clone + Debug,
 {
     //let mut merged: Vec<Attribute<Ns, Att, Val>> = vec![];
-    let mut merged: IndexMap<&Att, Attribute<Ns, Att, Val>> = IndexMap::with_capacity(attributes.len());
+    let mut merged: IndexMap<&Att, Attribute<Ns, Att, Val>> =
+        IndexMap::with_capacity(attributes.len());
     for att in attributes {
-        if let Some(existing) =
-            merged.get_mut(&att.name)
-        {
+        if let Some(existing) = merged.get_mut(&att.name) {
             existing.value.extend(att.value.clone());
         } else {
-            merged.insert(&att.name, Attribute {
-                namespace: None,
-                name: att.name.clone(),
-                value: att.value.clone(),
-            });
+            merged.insert(
+                &att.name,
+                Attribute {
+                    namespace: None,
+                    name: att.name.clone(),
+                    value: att.value.clone(),
+                },
+            );
         }
     }
     merged.into_values().collect()
@@ -145,10 +147,10 @@ where
     Att: PartialEq + Eq + Hash + Clone + Debug,
     Val: PartialEq + Clone + Debug,
 {
-    let mut grouped: IndexMap<&Att, Vec<&Attribute<Ns, Att, Val>>> = IndexMap::with_capacity(attributes.len());
+    let mut grouped: IndexMap<&Att, Vec<&Attribute<Ns, Att, Val>>> =
+        IndexMap::with_capacity(attributes.len());
     for attr in attributes {
-        if let Some(existing) = grouped.get_mut(&attr.name)
-        {
+        if let Some(existing) = grouped.get_mut(&attr.name) {
             existing.push(attr);
         } else {
             grouped.insert(&attr.name, vec![attr]);

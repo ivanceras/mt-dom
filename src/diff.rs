@@ -6,8 +6,8 @@ use crate::{
 use alloc::vec;
 use alloc::vec::Vec;
 use core::fmt::Debug;
-use core::{cmp, mem};
 use core::hash::Hash;
+use core::{cmp, mem};
 
 /// Return the patches needed for `old_node` to have the same DOM as `new_node`
 ///
@@ -486,15 +486,13 @@ where
     // or the values differ
     // add it to the AddAttribute patches
     for (new_attr_name, new_attrs) in new_attributes_grouped.iter() {
-        let old_attr_values = old_attributes_grouped
-            .get(new_attr_name)
-            .map(|attrs| {
+        let old_attr_values =
+            old_attributes_grouped.get(new_attr_name).map(|attrs| {
                 attrs.iter().map(|attr| &attr.value).collect::<Vec<_>>()
             });
 
-        let new_attr_values = new_attributes_grouped
-            .get(new_attr_name)
-            .map(|attrs| {
+        let new_attr_values =
+            new_attributes_grouped.get(new_attr_name).map(|attrs| {
                 attrs.iter().map(|attr| &attr.value).collect::<Vec<_>>()
             });
 

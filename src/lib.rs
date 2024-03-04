@@ -21,7 +21,7 @@
 //! for native UI elements.
 //!
 extern crate alloc;
-pub use diff::{diff_with_key, diff_recursive};
+pub use diff::{diff_recursive, diff_with_key};
 pub use node::{
     attribute::{
         attr, attr_ns, group_attributes_per_name, merge_attributes_of_same_name,

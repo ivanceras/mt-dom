@@ -2,8 +2,8 @@ use alloc::vec::Vec;
 pub use attribute::Attribute;
 use core::fmt;
 use core::fmt::{Debug, Formatter};
-pub use element::Element;
 use core::hash::Hash;
+pub use element::Element;
 
 pub(crate) mod attribute;
 mod element;
