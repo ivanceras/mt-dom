@@ -25,6 +25,6 @@ fn main() {
             vec![],
         );
 
-    let diff = diff_with_key(&elm1, &elm2);
+    let diff = diff(&elm1, &elm2);
     println!("patches: {:#?}", diff);
 }

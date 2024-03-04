@@ -1,5 +1,5 @@
 #![deny(warnings)]
-use mt_dom::{diff::diff_with_functions, patch::*, *};
+use mt_dom::{diff::diff, patch::*, *};
 
 
 #[test]
@@ -9,7 +9,7 @@ fn force_replace() {
     let new =
         element("div", vec![attr("class", "[0]"), attr("id", "0"), attr("replace", "true")], vec![]);
 
-    let diff = diff_with_functions(&old, &new);
+    let diff = diff(&old, &new);
     assert_eq!(
         diff,
         vec![Patch::replace_node(
@@ -27,7 +27,7 @@ fn force_skip() {
     let new =
         element("div", vec![attr("class", "[0]"), attr("id", "0"), attr("skip", "true")], vec![]);
 
-    let diff = diff_with_functions(&old, &new);
+    let diff = diff(&old, &new);
     assert_eq!(diff, vec![],);
 }
 
@@ -41,7 +41,7 @@ fn skip_in_attribute() {
         vec![],
     );
 
-    let diff = diff_with_functions(&old, &new);
+    let diff = diff(&old, &new);
     assert_eq!(diff, vec![],);
 }
 
@@ -59,7 +59,7 @@ fn replace_true_in_attribute_must_replace_old_node_regardless() {
         vec![],
     );
 
-    let diff = diff_with_functions(&old, &new);
+    let diff = diff(&old, &new);
     assert_eq!(
         diff,
         vec![Patch::replace_node(
@@ -169,7 +169,7 @@ fn replace_and_skip_in_sub_nodes() {
     );
 
 
-    let diff = diff_with_functions(&old, &new);
+    let diff = diff(&old, &new);
     assert_eq!(
         diff,
         vec![Patch::replace_node(

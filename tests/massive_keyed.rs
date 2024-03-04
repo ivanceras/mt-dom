@@ -36,7 +36,7 @@ fn key_inserted_at_start() {
         ],
     );
 
-    let diff = diff_with_key(&old, &new);
+    let diff = diff(&old, &new);
     assert_eq!(
         diff,
         vec![Patch::insert_before_node(
@@ -87,7 +87,7 @@ fn key_inserted_at_middle() {
         ],
     );
 
-    let diff = diff_with_key(&old, &new);
+    let diff = diff(&old, &new);
     dbg!(&diff);
 
     assert_eq!(
@@ -148,7 +148,7 @@ fn wrapped_elements() {
         )],
     );
 
-    let diff = diff_with_key(&old, &new);
+    let diff = diff(&old, &new);
     dbg!(&diff);
     assert_eq!(
         diff,
@@ -211,7 +211,7 @@ fn text_changed() {
         )],
     );
 
-    let diff = diff_with_key(&old, &new);
+    let diff = diff(&old, &new);
     dbg!(&diff);
     assert_eq!(
         diff,
@@ -266,7 +266,7 @@ fn text_changed_non_keyed() {
         )],
     );
 
-    let diff = diff_with_key(&old, &new);
+    let diff = diff(&old, &new);
     dbg!(&diff);
 
     assert_eq!(
@@ -360,7 +360,7 @@ fn insert_one_line_at_start() {
         )],
     );
 
-    let diff = diff_with_key(&old, &new);
+    let diff = diff(&old, &new);
     dbg!(&diff);
     assert_eq!(
         diff,
@@ -485,7 +485,7 @@ fn insert_two_lines_at_start() {
         )],
     );
 
-    let diff = diff_with_key(&old, &new);
+    let diff = diff(&old, &new);
     dbg!(&diff);
 
     assert_eq!(

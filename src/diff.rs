@@ -35,7 +35,7 @@ use crate::node::attribute::{Tag, KEY};
 ///     vec![element("div", vec![attr("key", "2")], vec![])],
 /// );
 ///
-/// let diff = diff_with_key(&old, &new);
+/// let diff = diff(&old, &new);
 /// assert_eq!(
 ///     diff,
 ///     vec![Patch::remove_node(
@@ -45,7 +45,7 @@ use crate::node::attribute::{Tag, KEY};
 ///     ]
 /// );
 /// ```
-pub fn diff_with_key<'a>(
+pub fn diff<'a>(
     old_node: &'a Node,
     new_node: &'a Node,
 ) -> Vec<Patch<'a>>
@@ -57,24 +57,6 @@ pub fn diff_with_key<'a>(
     )
 }
 
-/// calculate the difference of 2 nodes
-/// if the skip function evaluates to true, then diffing of
-/// the node and all of it's descendant will be skipped entirely and then proceed to the next node.
-///
-/// The Skip fn is passed to check whether the diffing of the old and new element should be
-/// skipped, and assumed no changes. This is for optimization where the developer is sure that
-/// the dom tree hasn't change.
-///
-/// Rep fn stands for replace function which decides if the new element should
-/// just replace the old element without diffing
-///
-pub fn diff_with_functions<'a>(
-    old_node: &'a Node,
-    new_node: &'a Node,
-) -> Vec<Patch<'a>>
-{
-    diff_recursive(old_node, new_node, &TreePath::root())
-}
 
 fn is_any_keyed(
     nodes: &[Node],

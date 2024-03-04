@@ -14,7 +14,7 @@ fn class_changed() {
         vec![leaf("Content of class")],
     );
 
-    let diff = diff_with_key(&old, &new);
+    let diff = diff(&old, &new);
 
     dbg!(&diff);
 
@@ -50,7 +50,7 @@ fn parent_of_matching_keyed_are_ignored() {
         ],
     );
 
-    let patches = diff_with_key(&old, &new);
+    let patches = diff(&old, &new);
 
     assert_eq!(
         patches,

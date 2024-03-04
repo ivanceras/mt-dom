@@ -25,7 +25,7 @@ fn text_changed_keyed() {
         ],
     );
 
-    let diff = diff_with_key(&old, &new);
+    let diff = diff(&old, &new);
     dbg!(&diff);
 
     assert_eq!(
