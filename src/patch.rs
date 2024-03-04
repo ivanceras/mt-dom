@@ -59,34 +59,34 @@ mod tree_path;
 /// 1 - is the `footer` element since it is the 2nd element of the body.
 /// 2 - is the `nav` element since it is the 3rd node in the `footer` element.
 #[derive(Clone, Debug, PartialEq)]
-pub struct Patch<'a> {
+pub struct Patch<'a, MSG> {
     /// the tag of the node at patch_path
     pub tag: Option<&'a Tag>,
     /// the path to traverse to get to the target element
     pub patch_path: TreePath,
     /// the type of patch we are going to apply
-    pub patch_type: PatchType<'a>,
+    pub patch_type: PatchType<'a, MSG>,
 }
 
 /// the patch variant
 #[derive(Clone, Debug, PartialEq)]
-pub enum PatchType<'a> {
+pub enum PatchType<'a, MSG> {
     /// insert the nodes before the node at patch_path
     InsertBeforeNode {
         /// the nodes to be inserted before patch_path
-        nodes: Vec<&'a Node>,
+        nodes: Vec<&'a Node<MSG>>,
     },
 
     /// insert the nodes after the node at patch_path
     InsertAfterNode {
         /// the nodes to be inserted after the patch_path
-        nodes: Vec<&'a Node>,
+        nodes: Vec<&'a Node<MSG>>,
     },
 
     /// Append a vector of child nodes to a parent node id at patch_path
     AppendChildren {
         /// children nodes to be appended and their corresponding new_node_idx
-        children: Vec<&'a Node>,
+        children: Vec<&'a Node<MSG>>,
     },
     /// remove the target node
     RemoveNode,
@@ -107,23 +107,23 @@ pub enum PatchType<'a> {
     /// ex: <div> becomes <span>
     ReplaceNode {
         /// the node that will replace the target node
-        replacement: Vec<&'a Node>,
+        replacement: Vec<&'a Node<MSG>>,
     },
     /// Add attributes that the new node has that the old node does not
     /// Note: the attributes is not a reference since attributes of same
     /// name are merged to produce a new unify attribute
     AddAttributes {
         /// the attributes to be patched into the target node
-        attrs: Vec<&'a Attribute>,
+        attrs: Vec<&'a Attribute<MSG>>,
     },
     /// Remove attributes that the old node had that the new node doesn't
     RemoveAttributes {
         /// attributes that are to be removed from this target node
-        attrs: Vec<&'a Attribute>,
+        attrs: Vec<&'a Attribute<MSG>>,
     },
 }
 
-impl<'a> Patch<'a> {
+impl<'a, MSG> Patch<'a, MSG> {
     /// return the path to traverse for this patch to get to the target Node
     pub fn path(&self) -> &TreePath {
         &self.patch_path
@@ -147,8 +147,8 @@ impl<'a> Patch<'a> {
     pub fn insert_before_node(
         tag: Option<&'a Tag>,
         patch_path: TreePath,
-        nodes: impl IntoIterator<Item = &'a Node>,
-    ) -> Patch<'a> {
+        nodes: impl IntoIterator<Item = &'a Node<MSG>>,
+    ) -> Patch<'a, MSG> {
         Patch {
             tag,
             patch_path,
@@ -162,8 +162,8 @@ impl<'a> Patch<'a> {
     pub fn insert_after_node(
         tag: Option<&'a Tag>,
         patch_path: TreePath,
-        nodes: Vec<&'a Node>,
-    ) -> Patch<'a> {
+        nodes: Vec<&'a Node<MSG>>,
+    ) -> Patch<'a, MSG> {
         Patch {
             tag,
             patch_path,
@@ -175,8 +175,8 @@ impl<'a> Patch<'a> {
     pub fn append_children(
         tag: Option<&'a Tag>,
         patch_path: TreePath,
-        children: Vec<&'a Node>,
-    ) -> Patch<'a> {
+        children: Vec<&'a Node<MSG>>,
+    ) -> Patch<'a, MSG> {
         Patch {
             tag,
             patch_path,
@@ -189,7 +189,7 @@ impl<'a> Patch<'a> {
     pub fn remove_node(
         tag: Option<&'a Tag>,
         patch_path: TreePath,
-    ) -> Patch<'a> {
+    ) -> Patch<'a, MSG> {
         Patch {
             tag,
             patch_path,
@@ -203,7 +203,7 @@ impl<'a> Patch<'a> {
         tag: Option<&'a Tag>,
         patch_path: TreePath,
         nodes_path: impl IntoIterator<Item = TreePath>,
-    ) -> Patch<'a> {
+    ) -> Patch<'a, MSG> {
         Patch {
             tag,
             patch_path,
@@ -219,7 +219,7 @@ impl<'a> Patch<'a> {
         tag: Option<&'a Tag>,
         patch_path: TreePath,
         nodes_path: impl IntoIterator<Item = TreePath>,
-    ) -> Patch<'a> {
+    ) -> Patch<'a, MSG> {
         Patch {
             tag,
             patch_path,
@@ -234,8 +234,8 @@ impl<'a> Patch<'a> {
     pub fn replace_node(
         tag: Option<&'a Tag>,
         patch_path: TreePath,
-        replacement: impl IntoIterator<Item = &'a Node>,
-    ) -> Patch<'a> {
+        replacement: impl IntoIterator<Item = &'a Node<MSG>>,
+    ) -> Patch<'a, MSG> {
         Patch {
             tag,
             patch_path,
@@ -249,8 +249,8 @@ impl<'a> Patch<'a> {
     pub fn add_attributes(
         tag: &'a Tag,
         patch_path: TreePath,
-        attrs: impl IntoIterator<Item = &'a Attribute>,
-    ) -> Patch<'a> {
+        attrs: impl IntoIterator<Item = &'a Attribute<MSG>>,
+    ) -> Patch<'a, MSG> {
         Patch {
             tag: Some(tag),
             patch_path,
@@ -265,8 +265,8 @@ impl<'a> Patch<'a> {
     pub fn remove_attributes(
         tag: &'a Tag,
         patch_path: TreePath,
-        attrs: Vec<&'a Attribute>,
-    ) -> Patch<'a> {
+        attrs: Vec<&'a Attribute<MSG>>,
+    ) -> Patch<'a, MSG> {
         Patch {
             tag: Some(tag),
             patch_path,

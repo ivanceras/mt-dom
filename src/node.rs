@@ -20,15 +20,15 @@ mod element;
 /// virtual dom implementation
 /// AttributeValue - is the type for the value of the attribute, this will be String, f64, or just another
 /// generics that suits the implementing library which used mt-dom for just dom-diffing purposes
-#[derive(Clone, Debug, PartialEq)]
-pub enum Node {
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum Node<MSG> {
     /// Element variant of a virtual node
-    Element(Element),
+    Element(Element<MSG>),
     /// A node containing nodes, this will be unrolled together with the rest of the children of
     /// the node
-    NodeList(Vec<Node>),
+    NodeList(Vec<Node<MSG>>),
     /// A document fragment node, will be created using fragment node and attached to the dom
-    Fragment(Vec<Node>),
+    Fragment(Vec<Node<MSG>>),
     /// A Leaf node
     Leaf(Leaf),
 }
@@ -60,10 +60,10 @@ impl fmt::Display for Error {
 ///TODO: use core::error when it will go out of nightly
 impl std::error::Error for Error {}
 
-impl Node {
+impl<MSG> Node<MSG> {
     /// consume self and return the element if it is an element variant
     /// None if it is a text node
-    pub fn take_element(self) -> Option<Element> {
+    pub fn take_element(self) -> Option<Element<MSG>> {
         match self {
             Node::Element(element) => Some(element),
             _ => None,
@@ -94,7 +94,7 @@ impl Node {
     }
 
     /// Get a mutable reference to the element, if this node is an element node
-    pub fn element_mut(&mut self) -> Option<&mut Element> {
+    pub fn element_mut(&mut self) -> Option<&mut Element<MSG>> {
         match *self {
             Node::Element(ref mut element) => Some(element),
             _ => None,
@@ -102,7 +102,7 @@ impl Node {
     }
 
     /// returns a reference to the element if this is an element node
-    pub fn element_ref(&self) -> Option<&Element> {
+    pub fn element_ref(&self) -> Option<&Element<MSG>> {
         match *self {
             Node::Element(ref element) => Some(element),
             _ => None,
@@ -114,7 +114,7 @@ impl Node {
     /// This is used in building the nodes in a builder pattern
     pub fn with_children(
         mut self,
-        children: impl IntoIterator<Item = Node>,
+        children: impl IntoIterator<Item = Node<MSG>>,
     ) -> Self {
         if let Some(element) = self.element_mut() {
             element.add_children(children);
@@ -127,7 +127,7 @@ impl Node {
     /// add children but not consume self
     pub fn add_children(
         &mut self,
-        children: impl IntoIterator<Item = Node>,
+        children: impl IntoIterator<Item = Node<MSG>>,
     ) -> Result<(), Error> {
         if let Some(element) = self.element_mut() {
             element.add_children(children);
@@ -141,7 +141,7 @@ impl Node {
     /// this is used in view building
     pub fn with_attributes(
         mut self,
-        attributes: impl IntoIterator<Item = Attribute>,
+        attributes: impl IntoIterator<Item = Attribute<MSG>>,
     ) -> Self {
         if let Some(elm) = self.element_mut() {
             elm.add_attributes(attributes);
@@ -154,7 +154,7 @@ impl Node {
     /// add attributes using a mutable reference to self
     pub fn add_attributes(
         &mut self,
-        attributes: impl IntoIterator<Item = Attribute>,
+        attributes: impl IntoIterator<Item = Attribute<MSG>>,
     ) -> Result<(), Error> {
         if let Some(elm) = self.element_mut() {
             elm.add_attributes(attributes);
@@ -166,7 +166,7 @@ impl Node {
 
     /// get the attributes of this node
     /// returns None if it is a text node
-    pub fn attributes(&self) -> Option<&[Attribute]> {
+    pub fn attributes(&self) -> Option<&[Attribute<MSG>]> {
         match *self {
             Node::Element(ref element) => Some(element.attributes()),
             _ => None,
@@ -185,7 +185,7 @@ impl Node {
 
     /// return the children of this node if it is an element
     /// returns None if it is a text node
-    pub fn children(&self) -> &[Node] {
+    pub fn children(&self) -> &[Node<MSG>] {
         if let Some(element) = self.element_ref() {
             element.children()
         } else {
@@ -200,7 +200,7 @@ impl Node {
 
     /// return the children of this node if it is an element
     /// returns None if it is a text node
-    pub fn children_mut(&mut self) -> Option<&mut [Node]> {
+    pub fn children_mut(&mut self) -> Option<&mut [Node<MSG>]> {
         if let Some(element) = self.element_mut() {
             Some(element.children_mut())
         } else {
@@ -215,7 +215,7 @@ impl Node {
     /// # Panics
     /// Panics if this is a text node
     ///
-    pub fn swap_remove_child(&mut self, index: usize) -> Node {
+    pub fn swap_remove_child(&mut self, index: usize) -> Node<MSG> {
         match self {
             Node::Element(element) => element.swap_remove_child(index),
             _ => panic!("text has no child"),
@@ -258,7 +258,7 @@ impl Node {
     /// remove the existing attributes and set with the new value
     pub fn set_attributes(
         &mut self,
-        attributes: impl IntoIterator<Item = Attribute>,
+        attributes: impl IntoIterator<Item = Attribute<MSG>>,
     ) -> Result<(), Error> {
         if let Some(elm) = self.element_mut() {
             elm.set_attributes(attributes);
@@ -271,7 +271,7 @@ impl Node {
     /// merge to existing attributes if the attribute name already exist
     pub fn merge_attributes(
         mut self,
-        attributes: impl IntoIterator<Item = Attribute>,
+        attributes: impl IntoIterator<Item = Attribute<MSG>>,
     ) -> Self {
         if let Some(elm) = self.element_mut() {
             elm.merge_attributes(attributes);
@@ -280,7 +280,7 @@ impl Node {
     }
 
     /// returh the attribute values of this node which match the attribute name `name`
-    pub fn attribute_value(&self, name: &AttributeName) -> Option<Vec<&AttributeValue>> {
+    pub fn attribute_value(&self, name: &AttributeName) -> Option<Vec<&AttributeValue<MSG>>> {
         if let Some(elm) = self.element_ref() {
             elm.attribute_value(name)
         } else {
@@ -301,11 +301,11 @@ impl Node {
 ///      );
 /// ```
 #[inline]
-pub fn element(
+pub fn element<MSG>(
     tag: Tag,
-    attrs: impl IntoIterator<Item = Attribute>,
-    children: impl IntoIterator<Item = Node>,
-) -> Node {
+    attrs: impl IntoIterator<Item = Attribute<MSG>>,
+    children: impl IntoIterator<Item = Node<MSG>>,
+) -> Node<MSG> {
     element_ns(None, tag, attrs, children, false)
 }
 
@@ -322,27 +322,27 @@ pub fn element(
 ///          false
 ///      );
 /// ```
-pub fn element_ns(
+pub fn element_ns<MSG>(
     namespace: Option<Namespace>,
     tag: Tag,
-    attrs: impl IntoIterator<Item = Attribute>,
-    children: impl IntoIterator<Item = Node>,
+    attrs: impl IntoIterator<Item = Attribute<MSG>>,
+    children: impl IntoIterator<Item = Node<MSG>>,
     self_closing: bool,
-) -> Node {
+) -> Node<MSG> {
     Node::Element(Element::new(namespace, tag, attrs, children, self_closing))
 }
 
 /// create a leaf node
-pub fn leaf(leaf: impl Into<Leaf>) -> Node {
+pub fn leaf<MSG>(leaf: impl Into<Leaf>) -> Node<MSG> {
     Node::Leaf(leaf.into())
 }
 
 /// create a node list
-pub fn node_list(nodes: impl IntoIterator<Item = Node>) -> Node {
+pub fn node_list<MSG>(nodes: impl IntoIterator<Item = Node<MSG>>) -> Node<MSG> {
     Node::NodeList(nodes.into_iter().collect())
 }
 
 /// create fragment node
-pub fn fragment(nodes: impl IntoIterator<Item = Node>) -> Node {
+pub fn fragment<MSG>(nodes: impl IntoIterator<Item = Node<MSG>>) -> Node<MSG> {
     Node::Fragment(nodes.into_iter().collect())
 }

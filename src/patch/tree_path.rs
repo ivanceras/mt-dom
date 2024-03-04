@@ -121,7 +121,7 @@ impl TreePath {
     }
 
     /// find the node using the path of this tree path
-    pub fn find_node_by_path<'a>(&self, node: &'a Node) -> Option<&'a Node> {
+    pub fn find_node_by_path<'a, MSG>(&self, node: &'a Node<MSG>) -> Option<&'a Node<MSG>> {
         let mut path = self.clone();
         traverse_node_by_path(node, &mut path)
     }
@@ -141,10 +141,10 @@ impl From<Vec<usize>> for TreePath {
     }
 }
 
-fn traverse_node_by_path<'a>(
-    node: &'a Node,
+fn traverse_node_by_path<'a, MSG>(
+    node: &'a Node<MSG>,
     path: &mut TreePath,
-) -> Option<&'a Node> {
+) -> Option<&'a Node<MSG>> {
     if path.path.is_empty() {
         Some(node)
     } else {

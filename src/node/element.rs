@@ -15,28 +15,28 @@ use std::fmt::Debug;
 ///
 /// The namespace is also needed in attributes where namespace are necessary such as `xlink:href`
 /// where the namespace `xlink` is needed in order for the linked element in an svg image to work.
-#[derive(Clone, Debug, PartialEq, Default)]
-pub struct Element {
+#[derive(Clone, Debug, PartialEq, Default, Eq)]
+pub struct Element<MSG> {
     /// namespace of this element,
     /// svg elements requires namespace to render correcly in the browser
     pub namespace: Option<Namespace>,
     /// the element tag, such as div, a, button
     pub tag: Tag,
     /// attributes for this element
-    pub attrs: Vec<Attribute>,
+    pub attrs: Vec<Attribute<MSG>>,
     /// children elements of this element
-    pub children: Vec<Node>,
+    pub children: Vec<Node<MSG>>,
     /// is the element has a self closing tag
     pub self_closing: bool,
 }
 
-impl Element {
+impl<MSG> Element<MSG> {
     /// create a new instance of an element
     pub fn new(
         namespace: Option<Namespace>,
         tag: Tag,
-        attrs: impl IntoIterator<Item = Attribute>,
-        children: impl IntoIterator<Item = Node>,
+        attrs: impl IntoIterator<Item = Attribute<MSG>>,
+        children: impl IntoIterator<Item = Node<MSG>>,
         self_closing: bool,
     ) -> Self {
         //unroll the nodelist
@@ -59,23 +59,23 @@ impl Element {
     /// add attributes to this element
     pub fn add_attributes(
         &mut self,
-        attrs: impl IntoIterator<Item = Attribute>,
+        attrs: impl IntoIterator<Item = Attribute<MSG>>,
     ) {
         self.attrs.extend(attrs)
     }
 
     /// add children virtual node to this element
-    pub fn add_children(&mut self, children: impl IntoIterator<Item = Node>) {
+    pub fn add_children(&mut self, children: impl IntoIterator<Item = Node<MSG>>) {
         self.children.extend(children.into_iter());
     }
 
     /// returns a refernce to the children of this node
-    pub fn children(&self) -> &[Node] {
+    pub fn children(&self) -> &[Node<MSG>] {
         &self.children
     }
 
     /// returns a mutable reference to the children of this node
-    pub fn children_mut(&mut self) -> &mut [Node] {
+    pub fn children_mut(&mut self) -> &mut [Node<MSG>] {
         &mut self.children
     }
 
@@ -86,7 +86,7 @@ impl Element {
     /// # Panics
     /// Panics if index is out of bounds in children
     ///
-    pub fn swap_remove_child(&mut self, index: usize) -> Node {
+    pub fn swap_remove_child(&mut self, index: usize) -> Node<MSG> {
         self.children.swap_remove(index)
     }
 
@@ -104,17 +104,17 @@ impl Element {
     }
 
     /// consume self and return the children
-    pub fn take_children(self) -> Vec<Node> {
+    pub fn take_children(self) -> Vec<Node<MSG>> {
         self.children
     }
 
     /// return a reference to the attribute of this element
-    pub fn attributes(&self) -> &[Attribute] {
+    pub fn attributes(&self) -> &[Attribute<MSG>] {
         &self.attrs
     }
 
     /// consume self and return the attributes
-    pub fn take_attributes(self) -> Vec<Attribute> {
+    pub fn take_attributes(self) -> Vec<Attribute<MSG>> {
         self.attrs
     }
 
@@ -147,7 +147,7 @@ impl Element {
     /// and add the new values
     pub fn set_attributes(
         &mut self,
-        attrs: impl IntoIterator<Item = Attribute>,
+        attrs: impl IntoIterator<Item = Attribute<MSG>>,
     ) {
         for attr in attrs {
             self.remove_attribute(&attr.name);
@@ -158,7 +158,7 @@ impl Element {
     /// merge to existing attributes if it exist
     pub fn merge_attributes(
         &mut self,
-        new_attrs: impl IntoIterator<Item = Attribute>,
+        new_attrs: impl IntoIterator<Item = Attribute<MSG>>,
     ) {
         for new_att in new_attrs {
             if let Some(existing_attr) =
@@ -172,8 +172,8 @@ impl Element {
     }
 
     /// return all the attribute values which the name &AttributeName
-    pub fn attribute_value(&self, name: &AttributeName) -> Option<Vec<&AttributeValue>> {
-        let result: Vec<&AttributeValue> = self
+    pub fn attribute_value(&self, name: &AttributeName) -> Option<Vec<&AttributeValue<MSG>>> {
+        let result: Vec<&AttributeValue<MSG>> = self
             .attrs
             .iter()
             .filter(|att| att.name == *name)

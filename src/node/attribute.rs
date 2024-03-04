@@ -1,22 +1,58 @@
 #![allow(clippy::type_complexity)]
 use std::fmt::Debug;
 use indexmap::IndexMap;
+use std::fmt;
 
 /// The type of the Namspace
 pub type Namespace = &'static str;
+
 /// The type of the Tag
 pub type Tag = &'static str;
+
 /// The type of Attribute Name
 pub type AttributeName = &'static str;
+
 /// The type of the Attribute Value
-pub type AttributeValue = String;
+pub enum AttributeValue<MSG>{
+    Simple(String),
+    Callback(Callback<MSG>),
+}
+
+
+impl<MSG> Clone for AttributeValue<MSG> {
+    fn clone(&self) -> Self {
+        todo!()
+    }
+}
+
+/// This is written manually, so we don't push
+/// constraint on MSG to be Debug
+impl<MSG> Debug for AttributeValue<MSG> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        todo!()
+    }
+}
+
+/// This is written manually, so we don't push
+/// constraint on MSG to be PartialEq
+impl<MSG> PartialEq for AttributeValue<MSG> {
+    fn eq(&self, other: &Self) -> bool {
+        todo!()
+    }
+}
+
+impl<MSG> Eq for AttributeValue<MSG> {
+}
+
+pub struct Callback<MSG>(Box<dyn Fn() -> MSG>);
+
 
 /// The key attribute
 pub static KEY: &AttributeName = &"key";
 
 /// These are the plain attributes of an element
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Attribute {
+pub struct Attribute<MSG> {
     /// namespace of an attribute.
     /// This is specifically used by svg attributes
     /// such as xlink-href
@@ -25,12 +61,12 @@ pub struct Attribute {
     /// optional since style attribute doesn't need to have an attribute name
     pub name: AttributeName,
     /// the attribute value, which could be a simple value, and event or a function call
-    pub value: Vec<AttributeValue>,
+    pub value: Vec<AttributeValue<MSG>>,
 }
 
-impl Attribute {
+impl<MSG> Attribute<MSG> {
     /// create a plain attribute with namespace
-    pub fn new(namespace: Option<Namespace>, name: AttributeName, value: AttributeValue) -> Self {
+    pub fn new(namespace: Option<Namespace>, name: AttributeName, value: AttributeValue<MSG>) -> Self {
         Attribute {
             name,
             value: vec![value],
@@ -42,7 +78,7 @@ impl Attribute {
     pub fn with_multiple_values(
         namespace: Option<Namespace>,
         name: AttributeName,
-        value: impl IntoIterator<Item = AttributeValue>,
+        value: impl IntoIterator<Item = AttributeValue<MSG>>,
     ) -> Self {
         Attribute {
             name,
@@ -57,7 +93,7 @@ impl Attribute {
     }
 
     /// return the value of this attribute
-    pub fn value(&self) -> &[AttributeValue] {
+    pub fn value(&self) -> &[AttributeValue<MSG>] {
         &self.value
     }
 
@@ -74,7 +110,7 @@ impl Attribute {
 /// let class: Attribute = attr("class", "container");
 /// ```
 #[inline]
-pub fn attr(name: AttributeName, value: impl Into<AttributeValue>) -> Attribute {
+pub fn attr<MSG>(name: AttributeName, value: impl Into<AttributeValue<MSG>>) -> Attribute<MSG> {
     attr_ns(None, name, value)
 }
 
@@ -86,21 +122,21 @@ pub fn attr(name: AttributeName, value: impl Into<AttributeValue>) -> Attribute 
 /// let href: Attribute = attr_ns(Some("http://www.w3.org/1999/xlink"), "href", "cool-script.js");
 /// ```
 #[inline]
-pub fn attr_ns(
+pub fn attr_ns<MSG>(
     namespace: Option<Namespace>,
     name: AttributeName,
-    value: impl Into<AttributeValue>,
-) -> Attribute {
+    value: impl Into<AttributeValue<MSG>>,
+) -> Attribute<MSG> {
     Attribute::new(namespace, name, value.into())
 }
 
 /// merge the values of attributes with the same name
 #[doc(hidden)]
-pub fn merge_attributes_of_same_name(
-    attributes: &[&Attribute],
-) -> Vec<Attribute> {
+pub fn merge_attributes_of_same_name<MSG>(
+    attributes: &[&Attribute<MSG>],
+) -> Vec<Attribute<MSG>> {
     //let mut merged: Vec<Attribute> = vec![];
-    let mut merged: IndexMap<&AttributeName, Attribute> =
+    let mut merged: IndexMap<&AttributeName, Attribute<MSG>> =
         IndexMap::with_capacity(attributes.len());
     for att in attributes {
         if let Some(existing) = merged.get_mut(&att.name) {
@@ -121,10 +157,10 @@ pub fn merge_attributes_of_same_name(
 
 /// group attributes of the same name
 #[doc(hidden)]
-pub fn group_attributes_per_name(
-    attributes: &[Attribute],
-) -> IndexMap<&AttributeName, Vec<&Attribute>> {
-    let mut grouped: IndexMap<&AttributeName, Vec<&Attribute>> =
+pub fn group_attributes_per_name<MSG>(
+    attributes: &[Attribute<MSG>],
+) -> IndexMap<&AttributeName, Vec<&Attribute<MSG>>> {
+    let mut grouped: IndexMap<&AttributeName, Vec<&Attribute<MSG>>> =
         IndexMap::with_capacity(attributes.len());
     for attr in attributes {
         if let Some(existing) = grouped.get_mut(&attr.name) {
